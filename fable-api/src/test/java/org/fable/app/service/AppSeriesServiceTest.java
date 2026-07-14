@@ -33,6 +33,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +45,7 @@ class AppSeriesServiceTest {
     @Mock private BookRepository bookRepository;
     @Mock private UserBookProgressRepository userBookProgressRepository;
     @Mock private AppBookMapper mobileBookMapper;
+    @Mock private org.fable.service.library.LibraryVisibilityService libraryVisibilityService;
 
     private AppSeriesService service;
 
@@ -53,8 +55,16 @@ class AppSeriesServiceTest {
     void setUp() {
         service = new AppSeriesService(
                 entityManager, authenticationService, bookRepository,
-                userBookProgressRepository, mobileBookMapper
+                userBookProgressRepository, mobileBookMapper, libraryVisibilityService
         );
+        when(libraryVisibilityService.getAccessibleLibraryIds(any())).thenAnswer(inv -> {
+            org.fable.model.dto.FableUser u = inv.getArgument(0);
+            if (u.getPermissions() != null && u.getPermissions().isAdmin()) {
+                return java.util.Set.of(1L, 2L, 3L);
+            }
+            if (u.getAssignedLibraries() == null) return java.util.Set.of();
+            return u.getAssignedLibraries().stream().map(org.fable.model.dto.Library::getId).collect(java.util.stream.Collectors.toSet());
+        });
     }
 
     // ---- getSeries tests ----

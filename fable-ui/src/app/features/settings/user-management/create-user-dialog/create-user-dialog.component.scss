@@ -33,6 +33,24 @@
     padding: 1rem;
     gap: 1.25rem;
   }
+
+  .field-hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-color-secondary, #9aa8bc);
+    line-height: 1.35;
+  }
+
+  .show-library-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 32px;
+
+    @media (max-width: 768px) {
+      min-height: 44px;
+    }
+  }
 }
 
 .form-section {

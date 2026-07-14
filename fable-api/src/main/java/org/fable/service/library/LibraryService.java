@@ -299,15 +299,39 @@ public class LibraryService {
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Library> getLibraries() {
         FableUser user = authenticationService.getAuthenticatedUser();
-        FableUserEntity userEntity = userRepository.findById(user.getId()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        FableUserEntity userEntity = userRepository.findById(user.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<LibraryEntity> libraries;
         if (userEntity.getPermissions().isPermissionAdmin()) {
+            // Admins receive all libraries (including hidden personal) for management UIs.
+            // Working-catalog consumers (sidebar, books, AI) must filter via ownerUserId / showInAdminCatalog
+            // or use LibraryVisibilityService on the server for book queries.
             libraries = libraryRepository.findAll();
         } else {
             List<Long> libraryIds = userEntity.getLibraries().stream().map(LibraryEntity::getId).toList();
             libraries = libraryRepository.findByIdIn(libraryIds);
         }
-        return libraries.stream().map(libraryMapper::toLibrary).toList();
+        return enrichLibraries(libraries);
+    }
+
+    private List<Library> enrichLibraries(List<LibraryEntity> libraries) {
+        Set<Long> ownerIds = libraries.stream()
+                .map(LibraryEntity::getOwnerUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, String> ownerUsernames = ownerIds.isEmpty()
+                ? Map.of()
+                : userRepository.findAllById(ownerIds).stream()
+                .collect(Collectors.toMap(FableUserEntity::getId, FableUserEntity::getUsername, (a, b) -> a));
+
+        return libraries.stream().map(entity -> {
+            Library library = libraryMapper.toLibrary(entity);
+            if (entity.getOwnerUserId() != null) {
+                library.setOwnerUsername(ownerUsernames.get(entity.getOwnerUserId()));
+            }
+            library.setShowInAdminCatalog(entity.isShowInAdminCatalog());
+            return library;
+        }).toList();
     }
 
     @Transactional

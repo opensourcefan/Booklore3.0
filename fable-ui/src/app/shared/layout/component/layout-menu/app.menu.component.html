@@ -111,6 +111,17 @@
           }
         </ul>
       }
+      @case ('users') {
+        <ul class="layout-menu users-menu-section">
+          @if (usersMenu$ | async; as usersMenu) {
+            @for (item of usersMenu; track item.label; let i = $index) {
+              @if (!item.separator) {
+                <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="users" [reorderMode]="isReorderMode"></li>
+              }
+            }
+          }
+        </ul>
+      }
       @case ('shelf') {
         <ul class="layout-menu">
           @if (shelfMenu$ | async; as shelfMenu) {

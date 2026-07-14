@@ -14,6 +14,7 @@ import org.fable.repository.BookRepository;
 import org.fable.repository.ShelfRepository;
 import org.fable.repository.UserRepository;
 import org.fable.service.library.LibraryService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.service.opds.OpdsBookService;
 import org.fable.service.restriction.ContentRestrictionService;
 import org.junit.jupiter.api.AfterEach;
@@ -45,6 +46,7 @@ class OpdsBookServiceTest {
     @Mock private FableUserTransformer fableUserTransformer;
     @Mock private ShelfRepository shelfRepository;
     @Mock private LibraryService libraryService;
+    @Mock private LibraryVisibilityService libraryVisibilityService;
     @Mock private ContentRestrictionService contentRestrictionService;
 
     @InjectMocks private OpdsBookService opdsBookService;
@@ -56,6 +58,19 @@ class OpdsBookServiceTest {
         mocks = MockitoAnnotations.openMocks(this);
         when(contentRestrictionService.applyRestrictions(anyList(), anyLong()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        when(libraryVisibilityService.getAccessibleLibraryIds(any())).thenAnswer(inv -> {
+            FableUser u = inv.getArgument(0);
+            if (u.getPermissions() != null && u.getPermissions().isAdmin()) {
+                return Set.of(1L, 2L, 3L);
+            }
+            if (u.getAssignedLibraries() == null) return Set.of();
+            return u.getAssignedLibraries().stream().map(Library::getId).collect(java.util.stream.Collectors.toSet());
+        });
+        when(libraryVisibilityService.isLibraryAccessible(any(), any())).thenAnswer(inv -> {
+            FableUser u = inv.getArgument(0);
+            Long id = inv.getArgument(1);
+            return libraryVisibilityService.getAccessibleLibraryIds(u).contains(id);
+        });
     }
 
     @AfterEach
@@ -110,6 +125,7 @@ class OpdsBookServiceTest {
         when(perms.isAdmin()).thenReturn(false);
         List<Library> assigned = List.of(Library.builder().id(2L).watch(false).build());
         when(user.getAssignedLibraries()).thenReturn(assigned);
+        when(libraryService.getAllLibraries()).thenReturn(assigned);
 
         List<Library> result = opdsBookService.getAccessibleLibraries(details.getOpdsUserV2().getUserId());
 
@@ -121,6 +137,7 @@ class OpdsBookServiceTest {
         OpdsUserDetails details = v2UserDetails(1L, true, Set.of(1L));
         List<Library> allLibs = List.of(Library.builder().id(1L).watch(false).build());
         when(libraryService.getAllLibraries()).thenReturn(allLibs);
+        // Admin catalog visibility stubbed in setUp to include 1L
 
         List<Library> result = opdsBookService.getAccessibleLibraries(details.getOpdsUserV2().getUserId());
 
@@ -222,8 +239,8 @@ class OpdsBookServiceTest {
         when(user.getPermissions()).thenReturn(perms);
         when(perms.isAdmin()).thenReturn(true);
 
-        when(bookOpdsRepository.findRecentBookIds(any())).thenReturn(Page.empty());
-        when(bookOpdsRepository.findAllWithMetadataByIds(anyList())).thenReturn(List.of());
+        when(bookOpdsRepository.findRecentBookIdsByLibraryIds(anySet(), any())).thenReturn(Page.empty());
+        when(bookOpdsRepository.findAllWithMetadataByIdsAndLibraryIds(anyList(), anySet())).thenReturn(List.of());
 
         opdsBookService.getRecentBooksPage(details.getOpdsUserV2().getUserId(), 0, 10);
     }
@@ -552,9 +569,20 @@ class OpdsBookServiceTest {
         when(entity.getPermissions()).thenReturn(permissionsEntity);
         when(userRepository.findById(1L)).thenReturn(Optional.of(entity));
 
+        FableUser user = mock(FableUser.class);
+        FableUser.UserPermissions perms = mock(FableUser.UserPermissions.class);
+        when(fableUserTransformer.toDTO(entity)).thenReturn(user);
+        when(user.getPermissions()).thenReturn(perms);
+        when(perms.isAdmin()).thenReturn(true);
+
+        BookEntity book = mock(BookEntity.class);
+        LibraryEntity library = mock(LibraryEntity.class);
+        when(library.getId()).thenReturn(1L);
+        when(book.getLibrary()).thenReturn(library);
+        when(bookRepository.findById(99L)).thenReturn(Optional.of(book));
+
         opdsBookService.validateBookContentAccess(99L, 1L);
 
-        verify(bookRepository, never()).findById(anyLong());
         verify(contentRestrictionService, never()).applyRestrictions(anyList(), eq(1L));
     }
 
@@ -691,7 +719,7 @@ class OpdsBookServiceTest {
         when(perms.isAdmin()).thenReturn(true);
         when(user.getId()).thenReturn(1L);
 
-        when(bookOpdsRepository.findBookIds(any())).thenReturn(Page.empty());
+        when(bookOpdsRepository.findBookIdsByLibraryIds(anySet(), any())).thenReturn(Page.empty());
 
         opdsBookService.getBooksPage(1L, null, null, null, 0, 10);
 
@@ -734,7 +762,7 @@ class OpdsBookServiceTest {
         when(user.getPermissions()).thenReturn(perms);
         when(perms.isAdmin()).thenReturn(true);
 
-        when(bookOpdsRepository.findRecentBookIds(any())).thenReturn(Page.empty());
+        when(bookOpdsRepository.findRecentBookIdsByLibraryIds(anySet(), any())).thenReturn(Page.empty());
 
         opdsBookService.getRecentBooksPage(1L, 0, 10);
 

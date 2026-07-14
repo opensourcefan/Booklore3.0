@@ -11,6 +11,7 @@ import org.fable.repository.LibraryRepository;
 import org.fable.repository.UserRepository;
 import org.fable.service.appsettings.AppSettingService;
 import org.fable.service.audit.AuditService;
+import org.fable.service.library.PersonalLibraryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,9 @@ class UserProvisioningServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private PersonalLibraryService personalLibraryService;
 
     @InjectMocks
     private UserProvisioningService userProvisioningService;

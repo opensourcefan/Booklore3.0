@@ -24,6 +24,7 @@ import org.fable.service.FileStreamingService;
 import org.fable.util.FileService;
 import org.fable.util.FileUtils;
 import org.fable.service.appsettings.AppSettingService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.app.dto.AppBookGridSummary;
 import org.fable.app.dto.AppPageResponse;
 import org.fable.app.specification.AppBookSpecification;
@@ -129,16 +130,15 @@ public class BookService {
     private final FileStreamingService fileStreamingService;
     private final AuditService auditService;
     private final AppSettingService appSettingService;
+    private final LibraryVisibilityService libraryVisibilityService;
 
 
     public List<Book> getBookDTOs(boolean includeDescription, boolean stripForListView) {
         FableUser user = getAuthenticatedOrSystemUser();
-        boolean isAdmin = user.getPermissions().isAdmin();
+        Set<Long> accessibleLibraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
 
-        List<Book> books = isAdmin
-                ? bookQueryService.getAllBooks(includeDescription, stripForListView)
-                : bookQueryService.getAllBooksByLibraryIds(
-                getUserLibraryIds(user),
+        List<Book> books = bookQueryService.getAllBooksByLibraryIds(
+                accessibleLibraryIds,
                 includeDescription,
                 stripForListView,
                 user.getId()
@@ -167,23 +167,18 @@ public class BookService {
     }
 
     private Set<Long> getUserLibraryIds(FableUser user) {
-        return user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        return libraryVisibilityService.getAccessibleLibraryIds(user);
     }
 
     public List<Book> getBooksByIds(Set<Long> bookIds, boolean withDescription) {
         FableUser user = getAuthenticatedOrSystemUser();
-        boolean isAdmin = user.getPermissions().isAdmin();
+        Set<Long> userLibraryIds = getUserLibraryIds(user);
 
         List<BookEntity> bookEntities = bookQueryService.findAllWithMetadataByIds(bookIds);
 
-        if (!isAdmin) {
-            Set<Long> userLibraryIds = getUserLibraryIds(user);
-            bookEntities = bookEntities.stream()
-                    .filter(book -> userLibraryIds.contains(book.getLibrary().getId()))
-                    .toList();
-        }
+        bookEntities = bookEntities.stream()
+                .filter(book -> userLibraryIds.contains(book.getLibrary().getId()))
+                .toList();
 
         Set<Long> entityIds = bookEntities.stream().map(BookEntity::getId).collect(Collectors.toSet());
 
@@ -613,12 +608,10 @@ public class BookService {
         FableUser user = getAuthenticatedOrSystemUser();
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(ids);
 
-        if (!user.getPermissions().isAdmin()) {
-            Set<Long> userLibraryIds = getUserLibraryIds(user);
-            books = books.stream()
-                    .filter(book -> userLibraryIds.contains(book.getLibrary().getId()))
-                    .toList();
-        }
+        Set<Long> userLibraryIds = getUserLibraryIds(user);
+        books = books.stream()
+                .filter(book -> userLibraryIds.contains(book.getLibrary().getId()))
+                .toList();
 
         if (deleteFromDisk && !appSettingService.getAppSettings().isAllowFileDeletion()) {
             throw ApiError.FILE_DELETION_DISABLED.createException();
@@ -791,7 +784,6 @@ public class BookService {
             String series, String publisher, String language, String isbn,
             String readStatus, String bookType, String contentRating, String filterMode) {
         FableUser user = getAuthenticatedOrSystemUser();
-        boolean isAdmin = user.getPermissions().isAdmin();
 
         // Build sort
         Sort springSort = buildSort(sorts, sortField, sortDir);
@@ -802,14 +794,18 @@ public class BookService {
             series, publisher, language, isbn, readStatus, bookType, contentRating,
             shelfId, unshelved, mediaTypes, filterMode, user);
 
+        Set<Long> accessibleLibraryIds = getUserLibraryIds(user);
+
         // Build base specification with library access control
         Specification<BookEntity> baseSpec;
         if (libraryId != null) {
-            baseSpec = AppBookSpecification.inLibrary(libraryId);
-        } else if (!isAdmin) {
-            baseSpec = AppBookSpecification.inLibraries(getUserLibraryIds(user));
+            if (!accessibleLibraryIds.contains(libraryId)) {
+                baseSpec = (root, query, cb) -> cb.disjunction();
+            } else {
+                baseSpec = AppBookSpecification.inLibrary(libraryId);
+            }
         } else {
-            baseSpec = (root, query, cb) -> cb.conjunction();
+            baseSpec = AppBookSpecification.inLibraries(accessibleLibraryIds);
         }
 
         Specification<BookEntity> combined = AppBookSpecification.combine(
@@ -1000,11 +996,9 @@ public class BookService {
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         
         // Check if user has access to this book
-        if (!user.getPermissions().isAdmin()) {
-            Set<Long> userLibraryIds = getUserLibraryIds(user);
-            if (!userLibraryIds.contains(bookEntity.getLibrary().getId())) {
-                throw ApiError.BOOK_NOT_FOUND.createException(bookId);
-            }
+        Set<Long> userLibraryIds = getUserLibraryIds(user);
+        if (!userLibraryIds.contains(bookEntity.getLibrary().getId())) {
+            throw ApiError.BOOK_NOT_FOUND.createException(bookId);
         }
         
         // Use BookUpdateService to update the field

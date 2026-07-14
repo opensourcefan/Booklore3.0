@@ -26,6 +26,7 @@ interface UserWithEditing extends User {
   isEditing?: boolean;
   selectedLibraryIds?: number[];
   libraryNames?: string;
+  showLibrary?: boolean;
 }
 
 @Component({
@@ -111,6 +112,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         this.users = data.map((user) => ({
           ...user,
           isEditing: false,
+          showLibrary: !!user.showLibrary,
           selectedLibraryIds: user.assignedLibraries?.map((lib) => lib.id!).filter(id => id !== undefined) as number[] || [],
           libraryNames:
             user.assignedLibraries?.map((lib) => lib.name).join(', ') || '',
@@ -150,6 +152,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: user.email,
       permissions: user.permissions,
       assignedLibraries: user.selectedLibraryIds || [],
+      showLibrary: !!user.showLibrary,
     };
     this.userService
       .updateUser(user.id, updateRequest)

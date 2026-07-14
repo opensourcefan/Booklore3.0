@@ -80,4 +80,19 @@ public class LibraryEntity {
     @Builder.Default
     private DirectoryTagDepth directoryTagDepth = DirectoryTagDepth.LAST_ONLY;
 
+    /**
+     * When set, this library is a personal sandbox for that user.
+     * Admins only see it in the working catalog when {@link #showInAdminCatalog} is true.
+     */
+    @Column(name = "owner_user_id")
+    private Long ownerUserId;
+
+    /**
+     * Create User "Show library": when true, personal libraries appear under the admin USERS
+     * sidebar section and enter admin books/search/stats/AI effective scope.
+     */
+    @Column(name = "show_in_admin_catalog", nullable = false)
+    @Builder.Default
+    private boolean showInAdminCatalog = false;
+
 }

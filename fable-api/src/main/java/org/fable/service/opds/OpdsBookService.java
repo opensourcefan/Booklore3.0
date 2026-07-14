@@ -15,6 +15,7 @@ import org.fable.repository.UserRepository;
 import org.fable.repository.BookRepository;
 import org.fable.util.BookUtils;
 import org.fable.service.library.LibraryService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.service.restriction.ContentRestrictionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ public class OpdsBookService {
     private final FableUserTransformer fableUserTransformer;
     private final ShelfRepository shelfRepository;
     private final LibraryService libraryService;
+    private final LibraryVisibilityService libraryVisibilityService;
     private final ContentRestrictionService contentRestrictionService;
 
     public List<Library> getAccessibleLibraries(Long userId) {
@@ -51,16 +53,12 @@ public class OpdsBookService {
                 .orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(userId));
         FableUser user = fableUserTransformer.toDTO(entity);
 
-        List<Library> libraries;
-        if (user.getPermissions() != null && user.getPermissions().isAdmin()) {
-            libraries = libraryService.getAllLibraries();
-        } else {
-            libraries = user.getAssignedLibraries();
-        }
-
-        return libraries.stream()
+        Set<Long> accessibleIds = libraryVisibilityService.getAccessibleLibraryIds(user);
+        List<Library> libraries = libraryService.getAllLibraries().stream()
+                .filter(lib -> accessibleIds.contains(lib.getId()))
                 .sorted(Comparator.comparing(Library::getName, String.CASE_INSENSITIVE_ORDER))
                 .toList();
+        return libraries;
     }
 
     public Page<Book> getBooksPage(Long userId, String query, Long libraryId, Set<Long> shelfIds, int page, int size) {
@@ -77,10 +75,8 @@ public class OpdsBookService {
         }
 
         FableUser user = fableUserTransformer.toDTO(entity);
+        Set<Long> userLibraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
         boolean isAdmin = user.getPermissions().isAdmin();
-        Set<Long> userLibraryIds = user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
 
         if (shelfIds != null && !shelfIds.isEmpty()) {
             validateShelfAccess(shelfIds, user.getId(), isAdmin);
@@ -91,17 +87,11 @@ public class OpdsBookService {
         }
 
         if (libraryId != null) {
-            validateLibraryAccess(libraryId, userLibraryIds, isAdmin);
+            validateLibraryAccess(libraryId, userLibraryIds);
             Page<Book> books = query != null && !query.isBlank()
                     ? searchByMetadataInLibrariesPageInternal(BookUtils.normalizeForSearch(query), Set.of(libraryId), page, size, userId)
                     : getBooksByLibraryIdsPageInternal(Set.of(libraryId), page, size, userId);
             return applyBookFilters(books, userId);
-        }
-
-        if (isAdmin) {
-            return query != null && !query.isBlank()
-                    ? searchByMetadataPageInternal(BookUtils.normalizeForSearch(query), page, size, null)
-                    : getAllBooksPageInternal(page, size, null);
         }
 
         Page<Book> books = query != null && !query.isBlank()
@@ -119,13 +109,7 @@ public class OpdsBookService {
                 .orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(userId));
         FableUser user = fableUserTransformer.toDTO(entity);
 
-        if (user.getPermissions().isAdmin()) {
-            return getRecentBooksPageInternal(page, size, null);
-        }
-
-        Set<Long> libraryIds = user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
 
         Page<Book> books = getRecentBooksByLibraryIdsPageInternal(libraryIds, page, size, userId);
         return applyBookFilters(books, userId);
@@ -184,16 +168,8 @@ public class OpdsBookService {
                 .orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(userId));
         FableUser user = fableUserTransformer.toDTO(entity);
 
-        List<AuthorEntity> authors;
-
-        if (user.getPermissions().isAdmin()) {
-            authors = bookOpdsRepository.findDistinctAuthors();
-        } else {
-            Set<Long> libraryIds = user.getAssignedLibraries().stream()
-                    .map(Library::getId)
-                    .collect(Collectors.toSet());
-            authors = bookOpdsRepository.findDistinctAuthorsByLibraryIds(libraryIds);
-        }
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
+        List<AuthorEntity> authors = bookOpdsRepository.findDistinctAuthorsByLibraryIds(libraryIds);
 
         return authors.stream()
                 .map(AuthorEntity::getName)
@@ -213,19 +189,7 @@ public class OpdsBookService {
         FableUser user = fableUserTransformer.toDTO(entity);
 
         Pageable pageable = PageRequest.of(Math.max(page, 0), size);
-
-        if (user.getPermissions().isAdmin()) {
-            Page<Long> idPage = bookOpdsRepository.findBookIdsByAuthorName(authorName, pageable);
-            if (idPage.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
-            }
-            List<BookEntity> books = bookOpdsRepository.findAllWithFullMetadataByIds(idPage.getContent());
-            return createPageFromEntities(books, idPage, pageable, null);
-        }
-
-        Set<Long> libraryIds = user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
 
         Page<Long> idPage = bookOpdsRepository.findBookIdsByAuthorNameAndLibraryIds(authorName, libraryIds, pageable);
         if (idPage.isEmpty()) {
@@ -246,14 +210,7 @@ public class OpdsBookService {
                 .orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(userId));
         FableUser user = fableUserTransformer.toDTO(entity);
 
-        if (user.getPermissions().isAdmin()) {
-            return bookOpdsRepository.findDistinctSeries();
-        }
-
-        Set<Long> libraryIds = user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
-
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
         return bookOpdsRepository.findDistinctSeriesByLibraryIds(libraryIds);
     }
 
@@ -267,19 +224,7 @@ public class OpdsBookService {
         FableUser user = fableUserTransformer.toDTO(entity);
 
         Pageable pageable = PageRequest.of(Math.max(page, 0), size);
-
-        if (user.getPermissions().isAdmin()) {
-            Page<Long> idPage = bookOpdsRepository.findBookIdsBySeriesName(seriesName, pageable);
-            if (idPage.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
-            }
-            List<BookEntity> books = bookOpdsRepository.findAllWithFullMetadataByIds(idPage.getContent());
-            return createPageFromEntities(books, idPage, pageable, null);
-        }
-
-        Set<Long> libraryIds = user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
 
         Page<Long> idPage = bookOpdsRepository.findBookIdsBySeriesNameAndLibraryIds(seriesName, libraryIds, pageable);
         if (idPage.isEmpty()) {
@@ -413,8 +358,8 @@ public class OpdsBookService {
         }
     }
 
-    private void validateLibraryAccess(Long libraryId, Set<Long> userLibraryIds, boolean isAdmin) {
-        if (!isAdmin && !userLibraryIds.contains(libraryId)) {
+    private void validateLibraryAccess(Long libraryId, Set<Long> userLibraryIds) {
+        if (userLibraryIds == null || !userLibraryIds.contains(libraryId)) {
             throw ApiError.FORBIDDEN.createException("You are not allowed to access this library");
         }
     }
@@ -427,19 +372,16 @@ public class OpdsBookService {
         FableUserEntity entity = userRepository.findById(userId)
                 .orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(userId));
 
-        if (entity.getPermissions() != null && entity.getPermissions().isPermissionAdmin()) {
-            return;
-        }
-
         BookEntity book = bookRepository.findById(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
         FableUser user = fableUserTransformer.toDTO(entity);
-        boolean hasLibraryAccess = user.getAssignedLibraries().stream()
-                .anyMatch(library -> library.getId().equals(book.getLibrary().getId()));
-
-        if (!hasLibraryAccess) {
+        if (!libraryVisibilityService.isLibraryAccessible(user, book.getLibrary().getId())) {
             throw ApiError.FORBIDDEN.createException("You are not authorized to access this book.");
+        }
+
+        if (entity.getPermissions() != null && entity.getPermissions().isPermissionAdmin()) {
+            return;
         }
 
         List<BookEntity> filtered = contentRestrictionService.applyRestrictions(List.of(book), userId);

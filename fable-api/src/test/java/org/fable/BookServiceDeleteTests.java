@@ -60,6 +60,7 @@ class BookServiceDeleteTests {
         FileStreamingService fileStreamingService = Mockito.mock(FileStreamingService.class);
         AuditService auditService = Mockito.mock(AuditService.class);
         AppSettingService appSettingService = Mockito.mock(AppSettingService.class);
+        org.fable.service.library.LibraryVisibilityService libraryVisibilityService = Mockito.mock(org.fable.service.library.LibraryVisibilityService.class);
 
         bookService = new BookService(
                 bookRepository,
@@ -82,7 +83,8 @@ class BookServiceDeleteTests {
                 sidecarMetadataWriter,
                 fileStreamingService,
                 auditService,
-                appSettingService
+                appSettingService,
+                libraryVisibilityService
         );
     }
 

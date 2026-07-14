@@ -33,5 +33,17 @@ public class Library {
     private MetadataSource metadataSource;
     private boolean tagByDirectory;
     private DirectoryTagDepth directoryTagDepth;
+
+    /** Owner of a personal library; null for shared libraries. */
+    private Long ownerUserId;
+
+    /** Display name of the personal-library owner (for USERS sidebar). */
+    private String ownerUsername;
+
+    /**
+     * When true, personal libraries are visible to admins in USERS / effective catalog.
+     * Always false for non-personal libraries (ignored).
+     */
+    private Boolean showInAdminCatalog;
 }
 

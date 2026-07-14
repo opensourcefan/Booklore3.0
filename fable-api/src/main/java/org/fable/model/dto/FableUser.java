@@ -26,6 +26,11 @@ public class FableUser {
     private UserPermissions permissions;
     private UserSettings userSettings;
 
+    /**
+     * True when any personal library owned by this user is shown in the admin catalog (USERS).
+     */
+    private Boolean showLibrary;
+
     @Data
     public static class UserPermissions {
         private boolean isAdmin;

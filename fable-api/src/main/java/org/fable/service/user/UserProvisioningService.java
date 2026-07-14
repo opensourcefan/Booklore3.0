@@ -10,6 +10,7 @@ import org.fable.model.enums.*;
 import org.fable.repository.LibraryRepository;
 import org.fable.repository.UserRepository;
 import org.fable.service.appsettings.AppSettingService;
+import org.fable.service.library.PersonalLibraryService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class UserProvisioningService {
     private final UserDefaultsService userDefaultsService;
     private final AppSettingService appSettingService;
     private final AuditService auditService;
+    private final PersonalLibraryService personalLibraryService;
 
     public boolean isInitialUserAlreadyProvisioned() {
         return userRepository.count() > 0;
@@ -134,7 +136,12 @@ public class UserProvisioningService {
             user.setLibraries(new ArrayList<>(libraries));
         }
 
-        createUser(user);
+        FableUserEntity saved = createUser(user);
+
+        boolean createPersonal = request.getCreatePersonalLibrary() == null || Boolean.TRUE.equals(request.getCreatePersonalLibrary());
+        if (createPersonal && !request.isPermissionAdmin()) {
+            personalLibraryService.createPersonalLibrary(saved, request.isShowLibrary());
+        }
     }
 
     @Transactional

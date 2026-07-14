@@ -22,6 +22,11 @@ export interface Library {
   organizationMode?: OrganizationMode;
   tagByDirectory?: boolean;
   directoryTagDepth?: DirectoryTagDepth;
+  /** Personal library owner user id; unset for shared libraries. */
+  ownerUserId?: number | null;
+  ownerUsername?: string | null;
+  /** When true, personal library appears under admin USERS / catalog. */
+  showInAdminCatalog?: boolean;
 }
 
 export interface LibraryPath {

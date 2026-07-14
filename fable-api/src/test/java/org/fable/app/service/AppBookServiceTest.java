@@ -32,7 +32,9 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +49,7 @@ class AppBookServiceTest {
     @Mock private AppBookMapper mobileBookMapper;
     @Mock private MagicShelfBookService magicShelfBookService;
     @Mock private EntityManager entityManager;
+    @Mock private org.fable.service.library.LibraryVisibilityService libraryVisibilityService;
 
     private AppBookService service;
 
@@ -57,8 +60,16 @@ class AppBookServiceTest {
         service = new AppBookService(
                 bookRepository, userBookProgressRepository, userBookFileProgressRepository,
                 shelfRepository, authenticationService, mobileBookMapper,
-                magicShelfBookService, entityManager
+                magicShelfBookService, libraryVisibilityService, entityManager
         );
+        when(libraryVisibilityService.getAccessibleLibraryIds(any())).thenAnswer(inv -> {
+            org.fable.model.dto.FableUser u = inv.getArgument(0);
+            if (u.getPermissions() != null && u.getPermissions().isAdmin()) {
+                return java.util.Set.of(1L, 2L, 3L);
+            }
+            if (u.getAssignedLibraries() == null) return java.util.Set.of();
+            return u.getAssignedLibraries().stream().map(org.fable.model.dto.Library::getId).collect(java.util.stream.Collectors.toSet());
+        });
     }
 
     @Test

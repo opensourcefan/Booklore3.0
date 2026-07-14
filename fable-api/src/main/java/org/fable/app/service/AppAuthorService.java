@@ -11,6 +11,7 @@ import org.fable.model.dto.Library;
 import org.fable.model.entity.AuthorEntity;
 import org.fable.repository.AuthorRepository;
 import org.fable.util.FileService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class AppAuthorService {
     private final AuthenticationService authenticationService;
     private final FileService fileService;
     private final EntityManager entityManager;
+    private final LibraryVisibilityService libraryVisibilityService;
 
     @Transactional(readOnly = true)
     public AppPageResponse<AppAuthorSummary> getAuthors(
@@ -172,7 +174,9 @@ public class AppAuthorService {
     private void buildLibraryFilter(StringBuilder whereClause, Set<Long> accessibleLibraryIds, Long libraryId) {
         if (libraryId != null) {
             whereClause.append(" AND b.library.id = :libraryId");
-        } else if (accessibleLibraryIds != null) {
+        } else if (accessibleLibraryIds == null || accessibleLibraryIds.isEmpty()) {
+            whereClause.append(" AND 1=0");
+        } else {
             whereClause.append(" AND b.library.id IN :libraryIds");
         }
         whereClause.append(" AND (b.deleted IS NULL OR b.deleted = false)");
@@ -199,7 +203,7 @@ public class AppAuthorService {
     private void setQueryParams(TypedQuery<?> query, Set<Long> accessibleLibraryIds, Long libraryId, String search) {
         if (libraryId != null) {
             query.setParameter("libraryId", libraryId);
-        } else if (accessibleLibraryIds != null) {
+        } else if (accessibleLibraryIds != null && !accessibleLibraryIds.isEmpty()) {
             query.setParameter("libraryIds", accessibleLibraryIds);
         }
         if (search != null && !search.trim().isEmpty()) {
@@ -208,14 +212,6 @@ public class AppAuthorService {
     }
 
     private Set<Long> getAccessibleLibraryIds(FableUser user) {
-        if (user.getPermissions().isAdmin()) {
-            return null;
-        }
-        if (user.getAssignedLibraries() == null || user.getAssignedLibraries().isEmpty()) {
-            return Collections.emptySet();
-        }
-        return user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        return libraryVisibilityService.getAccessibleLibraryIds(user);
     }
 }

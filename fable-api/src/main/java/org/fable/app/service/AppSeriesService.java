@@ -14,6 +14,7 @@ import org.fable.model.entity.*;
 import org.fable.model.enums.BookFileType;
 import org.fable.repository.BookRepository;
 import org.fable.repository.UserBookProgressRepository;
+import org.fable.service.library.LibraryVisibilityService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ public class AppSeriesService {
     private final BookRepository bookRepository;
     private final UserBookProgressRepository userBookProgressRepository;
     private final AppBookMapper mobileBookMapper;
+    private final LibraryVisibilityService libraryVisibilityService;
 
     @Transactional(readOnly = true)
     public AppPageResponse<AppSeriesSummary> getSeries(
@@ -296,19 +298,11 @@ public class AppSeriesService {
     // --- Access control helpers (duplicated from AppBookService to minimize blast radius) ---
 
     private Set<Long> getAccessibleLibraryIds(FableUser user) {
-        if (user.getPermissions().isAdmin()) {
-            return null;
-        }
-        if (user.getAssignedLibraries() == null || user.getAssignedLibraries().isEmpty()) {
-            return Collections.emptySet();
-        }
-        return user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        return libraryVisibilityService.getAccessibleLibraryIds(user);
     }
 
     private void validateLibraryAccess(Set<Long> accessibleLibraryIds, Long libraryId) {
-        if (accessibleLibraryIds != null && !accessibleLibraryIds.contains(libraryId)) {
+        if (accessibleLibraryIds == null || !accessibleLibraryIds.contains(libraryId)) {
             throw ApiError.FORBIDDEN.createException("Access denied to library " + libraryId);
         }
     }
@@ -318,16 +312,17 @@ public class AppSeriesService {
     private String buildLibraryClause(Set<Long> accessibleLibraryIds, Long libraryId) {
         if (libraryId != null) {
             return " AND b.library.id = :libraryId";
-        } else if (accessibleLibraryIds != null) {
-            return " AND b.library.id IN :libraryIds";
         }
-        return "";
+        if (accessibleLibraryIds == null || accessibleLibraryIds.isEmpty()) {
+            return " AND 1=0";
+        }
+        return " AND b.library.id IN :libraryIds";
     }
 
     private void setLibraryParams(jakarta.persistence.Query query, Set<Long> accessibleLibraryIds, Long libraryId) {
         if (libraryId != null) {
             query.setParameter("libraryId", libraryId);
-        } else if (accessibleLibraryIds != null) {
+        } else if (accessibleLibraryIds != null && !accessibleLibraryIds.isEmpty()) {
             query.setParameter("libraryIds", accessibleLibraryIds);
         }
     }
@@ -376,8 +371,8 @@ public class AppSeriesService {
             specs.add(libraryId != null
                     ? AppBookSpecification.inLibrary(libraryId)
                     : AppBookSpecification.inLibraries(accessibleLibraryIds));
-        } else if (libraryId != null) {
-            specs.add(AppBookSpecification.inLibrary(libraryId));
+        } else {
+            specs.add((root, query, cb) -> cb.disjunction());
         }
 
         return AppBookSpecification.combine(specs.toArray(new Specification[0]));

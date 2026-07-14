@@ -47,6 +47,7 @@ type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'serie
 })
 export class AppMenuComponent implements OnInit, OnDestroy {
   libraryMenu$: Observable<AppMenuItem[]> | undefined;
+  usersMenu$: Observable<AppMenuItem[]> | undefined;
   shelfMenu$: Observable<AppMenuItem[]> | undefined;
   homeMenu$: Observable<AppMenuItem[]> | undefined;
   magicShelfMenu$: Observable<AppMenuItem[]> | undefined;
@@ -89,10 +90,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   shelfSortOrder: 'asc' | 'desc' = 'asc';
   magicShelfSortField: 'name' | 'id' = 'name';
   magicShelfSortOrder: 'asc' | 'desc' = 'asc';
-  sectionOrder: string[] = ['home', 'storyArc', 'library', 'shelf', 'magicShelf', 'bookType'];
+  sectionOrder: string[] = ['home', 'storyArc', 'library', 'users', 'shelf', 'magicShelf', 'bookType'];
   sectionVisibility: Record<string, boolean> = {
     home: true,
     library: true,
+    users: true,
     shelf: true,
     magicShelf: true,
     storyArc: true,
@@ -122,6 +124,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   readonly sectionOptions: {key: string; label: string}[] = [
     {key: 'home', label: 'layout.menu.home'},
     {key: 'library', label: 'layout.menu.libraries'},
+    {key: 'users', label: 'layout.menu.users'},
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
     {key: 'storyArc', label: 'layout.menu.storyArcs'},
@@ -137,7 +140,16 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   ];
 
   get visibleSectionOrder(): string[] {
-    return this.sectionOrder.filter(section => this.sectionVisibility[section] !== false);
+    const isAdmin = !!this.userService.getCurrentUser()?.permissions?.admin;
+    return this.sectionOrder.filter(section => {
+      if (this.sectionVisibility[section] === false) {
+        return false;
+      }
+      if (section === 'users' && !isAdmin) {
+        return false;
+      }
+      return true;
+    });
   }
 
   private toastError(summary: string, detail: string, life = 3000): void {
@@ -382,6 +394,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         return this.t.translate('layout.menu.home');
       case 'library':
         return this.t.translate('layout.menu.libraries');
+      case 'users':
+        return this.t.translate('layout.menu.users');
       case 'shelf':
         return this.t.translate('layout.menu.shelves');
       case 'magicShelf':
@@ -719,7 +733,9 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private initMenus(): void {
     this.libraryMenu$ = combineLatest([this.libraryService.libraryState$, this.t.langChanges$]).pipe(
       map(([state]) => {
-        const libraries = state.libraries ?? [];
+        const isAdmin = !!this.userService.getCurrentUser()?.permissions?.admin;
+        // Guests: all assigned libs (including personal). Admin: shared only — personal/shown go under USERS.
+        const libraries = (state.libraries ?? []).filter(lib => !isAdmin || !lib.ownerUserId);
         const sortedLibraries = this.sortArray(libraries, this.librarySortField, this.librarySortOrder);
         return [
           {
@@ -742,6 +758,38 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         ];
       }),
       map(menuItems => this.applyNestedItemOrder('library', menuItems))
+    );
+
+    this.usersMenu$ = combineLatest([this.libraryService.libraryState$, this.t.langChanges$]).pipe(
+      map(([state]) => {
+        const userLibraries = (state.libraries ?? []).filter(
+          lib => !!lib.ownerUserId && !!lib.showInAdminCatalog
+        );
+        if (userLibraries.length === 0) {
+          return [];
+        }
+        const sortedLibraries = this.sortArray(userLibraries, this.librarySortField, this.librarySortOrder);
+        return [
+          {
+            label: this.t.translate('layout.menu.users'),
+            type: 'users',
+            hasDropDown: true,
+            hasCreate: false,
+            items: sortedLibraries.map((library) => ({
+              menu: this.libraryShelfMenuService.initializeLibraryMenuItems(library),
+              label: library.name,
+              type: 'Library',
+              icon: library.icon || 'pi pi-user',
+              iconType: (library.iconType || 'PRIME_NG') as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
+              routerLink: [`/library/${library.id}/books`],
+              prefetchLibraryId: library.id ?? undefined,
+              bookCount$: this.createRefreshableCount$(() => this.libraryService.getBookCount(library.id ?? 0)),
+              unhealthy$: this.libraryHealthService.isUnhealthy$(library.id ?? 0),
+            })),
+          },
+        ];
+      }),
+      map(menuItems => this.applyNestedItemOrder('users', menuItems))
     );
 
     this.magicShelfMenu$ = combineLatest([this.magicShelfService.shelvesState$, this.t.langChanges$]).pipe(
@@ -1100,13 +1148,16 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private normalizeSectionOrder(savedOrder: string[]): string[] {
-    const defaults = ['home', 'storyArc', 'library', 'shelf', 'magicShelf', 'bookType'];
+    const defaults = ['home', 'storyArc', 'library', 'users', 'shelf', 'magicShelf', 'bookType'];
     const filtered = savedOrder.filter(section => defaults.includes(section));
     for (const section of defaults) {
       if (!filtered.includes(section)) {
         const homeIndex = filtered.indexOf('home');
+        const libraryIndex = filtered.indexOf('library');
         if (section === 'storyArc' && homeIndex !== -1) {
           filtered.splice(homeIndex + 1, 0, 'storyArc');
+        } else if (section === 'users' && libraryIndex !== -1) {
+          filtered.splice(libraryIndex + 1, 0, 'users');
         } else {
           filtered.push(section);
         }
@@ -1119,6 +1170,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     return {
       home: savedVisibility?.['home'] ?? true,
       library: savedVisibility?.['library'] ?? true,
+      users: savedVisibility?.['users'] ?? true,
       shelf: savedVisibility?.['shelf'] ?? true,
       magicShelf: savedVisibility?.['magicShelf'] ?? true,
       storyArc: savedVisibility?.['storyArc'] ?? true,

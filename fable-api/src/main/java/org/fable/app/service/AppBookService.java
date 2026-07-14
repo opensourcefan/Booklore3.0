@@ -19,6 +19,7 @@ import org.fable.repository.ShelfRepository;
 import org.fable.repository.UserBookFileProgressRepository;
 import org.fable.repository.UserBookProgressRepository;
 import org.fable.service.opds.MagicShelfBookService;
+import org.fable.service.library.LibraryVisibilityService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +52,7 @@ public class AppBookService {
     private final AuthenticationService authenticationService;
     private final AppBookMapper mobileBookMapper;
     private final MagicShelfBookService magicShelfBookService;
+    private final LibraryVisibilityService libraryVisibilityService;
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
@@ -534,15 +536,7 @@ public class AppBookService {
     }
 
     private Set<Long> getAccessibleLibraryIds(FableUser user) {
-        if (user.getPermissions().isAdmin()) {
-            return null;
-        }
-        if (user.getAssignedLibraries() == null || user.getAssignedLibraries().isEmpty()) {
-            return Collections.emptySet();
-        }
-        return user.getAssignedLibraries().stream()
-                .map(Library::getId)
-                .collect(Collectors.toSet());
+        return libraryVisibilityService.getAccessibleLibraryIds(user);
     }
 
     private Map<Long, UserBookProgressEntity> getProgressMap(Long userId, Set<Long> bookIds) {

@@ -102,8 +102,12 @@ public class FableUserTransformer {
                             .map(libraryMapper::toLibrary)
                             .collect(Collectors.toList())
             );
+            boolean showLibrary = userEntity.getLibraries().stream()
+                    .anyMatch(lib -> userEntity.getId().equals(lib.getOwnerUserId()) && lib.isShowInAdminCatalog());
+            fableUser.setShowLibrary(showLibrary);
         } else {
             fableUser.setAssignedLibraries(Collections.emptyList());
+            fableUser.setShowLibrary(false);
         }
         fableUser.setProvisioningMethod(userEntity.getProvisioningMethod());
         return fableUser;

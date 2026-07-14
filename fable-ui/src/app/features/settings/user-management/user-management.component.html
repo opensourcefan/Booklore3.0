@@ -216,6 +216,19 @@
                           <span>{{ user.libraryNames || t('userInfo.allLibrariesAdmin') }}</span>
                         }
                       </div>
+                      @if (!user.permissions.admin) {
+                        <div class="detail-field detail-field-wide show-library-field">
+                          <span>{{ t('userInfo.showLibrary') }}</span>
+                          @if (user.isEditing) {
+                            <div class="show-library-edit">
+                              <p-checkbox [binary]="true" [(ngModel)]="user.showLibrary" [inputId]="'show-lib-'+user.id"></p-checkbox>
+                              <label [for]="'show-lib-'+user.id" class="field-hint-inline">{{ t('userInfo.showLibraryHint') }}</label>
+                            </div>
+                          } @else {
+                            <span>{{ user.showLibrary ? ('common.yes' | transloco) : ('common.no' | transloco) }}</span>
+                          }
+                        </div>
+                      }
                     </div>
                   </div>
 

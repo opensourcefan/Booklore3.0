@@ -139,24 +139,41 @@
           {{ t('createDialog.libraryAccess') }}
         </h3>
 
+        <div class="form-field permission-item show-library-row">
+          <p-checkbox formControlName="createPersonalLibrary" [binary]="true" inputId="create-personal-library"></p-checkbox>
+          <label for="create-personal-library" class="permission-label">
+            <div class="permission-icon-wrapper">
+              <i class="pi pi-folder permission-icon"></i>
+            </div>
+            <span class="permission-name">{{ t('createDialog.createPersonalLibrary') }}</span>
+          </label>
+        </div>
+        <p class="field-hint">{{ t('createDialog.createPersonalLibraryHint') }}</p>
+
+        <div class="form-field permission-item show-library-row">
+          <p-checkbox formControlName="showLibrary" [binary]="true" inputId="create-show-library"></p-checkbox>
+          <label for="create-show-library" class="permission-label">
+            <div class="permission-icon-wrapper">
+              <i class="pi pi-eye permission-icon"></i>
+            </div>
+            <span class="permission-name">{{ t('createDialog.showLibrary') }}</span>
+          </label>
+        </div>
+        <p class="field-hint">{{ t('createDialog.showLibraryHint') }}</p>
+
         <div class="form-field">
           <label class="field-label" for="create-libraries">{{ t('createDialog.accessibleLibraries') }}</label>
           <p-multiselect
             [options]="libraries"
             formControlName="selectedLibraries"
             inputId="create-libraries"
-            [placeholder]="t('createDialog.selectLibraries')"
+            [placeholder]="t('createDialog.selectLibrariesOptional')"
             optionLabel="name"
             display="chip"
             class="field-input"
             appendTo="body">
           </p-multiselect>
-          @if (userForm.get('selectedLibraries')?.invalid && (userForm.get('selectedLibraries')?.dirty || userForm.get('selectedLibraries')?.touched)) {
-            <small class="field-error">
-              <i class="pi pi-exclamation-circle"></i>
-              {{ t('createDialog.libraryRequired') }}
-            </small>
-          }
+          <p class="field-hint">{{ t('createDialog.sharedLibrariesHint') }}</p>
         </div>
       </div>
 

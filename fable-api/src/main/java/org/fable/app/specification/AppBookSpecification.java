@@ -21,7 +21,8 @@ public class AppBookSpecification {
     public static Specification<BookEntity> inLibraries(Collection<Long> libraryIds) {
         return (root, query, cb) -> {
             if (libraryIds == null || libraryIds.isEmpty()) {
-                return cb.conjunction();
+                // No accessible libraries → match nothing (do not treat as unrestricted).
+                return cb.disjunction();
             }
             return root.get("library").get("id").in(libraryIds);
         };

@@ -26,6 +26,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.*;
 class AppAuthorServiceTest {
 
     @Mock private EntityManager entityManager;
+    @Mock private org.fable.service.library.LibraryVisibilityService libraryVisibilityService;
     @Mock private AuthenticationService authenticationService;
     @Mock private AuthorRepository authorRepository;
     @Mock private FileService fileService;
@@ -43,7 +45,15 @@ class AppAuthorServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new AppAuthorService(authorRepository, authenticationService, fileService, entityManager);
+        service = new AppAuthorService(authorRepository, authenticationService, fileService, entityManager, libraryVisibilityService);
+        when(libraryVisibilityService.getAccessibleLibraryIds(any())).thenAnswer(inv -> {
+            org.fable.model.dto.FableUser u = inv.getArgument(0);
+            if (u.getPermissions() != null && u.getPermissions().isAdmin()) {
+                return java.util.Set.of(1L, 2L, 3L);
+            }
+            if (u.getAssignedLibraries() == null) return java.util.Set.of();
+            return u.getAssignedLibraries().stream().map(org.fable.model.dto.Library::getId).collect(java.util.stream.Collectors.toSet());
+        });
     }
 
     // ---- getAuthors tests ----
@@ -256,6 +266,7 @@ class AppAuthorServiceTest {
             author.setDescription("English writer and philologist.");
             author.setAsin("B000AP9MCS");
             when(authorRepository.findById(1L)).thenReturn(Optional.of(author));
+            when(authorRepository.existsByIdAndLibraryIds(eq(1L), anySet())).thenReturn(true);
             mockAuthorThumbnailExists(1L, true);
             mockBookCountQuery(3);
 
@@ -319,6 +330,7 @@ class AppAuthorServiceTest {
             mockAdminUser();
             AuthorEntity author = buildAuthor(5L, "Author Y");
             when(authorRepository.findById(5L)).thenReturn(Optional.of(author));
+            when(authorRepository.existsByIdAndLibraryIds(eq(5L), anySet())).thenReturn(true);
             mockAuthorThumbnailExists(5L, false);
             mockBookCountQuery(2);
 

@@ -160,6 +160,10 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     const entries: DirectoryEntry[] = [];
 
     for (const library of libraries) {
+      // Admin non-bleed: skip personal libraries not shown in the catalog.
+      if (library.ownerUserId && !library.showInAdminCatalog) {
+        continue;
+      }
       if (!library.id) continue;
       for (const path of library.paths ?? []) {
         if (typeof path.id !== 'number') continue;
@@ -181,6 +185,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   private buildLibraryOptions(libraries: Library[]): void {
     this.libraryOptions = libraries
       .filter(l => typeof l.id === 'number')
+      .filter(l => !l.ownerUserId || !!l.showInAdminCatalog)
       .map(l => ({
         label: l.name,
         value: l.id!

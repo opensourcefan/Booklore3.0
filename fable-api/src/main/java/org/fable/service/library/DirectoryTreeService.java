@@ -6,13 +6,11 @@ import org.fable.exception.ApiError;
 import org.fable.model.dto.FableUser;
 import org.fable.model.dto.DirectoryNode;
 import org.fable.model.dto.DirectoryRootNode;
-import org.fable.model.entity.FableUserEntity;
 import org.fable.model.entity.LibraryEntity;
 import org.fable.model.entity.LibraryPathEntity;
 import org.fable.repository.BookFileRepository;
 import org.fable.repository.LibraryRepository;
 import org.fable.repository.UserRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +27,7 @@ public class DirectoryTreeService {
     private final BookFileRepository bookFileRepository;
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
+    private final LibraryVisibilityService libraryVisibilityService;
 
     public List<DirectoryRootNode> getTreeForLibrary(long libraryId) {
         LibraryEntity library = libraryRepository.findById(libraryId)
@@ -43,16 +42,7 @@ public class DirectoryTreeService {
 
     public List<DirectoryRootNode> getTreeForAllUserLibraries() {
         FableUser user = authenticationService.getAuthenticatedUser();
-        FableUserEntity userEntity = userRepository.findById(user.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        List<LibraryEntity> libraries;
-        if (userEntity.getPermissions().isPermissionAdmin()) {
-            libraries = libraryRepository.findAll();
-        } else {
-            List<Long> libraryIds = userEntity.getLibraries().stream().map(LibraryEntity::getId).toList();
-            libraries = libraryRepository.findByIdIn(libraryIds);
-        }
+        List<LibraryEntity> libraries = libraryVisibilityService.getCatalogVisibleEntities(user);
 
         List<DirectoryRootNode> result = new ArrayList<>();
         for (LibraryEntity library : libraries) {

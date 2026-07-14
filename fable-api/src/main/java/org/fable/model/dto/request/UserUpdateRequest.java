@@ -12,6 +12,12 @@ public class UserUpdateRequest {
     private Permissions permissions;
     private List<Long> assignedLibraries;
 
+    /**
+     * Admin-only: toggle Show library on the user's personal library/libraries.
+     * Null = leave unchanged.
+     */
+    private Boolean showLibrary;
+
     @Data
     public static class Permissions {
         private boolean isAdmin;

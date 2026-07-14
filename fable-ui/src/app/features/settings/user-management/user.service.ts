@@ -364,6 +364,7 @@ export interface User {
   name: string;
   email: string;
   assignedLibraries: Library[];
+  showLibrary?: boolean;
   permissions: {
     admin: boolean;
     canUpload: boolean;
@@ -410,6 +411,7 @@ export interface UserUpdateRequest {
   email?: string;
   permissions?: User['permissions'];
   assignedLibraries?: number[];
+  showLibrary?: boolean;
 }
 
 @Injectable({

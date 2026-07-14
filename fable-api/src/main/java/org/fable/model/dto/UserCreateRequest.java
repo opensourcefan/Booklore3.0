@@ -53,4 +53,16 @@ public class UserCreateRequest {
     private boolean permissionBulkResetBookReadStatus;
 
     private Set<Long> selectedLibraries;
+
+    /**
+     * When true (default), provision a personal library under {@code /books/_users/{id}/}.
+     * Shared libraries in {@link #selectedLibraries} are optional extras.
+     */
+    private Boolean createPersonalLibrary = true;
+
+    /**
+     * Create User "Show library" — when true, the personal library appears under admin USERS
+     * and enters the admin working catalog / AI corpus.
+     */
+    private boolean showLibrary;
 }

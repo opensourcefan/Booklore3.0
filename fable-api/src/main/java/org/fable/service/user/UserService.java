@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.fable.model.enums.AuditAction;
 import org.fable.service.audit.AuditService;
+import org.fable.service.library.PersonalLibraryService;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,7 @@ public class UserService {
     private final ObjectMapper objectMapper;
     private final FableUserTransformer fableUserTransformer;
     private final AuditService auditService;
+    private final PersonalLibraryService personalLibraryService;
 
     public List<FableUser> getFableUsers() {
         return userRepository.findAll()
@@ -69,6 +71,10 @@ public class UserService {
             List<Long> libraryIds = updateRequest.getAssignedLibraries();
             List<LibraryEntity> updatedLibraries = libraryRepository.findAllById(libraryIds);
             user.setLibraries(updatedLibraries);
+        }
+
+        if (updateRequest.getShowLibrary() != null && actorIsAdmin) {
+            personalLibraryService.setShowInAdminCatalogForOwner(user.getId(), updateRequest.getShowLibrary());
         }
 
         userRepository.save(user);

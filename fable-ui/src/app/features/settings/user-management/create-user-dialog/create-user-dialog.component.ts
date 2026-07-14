@@ -51,7 +51,9 @@ export class CreateUserDialogComponent implements OnInit {
       username: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
-      selectedLibraries: [[], Validators.required],
+      selectedLibraries: [[]],
+      createPersonalLibrary: [true],
+      showLibrary: [false],
       permissionUpload: [false],
       permissionDownload: [false],
       permissionEditMetadata: [false],
@@ -105,10 +107,13 @@ export class CreateUserDialogComponent implements OnInit {
     void confirmPassword;
 
     const email = typeof formValue.email === 'string' ? formValue.email.trim() : '';
+    const selectedLibs = Array.isArray(formValue.selectedLibraries) ? formValue.selectedLibraries : [];
     const userData = {
       ...formValue,
       email: email.length > 0 ? email : null,
-      selectedLibraries: formValue.selectedLibraries.map((lib: Library) => lib.id)
+      selectedLibraries: selectedLibs.map((lib: Library) => lib.id),
+      createPersonalLibrary: !!formValue.createPersonalLibrary,
+      showLibrary: !!formValue.showLibrary,
     };
 
     this.userService.createUser(userData).subscribe({
