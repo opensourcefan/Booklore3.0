@@ -51,6 +51,32 @@
       min-height: 44px;
     }
   }
+
+  .preset-section {
+    .preset-select {
+      display: block;
+      width: 100%;
+    }
+
+    .preset-description {
+      margin-top: 0.25rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :host ::ng-deep .preset-select .p-selectbutton {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      gap: 0.35rem;
+    }
+
+    :host ::ng-deep .preset-select .p-togglebutton {
+      flex: 1 1 calc(50% - 0.2rem);
+      min-height: 44px;
+      justify-content: center;
+    }
+  }
 }
 
 .form-section {

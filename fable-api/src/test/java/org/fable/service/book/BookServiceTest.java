@@ -15,6 +15,7 @@ import org.fable.model.enums.BookFileType;
 import org.fable.repository.*;
 import org.fable.model.dto.settings.AppSettings;
 import org.fable.service.appsettings.AppSettingService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.service.monitoring.MonitoringRegistrationService;
 import org.fable.service.progress.ReadingProgressService;
 import org.fable.util.FileService;
@@ -87,9 +88,13 @@ class BookServiceTest {
     private AppSettingService appSettingService;
     @Mock
     private ShelfRepository shelfRepository;
+    @Mock
+    private LibraryVisibilityService libraryVisibilityService;
 
     @InjectMocks
     private BookService bookService;
+
+    private static final Set<Long> ADMIN_ACCESSIBLE_LIBRARY_IDS = Set.of(1L, 2L, 3L, 4L, 5L, 10L, 11L, 13L, 17L, 19L, 42L, 99L);
 
     private FableUser testUser;
 
@@ -103,21 +108,24 @@ class BookServiceTest {
                 .assignedLibraries(List.of())
                 .isDefaultPassword(false).build();
 
+        lenient().when(libraryVisibilityService.getAccessibleLibraryIds(any()))
+                .thenReturn(ADMIN_ACCESSIBLE_LIBRARY_IDS);
         lenient().when(comicPanelFlowRepository.findScannedBookIdsByUserIdAndBookIdIn(anyLong(), anyCollection()))
             .thenReturn(List.of());
     }
 
     @Test
     void getBookDTOs_adminUser_returnsBooksWithProgress() {
-        Book book = Book.builder().id(1L).primaryFile(BookFile.builder().bookType(BookFileType.PDF).build()).shelves(Set.of()).build();
-        when(bookQueryService.getAllBooks(anyBoolean(), anyBoolean())).thenReturn(List.of(book));
+        Book book = Book.builder().id(1L).libraryId(1L).primaryFile(BookFile.builder().bookType(BookFileType.PDF).build()).shelves(Set.of()).build();
+        when(bookQueryService.getAllBooksByLibraryIds(eq(ADMIN_ACCESSIBLE_LIBRARY_IDS), anyBoolean(), anyBoolean(), eq(1L)))
+                .thenReturn(List.of(book));
         when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of(1L, new UserBookProgressEntity()));
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
 
         List<Book> result = bookService.getBookDTOs(true, true);
 
         assertEquals(1, result.size());
-        verify(bookQueryService).getAllBooks(true, true);
+        verify(bookQueryService).getAllBooksByLibraryIds(ADMIN_ACCESSIBLE_LIBRARY_IDS, true, true, 1L);
     }
 
     @Test
@@ -131,6 +139,7 @@ class BookServiceTest {
         LibraryPathEntity libPath = new LibraryPathEntity();
         libPath.setPath("/tmp/library");
         LibraryEntity library = new LibraryEntity();
+        library.setId(1L);
         library.setLibraryPaths(List.of(libPath));
         entity.setLibrary(library);
         when(bookQueryService.findAllWithMetadataByIds(anySet())).thenReturn(List.of(entity));
@@ -159,6 +168,7 @@ class BookServiceTest {
         LibraryPathEntity libPath = new LibraryPathEntity();
         libPath.setPath("/tmp/library");
         LibraryEntity library = new LibraryEntity();
+        library.setId(1L);
         library.setLibraryPaths(List.of(libPath));
         entity.setLibrary(library);
         when(bookRepository.findByIdWithBookFiles(3L)).thenReturn(Optional.of(entity));
@@ -473,6 +483,9 @@ class BookServiceTest {
     void deleteBooks_whenFileDeletionDisabled_throwsException() {
         BookEntity entity = new BookEntity();
         entity.setId(17L);
+        LibraryEntity library = new LibraryEntity();
+        library.setId(42L);
+        entity.setLibrary(library);
 
         when(bookQueryService.findAllWithMetadataByIds(Set.of(17L))).thenReturn(List.of(entity));
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
@@ -488,6 +501,9 @@ class BookServiceTest {
     void deleteBooks_libraryOnly_marksBookRemovedFromLibrary() {
         BookEntity entity = new BookEntity();
         entity.setId(19L);
+        LibraryEntity library = new LibraryEntity();
+        library.setId(42L);
+        entity.setLibrary(library);
 
         when(bookQueryService.findAllWithMetadataByIds(Set.of(19L))).thenReturn(List.of(entity));
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);

@@ -155,6 +155,20 @@
     "showLibrary": "Show library",
     "showLibraryHint": "Off (default): hidden from your catalog. On: appears under the sidebar USERS section only.",
     "sharedLibrariesHint": "Optional. Leave empty when using a personal library only.",
+    "permissionPreset": "Permission preset",
+    "permissionPresetHint": "Start from a safe guest profile. Fine-tune individual permissions below if needed.",
+    "presets": {
+      "reader": "Reader",
+      "contributor": "Contributor",
+      "librarian": "Librarian",
+      "admin": "Admin"
+    },
+    "presetDescriptions": {
+      "reader": "Download books, view own reading stats, OPDS and Kobo sync. No uploads or catalog changes.",
+      "contributor": "Reader plus upload and edit metadata in assigned libraries.",
+      "librarian": "Contributor plus manage library paths (use only for trusted users with owned libraries).",
+      "admin": "Full administrator access to all settings and libraries."
+    },
     "editMetadata": "Edit Metadata",
     "bulkEditMetadata": "Bulk Edit Metadata",
     "readBooks": "Read Books",

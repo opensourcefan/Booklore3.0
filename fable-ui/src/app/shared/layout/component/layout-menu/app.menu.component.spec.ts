@@ -95,7 +95,10 @@ describe('AppMenuComponent reorder mode', () => {
           initializeShelfMenuItems: vi.fn(() => []),
         }},
         {provide: DialogLauncherService, useValue: {openAcknowledgementsDialog: vi.fn()}},
-        {provide: UserService, useValue: {userState$: NEVER}},
+        {provide: UserService, useValue: {
+          userState$: NEVER,
+          getCurrentUser: () => ({permissions: {admin: true}}),
+        }},
         {provide: MagicShelfService, useValue: magicShelfServiceMock},
         {provide: SeriesDataService, useValue: {allSeries$: of([])}},
         {provide: AuthorService, useValue: {getAllAuthors: vi.fn().mockReturnValue(of([])), allAuthors$: of([])}},
@@ -405,7 +408,7 @@ describe('AppMenuComponent reorder mode', () => {
     keyChanges$.next('sidebarSectionOrder');
 
     expect(component.activeLang).toBe('fr');
-    expect(component.sectionOrder).toEqual(['library', 'home', 'storyArc', 'shelf', 'magicShelf', 'bookType']);
+    expect(component.sectionOrder).toEqual(['library', 'users', 'home', 'storyArc', 'shelf', 'magicShelf', 'bookType']);
 
     component.ngOnDestroy();
 
@@ -420,6 +423,6 @@ describe('AppMenuComponent reorder mode', () => {
     keyChanges$.next('sidebarSectionOrder');
 
     expect(component.activeLang).toBe('fr');
-    expect(component.sectionOrder).toEqual(['library', 'home', 'storyArc', 'shelf', 'magicShelf', 'bookType']);
+    expect(component.sectionOrder).toEqual(['library', 'users', 'home', 'storyArc', 'shelf', 'magicShelf', 'bookType']);
   });
 });

@@ -13,8 +13,8 @@ import org.fable.repository.LibraryRepository;
 import org.fable.repository.UserRepository;
 import org.fable.service.audit.AuditService;
 import org.fable.service.monitoring.LibraryWatchService;
+import org.springframework.context.annotation.Lazy;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +31,6 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PersonalLibraryService {
 
     public static final String PERSONAL_ROOT = "/books/_users";
@@ -40,6 +39,17 @@ public class PersonalLibraryService {
     private final UserRepository userRepository;
     private final LibraryWatchService libraryWatchService;
     private final AuditService auditService;
+
+    public PersonalLibraryService(
+            LibraryRepository libraryRepository,
+            UserRepository userRepository,
+            @Lazy LibraryWatchService libraryWatchService,
+            AuditService auditService) {
+        this.libraryRepository = libraryRepository;
+        this.userRepository = userRepository;
+        this.libraryWatchService = libraryWatchService;
+        this.auditService = auditService;
+    }
 
     @Transactional
     public LibraryEntity createPersonalLibrary(FableUserEntity user, boolean showInAdminCatalog) {

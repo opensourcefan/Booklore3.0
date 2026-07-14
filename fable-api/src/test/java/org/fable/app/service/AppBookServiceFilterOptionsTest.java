@@ -67,7 +67,7 @@ class AppBookServiceFilterOptionsTest {
         when(libraryVisibilityService.getAccessibleLibraryIds(any())).thenAnswer(inv -> {
             org.fable.model.dto.FableUser u = inv.getArgument(0);
             if (u.getPermissions() != null && u.getPermissions().isAdmin()) {
-                return java.util.Set.of(1L, 2L, 3L);
+                return java.util.Set.of(1L, 2L, 3L, 4L, 5L, 10L);
             }
             if (u.getAssignedLibraries() == null) return java.util.Set.of();
             return u.getAssignedLibraries().stream().map(org.fable.model.dto.Library::getId).collect(java.util.stream.Collectors.toSet());

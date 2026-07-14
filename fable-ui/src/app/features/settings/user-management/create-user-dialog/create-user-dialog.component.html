@@ -179,6 +179,28 @@
 
       <div class="gradient-divider"></div>
 
+      <div class="form-section preset-section">
+        <h3 class="section-title">
+          <i class="pi pi-sliders-h"></i>
+          {{ t('createDialog.permissionPreset') }}
+        </h3>
+        <p-selectbutton
+          [options]="presetOptions"
+          [(ngModel)]="selectedPreset"
+          [ngModelOptions]="{standalone: true}"
+          optionLabel="label"
+          optionValue="value"
+          (ngModelChange)="applyPreset($event)"
+          class="preset-select">
+        </p-selectbutton>
+        <p class="field-hint">{{ t('createDialog.permissionPresetHint') }}</p>
+        @if (presetDescriptionKey(); as descKey) {
+          <p class="field-hint preset-description">{{ t(descKey) }}</p>
+        }
+      </div>
+
+      <div class="gradient-divider"></div>
+
       <div class="form-section">
         <h3 class="section-title">
           <i class="pi pi-shield"></i>
