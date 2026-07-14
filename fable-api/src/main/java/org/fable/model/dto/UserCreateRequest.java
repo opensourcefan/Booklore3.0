@@ -20,7 +20,7 @@ public class UserCreateRequest {
     @NotBlank
     private String name;
 
-    @NotBlank
+    /** Optional contact email — login uses username, not email. */
     @Email
     private String email;
 

@@ -336,7 +336,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       user.permissions.canManageMetadataConfig = true;
       user.permissions.canManageGlobalPreferences = true;
       user.permissions.canAccessTaskManager = true;
-      user.permissions.canManageEmailConfig = true;
       user.permissions.canManageIcons = true;
       user.permissions.canManageFonts = true;
       user.permissions.canBulkAutoFetchMetadata = true;

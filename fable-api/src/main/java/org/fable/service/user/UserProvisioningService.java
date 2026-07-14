@@ -95,7 +95,7 @@ public class UserProvisioningService {
         user.setDefaultPassword(true);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setEmail(blankToNull(request.getEmail()));
         user.setProvisioningMethod(ProvisioningMethod.LOCAL);
 
         UserPermissionsEntity permissions = new UserPermissionsEntity();

@@ -46,15 +46,23 @@ public class UserService {
 
     public FableUser updateUser(Long id, UserUpdateRequest updateRequest) {
         FableUserEntity user = userRepository.findById(id).orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(id));
-        user.setName(updateRequest.getName());
-        user.setEmail(updateRequest.getEmail());
+        FableUser actor = getMyself();
+        boolean actorIsAdmin = actor.getPermissions().isAdmin();
 
-        if (updateRequest.getPermissions() != null && getMyself().getPermissions().isAdmin()) {
+        if (updateRequest.getName() != null) {
+            user.setName(updateRequest.getName());
+        }
+        if (updateRequest.getEmail() != null) {
+            String email = updateRequest.getEmail().isBlank() ? null : updateRequest.getEmail().trim();
+            user.setEmail(email);
+        }
+
+        if (updateRequest.getPermissions() != null && actorIsAdmin) {
             UserPermission.copyFromRequestToEntity(updateRequest.getPermissions(), user.getPermissions());
             auditService.log(AuditAction.PERMISSIONS_CHANGED, "User", id, "Changed permissions for user: " + user.getUsername());
         }
 
-        if (updateRequest.getAssignedLibraries() != null && getMyself().getPermissions().isAdmin()) {
+        if (updateRequest.getAssignedLibraries() != null && actorIsAdmin) {
             List<Long> libraryIds = updateRequest.getAssignedLibraries();
             List<LibraryEntity> updatedLibraries = libraryRepository.findAllById(libraryIds);
             user.setLibraries(updatedLibraries);
@@ -123,6 +131,8 @@ public class UserService {
             throw ApiError.PASSWORD_TOO_SHORT.createException();
         }
         userEntity.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        // Force the user through /change-password on next login (in-house temp-password handoff).
+        userEntity.setDefaultPassword(true);
         userRepository.save(userEntity);
         auditService.log(AuditAction.PASSWORD_CHANGED, "User", request.getUserId(), "Password changed for user: " + userEntity.getUsername());
     }

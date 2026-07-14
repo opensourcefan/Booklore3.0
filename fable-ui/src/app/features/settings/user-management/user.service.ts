@@ -380,7 +380,6 @@ export interface User {
     canAccessLibraryStats: boolean;
     canAccessUserStats: boolean;
     canAccessTaskManager: boolean;
-    canManageEmailConfig: boolean;
     canManageGlobalPreferences: boolean;
     canManageIcons: boolean;
     canManageFonts: boolean;
@@ -499,7 +498,23 @@ export class UserService {
   }
 
   updateUser(userId: number, updateData: UserUpdateRequest): Observable<User> {
-    return this.http.put<User>(`${this.userUrl}/${userId}`, updateData);
+    return this.http.put<User>(`${this.userUrl}/${userId}`, updateData).pipe(
+      tap((updated) => {
+        const currentState = this.userStateSubject.value;
+        if (currentState.user?.id === userId) {
+          this.userStateSubject.next({
+            ...currentState,
+            user: {
+              ...currentState.user,
+              ...updated,
+              permissions: updated.permissions ?? currentState.user.permissions,
+              userSettings: updated.userSettings ?? currentState.user.userSettings,
+              assignedLibraries: updated.assignedLibraries ?? currentState.user.assignedLibraries
+            }
+          });
+        }
+      })
+    );
   }
 
   deleteUser(userId: number): Observable<void> {
