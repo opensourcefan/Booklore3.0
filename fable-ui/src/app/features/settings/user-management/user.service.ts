@@ -405,6 +405,7 @@ export interface UserState {
 }
 
 export interface UserUpdateRequest {
+  username?: string;
   name?: string;
   email?: string;
   permissions?: User['permissions'];
@@ -534,11 +535,15 @@ export class UserService {
     );
   }
 
-  changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    const payload = {
+  changePassword(currentPassword: string, newPassword: string, newUsername?: string | null): Observable<void> {
+    const payload: { currentPassword: string; newPassword: string; newUsername?: string } = {
       currentPassword: currentPassword,
       newPassword: newPassword
     };
+    const trimmed = typeof newUsername === 'string' ? newUsername.trim() : '';
+    if (trimmed.length > 0) {
+      payload.newUsername = trimmed;
+    }
     return this.http.put<void>(`${this.userUrl}/change-password`, payload).pipe(
       catchError((error) => {
         const errorMessage = error?.error?.message || 'An unexpected error occurred. Please try again.';

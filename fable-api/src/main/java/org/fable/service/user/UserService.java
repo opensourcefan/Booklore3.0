@@ -56,6 +56,9 @@ public class UserService {
             String email = updateRequest.getEmail().isBlank() ? null : updateRequest.getEmail().trim();
             user.setEmail(email);
         }
+        if (updateRequest.getUsername() != null) {
+            applyUsernameChange(user, updateRequest.getUsername());
+        }
 
         if (updateRequest.getPermissions() != null && actorIsAdmin) {
             UserPermission.copyFromRequestToEntity(updateRequest.getPermissions(), user.getPermissions());
@@ -119,10 +122,14 @@ public class UserService {
             throw ApiError.PASSWORD_TOO_SHORT.createException();
         }
 
+        if (changePasswordRequest.getNewUsername() != null && !changePasswordRequest.getNewUsername().isBlank()) {
+            applyUsernameChange(fableUserEntity, changePasswordRequest.getNewUsername());
+        }
+
         fableUserEntity.setDefaultPassword(false);
         fableUserEntity.setPasswordHash(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(fableUserEntity);
-        auditService.log(AuditAction.PASSWORD_CHANGED, "User", fableUser.getId(), "Password changed by user: " + fableUser.getUsername());
+        auditService.log(AuditAction.PASSWORD_CHANGED, "User", fableUser.getId(), "Password changed by user: " + fableUserEntity.getUsername());
     }
 
     public void changeUserPassword(ChangeUserPasswordRequest request) {
@@ -182,5 +189,22 @@ public class UserService {
 
     private boolean meetsMinimumPasswordRequirements(String password) {
         return password != null && password.length() >= 8;
+    }
+
+    private void applyUsernameChange(FableUserEntity user, String rawUsername) {
+        String newUsername = rawUsername == null ? "" : rawUsername.trim();
+        if (newUsername.isBlank()) {
+            throw ApiError.INVALID_INPUT.createException("Username cannot be blank.");
+        }
+        if (newUsername.equals(user.getUsername())) {
+            return;
+        }
+        if (userRepository.findByUsername(newUsername).isPresent()) {
+            throw ApiError.USERNAME_ALREADY_TAKEN.createException(newUsername);
+        }
+        String previous = user.getUsername();
+        user.setUsername(newUsername);
+        auditService.log(AuditAction.USER_UPDATED, "User", user.getId(),
+                "Username changed from " + previous + " to " + newUsername);
     }
 }

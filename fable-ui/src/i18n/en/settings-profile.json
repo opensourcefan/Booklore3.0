@@ -27,6 +27,7 @@
   "toast": {
     "errorNoUser": "User data not available.",
     "noChanges": "No changes detected.",
+    "usernameRequired": "Username is required.",
     "profileUpdated": "Profile updated successfully",
     "profileUpdateFailed": "Failed to update profile",
     "passwordChanged": "Password changed successfully",

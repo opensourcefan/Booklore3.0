@@ -53,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getFableUsers());
     }
 
-    @Operation(summary = "Update user", description = "Update a user's profile by their ID. Admins may update any user; users may update their own name/email.")
+    @Operation(summary = "Update user", description = "Update a user's profile by their ID. Admins may update any user; users may update their own username/name/email.")
     @ApiResponse(responseCode = "200", description = "User updated successfully")
     @PutMapping("/{id}")
     @PreAuthorize("@securityUtil.isAdmin() or @securityUtil.isSelf(#id)")

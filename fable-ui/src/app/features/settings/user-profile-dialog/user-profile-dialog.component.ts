@@ -103,13 +103,22 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.editUserData.name === this.currentUser.name && this.editUserData.email === this.currentUser.email) {
+    if (this.editUserData.name === this.currentUser.name
+        && this.editUserData.email === this.currentUser.email
+        && this.editUserData.username === this.currentUser.username) {
       this.messageService.add({severity: 'info', summary: this.t.translate('common.info'), detail: this.t.translate('settingsProfile.toast.noChanges')});
       this.isEditing = false;
       return;
     }
 
+    const trimmedUsername = (this.editUserData.username ?? '').trim();
+    if (!trimmedUsername) {
+      this.toastError(this.t.translate('common.error'), this.t.translate('settingsProfile.toast.usernameRequired'));
+      return;
+    }
+
     const updateRequest: UserUpdateRequest = {
+      username: trimmedUsername,
       name: this.editUserData.name,
       email: this.editUserData.email,
     };

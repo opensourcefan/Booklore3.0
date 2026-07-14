@@ -71,6 +71,69 @@ class UserServiceTest {
     }
 
     @Test
+    void updateUser_changesUsernameWhenAvailable() {
+        UserPermissionsEntity perms = new UserPermissionsEntity();
+        perms.setPermissionAdmin(false);
+        FableUserEntity user = FableUserEntity.builder()
+                .id(3L)
+                .username("tempuser")
+                .name("Reader")
+                .email("r@example.com")
+                .permissions(perms)
+                .isDefaultPassword(false)
+                .build();
+        when(userRepository.findById(3L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
+
+        FableUser.UserPermissions actorPerms = new FableUser.UserPermissions();
+        actorPerms.setAdmin(false);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(
+                FableUser.builder().id(3L).permissions(actorPerms).build());
+        when(fableUserTransformer.toDTO(any())).thenAnswer(inv -> {
+            FableUserEntity e = inv.getArgument(0);
+            return FableUser.builder().id(e.getId()).username(e.getUsername()).name(e.getName()).email(e.getEmail()).build();
+        });
+
+        UserUpdateRequest update = new UserUpdateRequest();
+        update.setUsername("alice");
+        update.setName("Reader");
+        update.setEmail("r@example.com");
+
+        FableUser result = userService.updateUser(3L, update);
+
+        assertThat(result.getUsername()).isEqualTo("alice");
+        assertThat(user.getUsername()).isEqualTo("alice");
+    }
+
+    @Test
+    void updateUser_rejectsTakenUsername() {
+        UserPermissionsEntity perms = new UserPermissionsEntity();
+        perms.setPermissionAdmin(false);
+        FableUserEntity user = FableUserEntity.builder()
+                .id(3L)
+                .username("tempuser")
+                .name("Reader")
+                .permissions(perms)
+                .isDefaultPassword(false)
+                .build();
+        when(userRepository.findById(3L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("taken")).thenReturn(Optional.of(
+                FableUserEntity.builder().id(9L).username("taken").isDefaultPassword(false).build()));
+
+        FableUser.UserPermissions actorPerms = new FableUser.UserPermissions();
+        actorPerms.setAdmin(false);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(
+                FableUser.builder().id(3L).permissions(actorPerms).build());
+
+        UserUpdateRequest update = new UserUpdateRequest();
+        update.setUsername("taken");
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                org.fable.exception.APIException.class,
+                () -> userService.updateUser(3L, update));
+    }
+
+    @Test
     void updateUser_selfCanClearEmailToNull() {
         UserPermissionsEntity perms = new UserPermissionsEntity();
         perms.setPermissionAdmin(false);
@@ -86,8 +149,8 @@ class UserServiceTest {
 
         FableUser.UserPermissions actorPerms = new FableUser.UserPermissions();
         actorPerms.setAdmin(false);
-        FableUser actor = FableUser.builder().id(3L).permissions(actorPerms).build();
-        when(authenticationService.getAuthenticatedUser()).thenReturn(actor);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(
+                FableUser.builder().id(3L).permissions(actorPerms).build());
         when(fableUserTransformer.toDTO(any())).thenAnswer(inv -> {
             FableUserEntity e = inv.getArgument(0);
             return FableUser.builder().id(e.getId()).name(e.getName()).email(e.getEmail()).build();

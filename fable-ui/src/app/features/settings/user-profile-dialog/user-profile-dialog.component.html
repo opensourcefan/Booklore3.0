@@ -31,13 +31,14 @@
       <div class="form-field">
         <label class="field-label" for="username">{{ t('username') }}</label>
         <input
-          disabled
+          [disabled]="!isEditing"
           id="username"
           type="text"
           pInputText
           [(ngModel)]="editUserData.username"
           class="field-input"
-          [placeholder]="t('usernamePlaceholder')"/>
+          [placeholder]="t('usernamePlaceholder')"
+          autocomplete="username"/>
       </div>
 
       <div class="form-field">

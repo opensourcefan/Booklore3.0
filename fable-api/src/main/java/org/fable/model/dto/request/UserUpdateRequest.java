@@ -6,6 +6,7 @@ import java.util.List;
 
 @Data
 public class UserUpdateRequest {
+    private String username;
     private String name;
     private String email;
     private Permissions permissions;

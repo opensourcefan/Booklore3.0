@@ -44,7 +44,10 @@
   },
   "changePassword": {
     "title": "Change Password",
-    "subtitle": "Update your password to keep your account secure",
+    "subtitle": "Set your password, and optionally choose your own username",
+    "usernameLabel": "Username (optional)",
+    "usernamePlaceholder": "Choose a username",
+    "usernameHint": "Leave as-is to keep the temporary username, or enter a new one.",
     "currentPasswordLabel": "Current Password",
     "currentPasswordPlaceholder": "Enter your current password",
     "newPasswordLabel": "New Password",
