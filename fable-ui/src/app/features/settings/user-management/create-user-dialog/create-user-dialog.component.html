@@ -133,35 +133,31 @@
 
       <div class="gradient-divider"></div>
 
-      <div class="form-section">
+      <div class="form-section library-access-section">
         <h3 class="section-title">
           <i class="pi pi-book"></i>
           {{ t('createDialog.libraryAccess') }}
         </h3>
 
-        <div class="form-field permission-item show-library-row">
-          <p-checkbox formControlName="createPersonalLibrary" [binary]="true" inputId="create-personal-library"></p-checkbox>
-          <label for="create-personal-library" class="permission-label">
-            <div class="permission-icon-wrapper">
-              <i class="pi pi-folder permission-icon"></i>
+        <div class="library-options">
+          <div class="library-option">
+            <p-checkbox formControlName="createPersonalLibrary" [binary]="true" inputId="create-personal-library"></p-checkbox>
+            <div class="library-option-text">
+              <label for="create-personal-library" class="library-option-label">{{ t('createDialog.createPersonalLibrary') }}</label>
+              <p class="field-hint">{{ t('createDialog.createPersonalLibraryHint') }}</p>
             </div>
-            <span class="permission-name">{{ t('createDialog.createPersonalLibrary') }}</span>
-          </label>
-        </div>
-        <p class="field-hint">{{ t('createDialog.createPersonalLibraryHint') }}</p>
+          </div>
 
-        <div class="form-field permission-item show-library-row">
-          <p-checkbox formControlName="showLibrary" [binary]="true" inputId="create-show-library"></p-checkbox>
-          <label for="create-show-library" class="permission-label">
-            <div class="permission-icon-wrapper">
-              <i class="pi pi-eye permission-icon"></i>
+          <div class="library-option">
+            <p-checkbox formControlName="showLibrary" [binary]="true" inputId="create-show-library"></p-checkbox>
+            <div class="library-option-text">
+              <label for="create-show-library" class="library-option-label">{{ t('createDialog.showLibrary') }}</label>
+              <p class="field-hint">{{ t('createDialog.showLibraryHint') }}</p>
             </div>
-            <span class="permission-name">{{ t('createDialog.showLibrary') }}</span>
-          </label>
+          </div>
         </div>
-        <p class="field-hint">{{ t('createDialog.showLibraryHint') }}</p>
 
-        <div class="form-field">
+        <div class="form-field shared-libraries-field">
           <label class="field-label" for="create-libraries">{{ t('createDialog.accessibleLibraries') }}</label>
           <p-multiselect
             [options]="libraries"
@@ -254,13 +250,13 @@
                 </label>
               </div>
 
-              <div class="permission-item">
+              <div class="permission-item admin-permission">
                 <p-checkbox formControlName="permissionManageLibrary" [binary]="true" inputId="perm-library"></p-checkbox>
                 <label for="perm-library" class="permission-label">
-                  <div class="permission-icon-wrapper">
+                  <div class="permission-icon-wrapper admin-icon">
                     <i class="pi pi-folder permission-icon"></i>
                   </div>
-                  <span class="permission-name">{{ t('perms.manageLibrary') }}</span>
+                  <span class="permission-name admin-name">{{ t('perms.manageLibrary') }}</span>
                 </label>
               </div>
 
@@ -352,58 +348,59 @@
             </div>
           </div>
 
-          <div class="permission-group">
+          <div class="permission-group admin-territory-group">
             <h4 class="permission-group-title">
               <i class="pi pi-cog"></i>
               {{ t('permGroups.systemConfig') }}
+              <span class="admin-territory-badge">{{ t('createDialog.adminTerritory') }}</span>
             </h4>
             <div class="permission-group-items">
-              <div class="permission-item">
+              <div class="permission-item admin-permission">
                 <p-checkbox formControlName="permissionManageMetadataConfig" [binary]="true" inputId="perm-metadata-config"></p-checkbox>
                 <label for="perm-metadata-config" class="permission-label">
-                  <div class="permission-icon-wrapper">
+                  <div class="permission-icon-wrapper admin-icon">
                     <i class="pi pi-cog permission-icon"></i>
                   </div>
-                  <span class="permission-name">{{ t('perms.manageMetadataConfig') }}</span>
+                  <span class="permission-name admin-name">{{ t('perms.manageMetadataConfig') }}</span>
                 </label>
               </div>
 
-              <div class="permission-item">
+              <div class="permission-item admin-permission">
                 <p-checkbox formControlName="permissionManageGlobalPreferences" [binary]="true" inputId="perm-global-prefs"></p-checkbox>
                 <label for="perm-global-prefs" class="permission-label">
-                  <div class="permission-icon-wrapper">
+                  <div class="permission-icon-wrapper admin-icon">
                     <i class="pi pi-sliders-h permission-icon"></i>
                   </div>
-                  <span class="permission-name">{{ t('perms.manageAppPreferences') }}</span>
+                  <span class="permission-name admin-name">{{ t('perms.manageAppPreferences') }}</span>
                 </label>
               </div>
 
-              <div class="permission-item">
+              <div class="permission-item admin-permission">
                 <p-checkbox formControlName="permissionAccessTaskManager" [binary]="true" inputId="perm-task-manager"></p-checkbox>
                 <label for="perm-task-manager" class="permission-label">
-                  <div class="permission-icon-wrapper">
+                  <div class="permission-icon-wrapper admin-icon">
                     <i class="pi pi-list-check permission-icon"></i>
                   </div>
-                  <span class="permission-name">{{ t('perms.accessTaskManager') }}</span>
+                  <span class="permission-name admin-name">{{ t('perms.accessTaskManager') }}</span>
                 </label>
               </div>
 
-              <div class="permission-item">
+              <div class="permission-item admin-permission">
                 <p-checkbox formControlName="permissionManageIcons" [binary]="true" inputId="perm-icons"></p-checkbox>
                 <label for="perm-icons" class="permission-label">
-                  <div class="permission-icon-wrapper">
+                  <div class="permission-icon-wrapper admin-icon">
                     <i class="pi pi-images permission-icon"></i>
                   </div>
-                  <span class="permission-name">{{ t('perms.manageIcons') }}</span>
+                  <span class="permission-name admin-name">{{ t('perms.manageIcons') }}</span>
                 </label>
               </div>
-              <div class="permission-item">
+              <div class="permission-item admin-permission">
                 <p-checkbox formControlName="permissionManageFonts" [binary]="true" inputId="perm-fonts"></p-checkbox>
                 <label for="perm-fonts" class="permission-label">
-                  <div class="permission-icon-wrapper">
+                  <div class="permission-icon-wrapper admin-icon">
                     <i class="pi pi-palette permission-icon"></i>
                   </div>
-                  <span class="permission-name">{{ t('perms.manageFonts') }}</span>
+                  <span class="permission-name admin-name">{{ t('perms.manageFonts') }}</span>
                 </label>
               </div>
             </div>
@@ -508,10 +505,11 @@
             </div>
           </div>
 
-          <div class="permission-group full-width">
+          <div class="permission-group full-width admin-territory-group">
             <h4 class="permission-group-title">
               <i class="pi pi-shield"></i>
               {{ t('permGroups.administration') }}
+              <span class="admin-territory-badge">{{ t('createDialog.adminTerritory') }}</span>
             </h4>
             <div class="permission-group-items">
               <div class="permission-item admin-permission">

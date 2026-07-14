@@ -156,7 +156,8 @@
     "showLibraryHint": "Off (default): hidden from your catalog. On: appears under the sidebar USERS section only.",
     "sharedLibrariesHint": "Optional. Leave empty when using a personal library only.",
     "permissionPreset": "Permission preset",
-    "permissionPresetHint": "Start from a safe guest profile. Fine-tune individual permissions below if needed.",
+    "permissionPresetHint": "Start from a guest-friendly profile. Orange items are admin/system territory — leave them off unless intentional.",
+    "adminTerritory": "Admin / system",
     "presets": {
       "reader": "Reader",
       "contributor": "Contributor",
@@ -164,9 +165,9 @@
       "admin": "Admin"
     },
     "presetDescriptions": {
-      "reader": "Download books, view own reading stats, OPDS and Kobo sync. No uploads or catalog changes.",
-      "contributor": "Reader plus upload and edit metadata in assigned libraries.",
-      "librarian": "Contributor plus manage library paths (use only for trusted users with owned libraries).",
+      "reader": "Read, download, email, sync/OPDS, and viewing stats. No uploads or catalog edits.",
+      "contributor": "Full book work in assigned libraries (upload, edit/delete, bulk metadata) — no path remount or instance settings.",
+      "librarian": "Everything a contributor can do, plus Manage Library for their own libraries. Still no Admin/system settings.",
       "admin": "Full administrator access to all settings and libraries."
     },
     "editMetadata": "Edit Metadata",

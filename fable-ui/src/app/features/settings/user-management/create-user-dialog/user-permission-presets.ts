@@ -64,36 +64,56 @@ const ALL_PERMISSION_KEYS: UserPermissionFormKey[] = [
   'permissionBulkResetBookReadStatus',
 ];
 
+/**
+ * Instance-wide / admin territory — keep off guest presets and highlight in the UI.
+ * Manage Library is also highlighted (path remount can escape a sandbox) but librarian still gets it.
+ */
+export const ADMIN_TERRITORY_PERMISSION_KEYS: ReadonlySet<UserPermissionFormKey> = new Set([
+  'permissionAdmin',
+  'permissionManageGlobalPreferences',
+  'permissionAccessTaskManager',
+  'permissionManageMetadataConfig',
+  'permissionManageIcons',
+  'permissionManageFonts',
+  'permissionManageLibrary',
+]);
+
 function allPermissionsFalse(): Record<UserPermissionFormKey, boolean> {
   return Object.fromEntries(ALL_PERMISSION_KEYS.map(key => [key, false])) as Record<UserPermissionFormKey, boolean>;
 }
 
-/** Guest-safe defaults — never grants admin, task manager, global prefs (AI settings), or bookdrop. */
+function allExceptAdminTerritory(): Record<UserPermissionFormKey, boolean> {
+  const base = allPermissionsFalse();
+  for (const key of ALL_PERMISSION_KEYS) {
+    base[key] = !ADMIN_TERRITORY_PERMISSION_KEYS.has(key);
+  }
+  return base;
+}
+
+/**
+ * Guest-oriented presets:
+ * - Reader / Contributor / Librarian never get instance settings or full Admin.
+ * - Librarian gets Manage Library so they can run their own library (trusted users only).
+ */
 export const USER_PERMISSION_PRESETS: Record<Exclude<UserPermissionPresetId, 'custom'>, UserPermissionPresetValues> = {
   reader: {
     ...allPermissionsFalse(),
     permissionDownload: true,
+    permissionEmailBook: true,
     permissionAccessUserStats: true,
+    permissionAccessLibraryStats: true,
     permissionAccessOpds: true,
+    permissionSyncKoreader: true,
     permissionSyncKobo: true,
   },
   contributor: {
-    ...allPermissionsFalse(),
-    permissionDownload: true,
-    permissionAccessUserStats: true,
-    permissionAccessOpds: true,
-    permissionSyncKobo: true,
-    permissionUpload: true,
-    permissionEditMetadata: true,
+    ...allExceptAdminTerritory(),
+    // Contributor may mutate books in assigned libs, but not remount paths.
+    permissionManageLibrary: false,
   },
   librarian: {
-    ...allPermissionsFalse(),
-    permissionDownload: true,
-    permissionAccessUserStats: true,
-    permissionAccessOpds: true,
-    permissionSyncKobo: true,
-    permissionUpload: true,
-    permissionEditMetadata: true,
+    ...allExceptAdminTerritory(),
+    // Full control of their libraries — including path management (light B; no Phase 3 path policy).
     permissionManageLibrary: true,
   },
   admin: {
@@ -114,4 +134,8 @@ export function presetValuesFor(preset: Exclude<UserPermissionPresetId, 'custom'
     base[key as UserPermissionFormKey] = !!value;
   }
   return base;
+}
+
+export function isAdminTerritoryPermission(key: UserPermissionFormKey): boolean {
+  return ADMIN_TERRITORY_PERMISSION_KEYS.has(key);
 }
