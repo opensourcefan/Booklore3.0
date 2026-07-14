@@ -6,6 +6,7 @@ import org.fable.exception.ApiError;
 import org.fable.model.dto.FableUser;
 import org.fable.model.entity.BookEntity;
 import org.fable.repository.BookRepository;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.service.restriction.ContentRestrictionService;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
@@ -28,6 +29,7 @@ public class BookAccessAspect {
     private final AuthenticationService authenticationService;
     private final BookRepository bookRepository;
     private final ContentRestrictionService contentRestrictionService;
+    private final LibraryVisibilityService libraryVisibilityService;
 
     @Before("@annotation(org.fable.config.security.annotation.CheckBookAccess)")
     public void checkBookAccess(JoinPoint joinPoint) {
@@ -48,13 +50,9 @@ public class BookAccessAspect {
 
         FableUser user = authenticationService.getAuthenticatedUser();
 
-        if (user.getPermissions().isAdmin()) {
-            return;
-        }
-
-        boolean hasLibraryAccess = user.getAssignedLibraries().stream().anyMatch(library -> library.getId().equals(bookEntity.getLibrary().getId()));
-
-        if (!hasLibraryAccess) {
+        // Same working-catalog lane as books/story arcs — no admin bypass for personal libs.
+        Long libraryId = bookEntity.getLibrary() != null ? bookEntity.getLibrary().getId() : null;
+        if (!libraryVisibilityService.isLibraryAccessible(user, libraryId)) {
             throw ApiError.FORBIDDEN.createException("You are not authorized to access this book.");
         }
 

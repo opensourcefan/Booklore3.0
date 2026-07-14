@@ -11,6 +11,13 @@
     "subtitle": "Create your first user to get started"
   },
   "admin": "Admin",
+  "roles": {
+    "admin": "Admin",
+    "librarian": "Librarian",
+    "contributor": "Contributor",
+    "reader": "Reader",
+    "custom": "Custom"
+  },
   "permBadges": {
     "bookMgmt": "Book Management: {{count}}/5",
     "systemAccess": "System Access: {{count}}/3",

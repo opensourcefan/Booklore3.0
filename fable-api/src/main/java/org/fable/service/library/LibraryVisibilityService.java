@@ -15,7 +15,13 @@ import java.util.stream.Collectors;
 
 /**
  * Single choke point for which libraries a user may see in the working catalog
- * (sidebar, books, search, stats, OPDS, websockets, AI library pickers).
+ * (sidebar, books, search, stats, OPDS, websockets, AI library pickers,
+ * <strong>story arcs</strong>, and any other library-derived surface).
+ *
+ * <p>Any feature that shows or mutates content derived from books/libraries must
+ * call {@link #getAccessibleLibraryIds(FableUser)} (or {@link #isLibraryAccessible})
+ * rather than assuming admin sees everything or that assigned-library lists alone
+ * are enough for admins.
  *
  * <p>Admins no longer receive an unscoped "all libraries" view: personal libraries
  * ({@code owner_user_id != null}) are excluded unless {@code show_in_admin_catalog}.

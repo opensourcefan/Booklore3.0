@@ -43,7 +43,11 @@
       } @else {
         <div class="users-list">
           @for (user of users; track user.id) {
-            <div class="user-card" [class.is-expanded]="isRowExpanded(user)" [class.is-admin]="user.permissions.admin">
+            @let role = getUserRole(user);
+            <div
+              class="user-card"
+              [class.is-expanded]="isRowExpanded(user)"
+              [attr.data-role]="role">
               <div class="user-card-header">
                 <div class="user-main-info">
                   <button
@@ -53,22 +57,20 @@
                     <i [class]="isRowExpanded(user) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
                   </button>
 
-                  <div class="user-avatar">
+                  <div class="user-avatar" [attr.data-role]="role">
                     {{ user.username.charAt(0).toUpperCase() }}
                   </div>
 
                   <div class="user-identity">
                     <div class="user-name-row">
                       <span class="username">{{ user.username }}</span>
+                      <span class="role-badge" [attr.data-role]="role">
+                        <i [class]="getUserRoleIcon(role)"></i>
+                        {{ t('roles.' + role) }}
+                      </span>
                       <span class="user-type-badge" [attr.data-type]="user.provisioningMethod || 'LOCAL'">
                         {{ (user.provisioningMethod || 'LOCAL') | lowercase | titlecase }}
                       </span>
-                      @if (user.permissions.admin) {
-                        <span class="admin-badge">
-                          <i class="pi pi-shield"></i>
-                          {{ t('admin') }}
-                        </span>
-                      }
                     </div>
                     @if (user.name || user.email) {
                       <div class="user-meta">

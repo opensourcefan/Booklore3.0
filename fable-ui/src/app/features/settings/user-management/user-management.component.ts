@@ -29,6 +29,9 @@ interface UserWithEditing extends User {
   showLibrary?: boolean;
 }
 
+/** At-a-glance role for User Management list badges (aligned with create-user presets). */
+export type UserRoleBadge = 'admin' | 'librarian' | 'contributor' | 'reader' | 'custom';
+
 @Component({
   selector: 'app-user-management',
   imports: [
@@ -308,6 +311,38 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     if (ratio < 0.4) return 'low';
     if (ratio < 0.8) return 'medium';
     return 'high';
+  }
+
+  getUserRole(user: User): UserRoleBadge {
+    const p = user.permissions;
+    if (p.admin) {
+      return 'admin';
+    }
+    if (p.canManageLibrary) {
+      return 'librarian';
+    }
+    if (p.canUpload || p.canDeleteBook || p.canEditMetadata || p.canBulkEditMetadata || p.canMoveOrganizeFiles) {
+      return 'contributor';
+    }
+    if (p.canDownload || p.canEmailBook || p.canAccessOpds || p.canSyncKoReader || p.canSyncKobo) {
+      return 'reader';
+    }
+    return 'custom';
+  }
+
+  getUserRoleIcon(role: UserRoleBadge): string {
+    switch (role) {
+      case 'admin':
+        return 'pi pi-shield';
+      case 'librarian':
+        return 'pi pi-folder';
+      case 'contributor':
+        return 'pi pi-pencil';
+      case 'reader':
+        return 'pi pi-book';
+      default:
+        return 'pi pi-user';
+    }
   }
 
   toggleRowExpansion(user: User) {

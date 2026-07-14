@@ -13,6 +13,7 @@ import org.fable.model.entity.StoryArcEntity;
 import org.fable.repository.StoryArcBookMappingRepository;
 import org.fable.repository.StoryArcRepository;
 import org.fable.service.book.BookService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Story arcs are part of the working-catalog isolation lane: list/detail/mutates
+ * only consider books in {@link LibraryVisibilityService#getAccessibleLibraryIds}.
+ */
 @Service
 @RequiredArgsConstructor
 public class StoryArcService {
@@ -28,11 +33,17 @@ public class StoryArcService {
     private final StoryArcBookMappingRepository repository;
     private final BookService bookService;
     private final AuthenticationService authenticationService;
+    private final LibraryVisibilityService libraryVisibilityService;
 
     @Transactional(readOnly = true)
     public List<StoryArcSummary> getStoryArcs() {
         FableUser user = authenticationService.getAuthenticatedUser();
-        List<Object[]> rows = storyArcRepository.findStoryArcSummariesWithUserProgress(user.getId());
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
+        if (libraryIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Object[]> rows = storyArcRepository.findStoryArcSummariesWithUserProgress(user.getId(), libraryIds);
         List<StoryArcSummary> summaries = new ArrayList<>();
         for (Object[] row : rows) {
             StoryArcEntity arc = (StoryArcEntity) row[0];
@@ -60,39 +71,21 @@ public class StoryArcService {
 
     @Transactional(readOnly = true)
     public List<StoryArcBookMappingDto> getStoryArc(String name) {
+        FableUser user = authenticationService.getAuthenticatedUser();
+        Set<Long> libraryIds = libraryVisibilityService.getAccessibleLibraryIds(user);
+        if (libraryIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         StoryArcEntity arc = storyArcRepository.findByName(name).orElse(null);
         if (arc == null) {
             return Collections.emptyList();
         }
 
         List<StoryArcBookMappingEntity> mappings = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(name);
-
-        // If there are no mappings, return a sentinel DTO carrying arc metadata
-        // so the frontend can still display the summary/guide.
+        // Empty / guide-only arcs have no library-scoped books → stay out of the catalog.
         if (mappings.isEmpty()) {
-            List<StoryArcBookMappingDto> result = new ArrayList<>();
-            // Add metadata sentinel
-            result.add(StoryArcBookMappingDto.builder()
-                    .storyArcName(arc.getName())
-                    .externalUrl(arc.getExternalUrl())
-                    .description(arc.getDescription())
-                    .coverBookId(arc.getCoverBookId())
-                    .build());
-            // Add empty row sentinels from persisted rowTitles
-            if (arc.getRowTitles() != null && !arc.getRowTitles().isBlank()) {
-                String[] titles = arc.getRowTitles().split("\n");
-                for (int i = 0; i < titles.length; i++) {
-                    String title = titles[i].trim();
-                    if (!title.isEmpty()) {
-                        result.add(StoryArcBookMappingDto.builder()
-                                .storyArcName(arc.getName())
-                                .rowIndex(i)
-                                .rowTitle(title)
-                                .build());
-                    }
-                }
-            }
-            return result;
+            return Collections.emptyList();
         }
 
         Set<Long> bookIds = mappings.stream()
@@ -103,7 +96,16 @@ public class StoryArcService {
         Map<Long, Book> bookMap = books.stream()
                 .collect(Collectors.toMap(Book::getId, Function.identity()));
 
-        List<StoryArcBookMappingDto> result = mappings.stream()
+        List<StoryArcBookMappingEntity> accessibleMappings = mappings.stream()
+                .filter(mapping -> bookMap.containsKey(mapping.getBookId()))
+                .toList();
+        if (accessibleMappings.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Long visibleCoverId = resolveVisibleCoverBookId(arc.getCoverBookId(), bookMap, accessibleMappings);
+
+        return accessibleMappings.stream()
                 .map(mapping -> StoryArcBookMappingDto.builder()
                         .id(mapping.getId())
                         .storyArcName(mapping.getStoryArcName())
@@ -115,32 +117,10 @@ public class StoryArcService {
                         .rowTitle(mapping.getRowTitle())
                         .externalUrl(mapping.getExternalUrl() != null ? mapping.getExternalUrl() : arc.getExternalUrl())
                         .description(mapping.getDescription() != null ? mapping.getDescription() : arc.getDescription())
-                        .coverBookId(arc.getCoverBookId())
+                        .coverBookId(visibleCoverId)
                         .book(bookMap.get(mapping.getBookId()))
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new));
-
-        // Add empty row sentinels from persisted rowTitles for rows that have no books
-        if (arc.getRowTitles() != null && !arc.getRowTitles().isBlank()) {
-            String[] titles = arc.getRowTitles().split("\n");
-            Set<Integer> occupiedRows = mappings.stream()
-                    .map(StoryArcBookMappingEntity::getRowIndex)
-                    .collect(Collectors.toSet());
-            for (int i = 0; i < titles.length; i++) {
-                if (!occupiedRows.contains(i)) {
-                    String title = titles[i].trim();
-                    if (!title.isEmpty()) {
-                        result.add(StoryArcBookMappingDto.builder()
-                                .storyArcName(arc.getName())
-                                .rowIndex(i)
-                                .rowTitle(title)
-                                .build());
-                    }
-                }
-            }
-        }
-
-        return result;
     }
 
     @Transactional
@@ -151,7 +131,6 @@ public class StoryArcService {
         }
         name = name.trim();
 
-        // Ensure the story arc entity exists
         StoryArcEntity arc = storyArcRepository.findByName(name).orElse(null);
         if (arc == null) {
             arc = StoryArcEntity.builder()
@@ -165,23 +144,21 @@ public class StoryArcService {
                 .map(StoryArcBookMappingEntity::getBookId)
                 .collect(Collectors.toSet());
 
-        // Filter out already-mapped book IDs
-        List<Long> newBookIds = request.getBookIds().stream()
+        List<Long> requestedNewIds = request.getBookIds().stream()
                 .filter(id -> !alreadyMappedIds.contains(id))
                 .toList();
+        List<Long> newBookIds = retainAccessibleBookIds(requestedNewIds);
 
         if (newBookIds.isEmpty()) {
             return;
         }
 
-        // Determine the highest existing row index for appending
         int maxExistingRowIndex = existing.stream()
                 .mapToInt(StoryArcBookMappingEntity::getRowIndex)
                 .max()
                 .orElse(-1);
 
         if (Boolean.TRUE.equals(request.isGroupBySeries())) {
-            // Fetch book metadata to group by series
             List<Book> books = bookService.getBooksByIds(new HashSet<>(newBookIds), false);
             Map<Long, String> bookSeriesMap = new LinkedHashMap<>();
             for (Book b : books) {
@@ -191,14 +168,12 @@ public class StoryArcService {
                 bookSeriesMap.put(b.getId(), series);
             }
 
-            // Group book IDs by series, preserving insertion order within each group
             Map<String, List<Long>> groupedBySeries = new LinkedHashMap<>();
             for (Long bookId : newBookIds) {
                 String series = bookSeriesMap.getOrDefault(bookId, "Unsorted");
                 groupedBySeries.computeIfAbsent(series, k -> new ArrayList<>()).add(bookId);
             }
 
-            // Sort series groups alphabetically, but keep "Unsorted" last
             List<String> sortedSeries = new ArrayList<>(groupedBySeries.keySet());
             sortedSeries.sort((a, b) -> {
                 if ("Unsorted".equals(a)) return 1;
@@ -231,7 +206,6 @@ public class StoryArcService {
                 rowIdx++;
             }
         } else {
-            // Determine target row
             int targetRowIndex;
             String targetRowTitle = null;
             int targetColIndex;
@@ -239,19 +213,16 @@ public class StoryArcService {
 
             if (request.getTargetRowIndex() != null) {
                 if (request.getTargetRowIndex() == -1) {
-                    // Signal to create a new row at the end
                     targetRowIndex = maxExistingRowIndex + 1;
                     targetRowTitle = request.getRowTitle();
                     targetColIndex = 0;
                     targetSeq = existing.isEmpty() ? 0.0
                             : existing.get(existing.size() - 1).getSequenceOrder();
                 } else if ("above".equals(request.getPosition()) || "below".equals(request.getPosition())) {
-                    // Create a new chapter above or below the target row, shifting existing rows
                     int insertAt = request.getTargetRowIndex();
                     if ("below".equals(request.getPosition())) {
                         insertAt = request.getTargetRowIndex() + 1;
                     }
-                    // Shift existing rows at insertAt and above down by 1
                     for (StoryArcBookMappingEntity m : existing) {
                         if (m.getRowIndex() >= insertAt) {
                             m.setRowIndex(m.getRowIndex() + 1);
@@ -261,7 +232,6 @@ public class StoryArcService {
                     targetRowIndex = insertAt;
                     targetRowTitle = request.getRowTitle();
                     targetColIndex = 0;
-                    // Compute max seq before insertAt using a loop instead of lambda
                     double maxSeqBefore = 0.0;
                     for (StoryArcBookMappingEntity m : existing) {
                         if (m.getRowIndex() < insertAt && m.getSequenceOrder() > maxSeqBefore) {
@@ -272,7 +242,6 @@ public class StoryArcService {
                 } else {
                     targetRowIndex = request.getTargetRowIndex();
                     targetRowTitle = request.getRowTitle();
-                    // Find the last col/seq in the target row
                     int maxCol = -1;
                     double maxSeq = 0.0;
                     for (StoryArcBookMappingEntity m : existing) {
@@ -286,7 +255,6 @@ public class StoryArcService {
                             : existing.get(existing.size() - 1).getSequenceOrder());
                 }
             } else {
-                // Default: append to last row
                 if (!existing.isEmpty()) {
                     StoryArcBookMappingEntity lastItem = existing.get(existing.size() - 1);
                     targetRowIndex = lastItem.getRowIndex();
@@ -323,7 +291,6 @@ public class StoryArcService {
     public void saveLayout(String name, StoryArcLayoutUpdateRequest request) {
         String cleanName = name.trim();
 
-        // Ensure the story arc entity exists and update its metadata
         StoryArcEntity arc = storyArcRepository.findByName(cleanName).orElse(null);
         if (arc == null) {
             arc = StoryArcEntity.builder()
@@ -336,7 +303,6 @@ public class StoryArcService {
             arc.setDescription(request.getDescription());
         }
 
-        // Persist empty chapter row titles as JSON array
         if (request.getRowTitles() != null && !request.getRowTitles().isEmpty()) {
             arc.setRowTitles(String.join("\n", request.getRowTitles()));
         } else {
@@ -351,15 +317,24 @@ public class StoryArcService {
         Set<Long> requestBookIds = request.getItems().stream()
                 .map(StoryArcLayoutUpdateRequest.LayoutItem::getBookId)
                 .collect(Collectors.toSet());
+        Set<Long> accessibleRequestBookIds = new HashSet<>(retainAccessibleBookIds(new ArrayList<>(requestBookIds)));
 
-        // 1. Delete items not in request (removed from arc)
+        Set<Long> existingBookIds = existingMappings.stream()
+                .map(StoryArcBookMappingEntity::getBookId)
+                .collect(Collectors.toSet());
+        Set<Long> accessibleExistingBookIds = new HashSet<>(retainAccessibleBookIds(new ArrayList<>(existingBookIds)));
+
+        // Only remove mappings the caller can see — never wipe another catalog's books from a shared arc.
         List<StoryArcBookMappingEntity> toDelete = existingMappings.stream()
+                .filter(m -> accessibleExistingBookIds.contains(m.getBookId()))
                 .filter(m -> !requestBookIds.contains(m.getBookId()))
                 .toList();
         repository.deleteAll(toDelete);
 
-        // 2. Update or insert layout coordinates
         for (StoryArcLayoutUpdateRequest.LayoutItem item : request.getItems()) {
+            if (!accessibleRequestBookIds.contains(item.getBookId())) {
+                continue;
+            }
             StoryArcBookMappingEntity entity = existingMap.get(item.getBookId());
             if (entity == null) {
                 entity = StoryArcBookMappingEntity.builder()
@@ -395,14 +370,11 @@ public class StoryArcService {
 
             StringBuilder sb = new StringBuilder();
 
-            // Target body content paragraphs (.entry-content, .cs-content, article, main)
             org.jsoup.select.Elements contentParagraphs = doc.select(".entry-content .x-text.x-content, .entry-content p, article p, main p, .post-content p");
             for (org.jsoup.nodes.Element elem : contentParagraphs) {
-                // Preserve <br> tags as line breaks
                 elem.select("br").append("\n");
                 String text = elem.text().trim();
 
-                // Exclude generic site welcome messages or tab navigation headers
                 String lower = text.toLowerCase();
                 if (lower.startsWith("welcome to our") && lower.contains("reading order")) {
                     continue;
@@ -421,7 +393,6 @@ public class StoryArcService {
 
             String description = sb.toString().trim();
 
-            // Fallback to meta description if content body yielded nothing
             if (description.isBlank()) {
                 description = doc.select("meta[property=og:description]").attr("content");
                 if (description.isBlank()) {
@@ -449,6 +420,9 @@ public class StoryArcService {
         if (arc == null) {
             return;
         }
+        if (coverBookId != null && retainAccessibleBookIds(List.of(coverBookId)).isEmpty()) {
+            return;
+        }
         arc.setCoverBookId(coverBookId);
         storyArcRepository.save(arc);
     }
@@ -460,6 +434,33 @@ public class StoryArcService {
 
     @Transactional
     public void removeBooksFromStoryArc(String name, List<Long> bookIds) {
-        repository.deleteAllByStoryArcNameAndBookIdIn(name.trim(), bookIds);
+        List<Long> accessible = retainAccessibleBookIds(bookIds);
+        if (accessible.isEmpty()) {
+            return;
+        }
+        repository.deleteAllByStoryArcNameAndBookIdIn(name.trim(), accessible);
+    }
+
+    private List<Long> retainAccessibleBookIds(List<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return List.of();
+        }
+        return bookService.getBooksByIds(new HashSet<>(bookIds), false).stream()
+                .map(Book::getId)
+                .toList();
+    }
+
+    private Long resolveVisibleCoverBookId(
+            Long preferredCoverId,
+            Map<Long, Book> bookMap,
+            List<StoryArcBookMappingEntity> accessibleMappings) {
+        if (preferredCoverId != null && bookMap.containsKey(preferredCoverId)) {
+            return preferredCoverId;
+        }
+        return accessibleMappings.stream()
+                .map(StoryArcBookMappingEntity::getBookId)
+                .filter(bookMap::containsKey)
+                .findFirst()
+                .orElse(null);
     }
 }
