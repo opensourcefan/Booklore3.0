@@ -659,8 +659,8 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.115 &mdash; July 14, 2026<br>
-    Audience: New users, household members, and non-technical readers<br><br>
+    Version 1.1.116 &mdash; July 14, 2026<br>
+    Audience: New users, invited users, and non-technical readers<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
 </div>
@@ -765,7 +765,7 @@
   <strong>Be Careful:</strong> Choose a strong password. Anyone who knows this password has full control over Fable. Because this is a private local app, there is no "Forgot Password" email reset by default. If you lose the admin password and have no other login method configured, recovery requires running database command-line queries inside the database container to manually reset the credential hash.
 </div>
 
-<h3>Joining a household (not the first-time wizard)</h3>
+<h3>Joining an existing Fable (not the first-time wizard)</h3>
 <p>If someone already runs Fable and invited you, <strong>you skip this Setup Wizard</strong>. Use the username and temporary password they sent you, sign in, change your password when asked, then open the <strong>User Guide</strong> from the sidebar. Details: <a href="#sec22">Section 22 &mdash; If someone invited you to Fable</a>.</p>
 
 <!-- ==================== SECTION 3 ==================== -->
@@ -1106,7 +1106,7 @@
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Household accounts usually get an automatic <strong>personal library</strong> at <code>/books/_users/{id}/</code> when the admin creates the user (see <a href="#sec22">Section 22</a>). Admins only see those under a <strong>USERS</strong> sidebar section if <strong>Show library</strong> is enabled for that user. Fable's library settings, directories, and maintenance dialogs are cross-linked. Scheduled scans use the additive &ldquo;Scan for New Files&rdquo; process to protect existing metadata.
+  <strong>Good to Know:</strong> Additional user accounts usually get an automatic <strong>personal library</strong> at <code>/books/_users/{id}/</code> when the admin creates the user (see <a href="#sec22">Section 22</a>). Admins only see those under a <strong>USERS</strong> sidebar section if <strong>Show library</strong> is enabled for that user. Fable's library settings, directories, and maintenance dialogs are cross-linked. Scheduled scans use the additive &ldquo;Scan for New Files&rdquo; process to protect existing metadata.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -2108,14 +2108,14 @@
 <h2 id="sec22">22. User Accounts and Permissions <span class="section-icon"><i class="pi pi-users"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> User Management (admins) &nbsp;|&nbsp; your own account anywhere you can sign in</p>
 
-<p>Fable can be shared by a household. Each person gets their <strong>own login</strong>, their <strong>own reading progress</strong>, and usually their <strong>own library of books</strong>. What you see depends on which books you are allowed to access&mdash;not on what everyone else has.</p>
+<p>Fable can be shared by more than one person on the same server. Each person gets their <strong>own login</strong>, their <strong>own reading progress</strong>, and usually their <strong>own library of books</strong>. What you see depends on which books you are allowed to access&mdash;not on what everyone else has.</p>
 
 <div class="callout tip">
-  <strong>Start here if a family member invited you:</strong> Read <em>If someone invited you to Fable</em> below, then skim <a href="#sec3">Section 3 (Dashboard)</a>, <a href="#sec6">Section 6 (Books)</a>, and <a href="#sec10">Section 10 (Reading)</a>. You can skip the admin setup steps.
+  <strong>Start here if someone invited you:</strong> Read <em>If someone invited you to Fable</em> below, then skim <a href="#sec3">Section 3 (Dashboard)</a>, <a href="#sec6">Section 6 (Books)</a>, and <a href="#sec10">Section 10 (Reading)</a>. You can skip the admin setup steps.
 </div>
 
 <h3>If someone invited you to Fable</h3>
-<p>You do <strong>not</strong> need Docker, Settings, or admin access. Use the info your family admin sent you (often a short note labeled for login).</p>
+<p>You do <strong>not</strong> need Docker, Settings, or admin access. Use the info the admin who invited you sent you (often a short note labeled for login).</p>
 <ol>
   <li><strong>Open the login page</strong> &mdash; Use the link they sent (it may look like <code>…/login?reason=invite</code>) or open Fable in the browser the usual way.</li>
   <li><strong>Sign in</strong> with the <strong>username</strong> and <strong>temporary password</strong> from that note.</li>
@@ -2135,11 +2135,11 @@
   <ul>
     <li>You see books in libraries you are allowed to use. You do not browse other people&rsquo;s private libraries.</li>
     <li><strong>Story Arcs</strong> only show paths that use books you can access&mdash;you will not see other people&rsquo;s private reading orders.</li>
-    <li>You usually <strong>cannot</strong> open global Settings, create users, or change the whole household installation. That is for the admin account.</li>
+    <li>You usually <strong>cannot</strong> open global Settings, create users, or change the whole shared installation. That is for the admin account.</li>
   </ul>
 </div>
 
-<p><strong>Everyday things for household users:</strong></p>
+<p><strong>Everyday things for invited users:</strong></p>
 <ul>
   <li>Browse your libraries and open a book to read (see <a href="#sec10">Reading Books</a>)</li>
   <li>Mark books as reading / finished; keep your own shelves</li>
@@ -2157,16 +2157,16 @@
 <p>When the admin creates or reviews users, Fable shows a clear role badge. Typical presets:</p>
 <table>
   <tr><th>Badge</th><th>Meant for</th><th>Typical access</th></tr>
-  <tr><td><i class="pi pi-book"></i> <strong>Reader</strong></td><td>Family member who mainly reads</td><td>Read, download, email, sync/OPDS, view stats. No uploads or catalog edits.</td></tr>
+  <tr><td><i class="pi pi-book"></i> <strong>Reader</strong></td><td>Someone who mainly reads</td><td>Read, download, email, sync/OPDS, view stats. No uploads or catalog edits.</td></tr>
   <tr><td><i class="pi pi-pencil"></i> <strong>Contributor</strong></td><td>Trusted helper for their libraries</td><td>Upload, edit/delete books, bulk metadata in assigned libraries. Not instance-wide settings.</td></tr>
   <tr><td><i class="pi pi-folder"></i> <strong>Librarian</strong></td><td>Trusted library manager</td><td>Like Contributor, plus Manage Library (can change folder paths&mdash;use carefully).</td></tr>
-  <tr><td><i class="pi pi-shield"></i> <strong>Admin</strong></td><td>Household owner</td><td>Everything, including User Management and system settings. Orange in the UI.</td></tr>
+  <tr><td><i class="pi pi-shield"></i> <strong>Admin</strong></td><td>Instance admin</td><td>Everything, including User Management and system settings. Orange in the UI.</td></tr>
   <tr><td><i class="pi pi-user"></i> <strong>Custom</strong></td><td>Mixed checkboxes</td><td>Whatever the admin selected manually.</td></tr>
 </table>
 
-<p>Orange / highlighted items in Create User are <strong>admin or system territory</strong>&mdash;leave them off for normal household accounts.</p>
+<p>Orange / highlighted items in Create User are <strong>admin or system territory</strong>&mdash;leave them off for normal non-admin accounts.</p>
 
-<h3>For the household admin: invite someone new</h3>
+<h3>For the admin: invite someone new</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> User Management <i class="pi pi-chevron-right"></i> Add User / Create User</p>
 <ol>
   <li>Log in as <strong>Admin</strong>.</li>
@@ -2174,7 +2174,7 @@
   <li>Fill in display name, username, and a temporary password.</li>
   <li>Leave <strong>Create personal library</strong> on (default). Fable creates a private folder under <code>/books/_users/{id}/</code> and maps it only to that user. You do <strong>not</strong> need to invent folders like <code>books/user2</code> unless you want an extra custom library.</li>
   <li>Leave <strong>Show library</strong> off unless you (the admin) want their personal library listed under a <strong>USERS</strong> section in <em>your</em> sidebar. Off means it stays out of your daily catalog.</li>
-  <li>Pick a <strong>permission preset</strong> (start with <strong>Reader</strong> for most family members).</li>
+  <li>Pick a <strong>permission preset</strong> (start with <strong>Reader</strong> for most invited users).</li>
   <li>Optionally add shared libraries they may also browse.</li>
   <li>Create the user. On the next screen, use <strong>Copy all</strong> to grab the invite pack (login URL, username, password) and send it to them by a private channel (message, note, etc.).</li>
   <li>Tell them to open this guide (User Guide in the sidebar) after they change their password.</li>
@@ -2184,7 +2184,7 @@
   <strong>Tip:</strong> After create, confirm the user appears on the User Management list with the expected colored role badge. If create fails with a personal-library folder error, ensure <code>books/_users</code> exists and is owned by the container user (or restart Fable so the entrypoint can create it), then retry.
 </div>
 
-<h3>What household users can usually do</h3>
+<h3>What invited users can usually do</h3>
 <ul>
   <li>Read books in their personal library and any shared libraries they were given</li>
   <li>Create personal shelves and keep their own reading progress</li>
@@ -2201,7 +2201,7 @@
 </ul>
 
 <h3>Optional: extra manual libraries</h3>
-<p>You can still create extra folders under the host <code>books/</code> mount and attach them as libraries, then map those libraries to users. The automatic personal library path above is the simple household default.</p>
+<p>You can still create extra folders under the host <code>books/</code> mount and attach them as libraries, then map those libraries to users. The automatic personal library path above is the simple multi-user default.</p>
 
 <div class="callout warning">
   <strong>Important safety notes for admins:</strong>
@@ -2209,7 +2209,7 @@
     <li><strong>Book Deletion</strong> can remove files from disk&mdash;only enable for people you trust.</li>
     <li><strong>Manage Library</strong> lets someone point libraries at other folders. Prefer the Reader or Contributor preset unless you trust Librarian fully.</li>
     <li><strong>Admins do not automatically see every personal library.</strong> Personal libraries stay out of the admin catalog unless <strong>Show library</strong> is on. Story Arcs follow the same rule: only books in your visible catalog.</li>
-    <li>Everyone shares the same Fable server and database. This is household multi-user, not separate cloud tenants.</li>
+    <li>Everyone shares the same Fable server and database. This is shared multi-user on one server, not separate cloud tenants.</li>
   </ul>
 </div>
 
@@ -2220,8 +2220,8 @@
 <p>Fable supports three ways to log in:</p>
 
 <h3>Local Password</h3>
-<p>The default method &mdash; log in with your username and password. Simplest option for personal and household use. Passwords are stored securely (hashed). Sessions use JWT tokens that auto-refresh.</p>
-<p>When an admin creates a household user, they can <strong>Copy all</strong> an invite pack that includes a login link (often with <code>?reason=invite</code>), username, and temporary password. Open that link, sign in, then change the password when prompted. See <a href="#sec22">Section 22</a>.</p>
+<p>The default method &mdash; log in with your username and password. Simplest option for personal and multi-user use. Passwords are stored securely (hashed). Sessions use JWT tokens that auto-refresh.</p>
+<p>When an admin creates an invited user, they can <strong>Copy all</strong> an invite pack that includes a login link (often with <code>?reason=invite</code>), username, and temporary password. Open that link, sign in, then change the password when prompted. See <a href="#sec22">Section 22</a>.</p>
 
 <h3>OIDC (OpenID Connect)</h3>
 <p>Use a third-party identity provider (like PocketID, Keycloak, or Authentik) for single sign-on.</p>
@@ -2608,7 +2608,7 @@
 
 <h3>For New Users</h3>
 <ol>
-  <li><strong>If you were invited by family:</strong> change your temporary password, open User Guide from the sidebar, and read <a href="#sec22">Section 22</a> first&mdash;then explore your personal library.</li>
+  <li><strong>If you were invited by someone:</strong> change your temporary password, open User Guide from the sidebar, and read <a href="#sec22">Section 22</a> first&mdash;then explore your personal library.</li>
   <li><strong>Start small.</strong> Set up one library, add a few books, and explore before importing your entire collection.</li>
   <li><strong>Use BookDrop</strong> for importing rather than manually placing files (if your account allows it).</li>
   <li><strong>Fetch metadata early.</strong> After importing, fetch metadata to fill in titles, authors, covers, and descriptions.</li>
@@ -2665,7 +2665,7 @@
   <tr><td><strong>JWT</strong></td><td>JSON Web Token &mdash; the authentication token used for login sessions</td></tr>
   <tr><td><strong>KEPUB</strong></td><td>Kobo&rsquo;s enhanced EPUB format</td></tr>
   <tr><td><strong>Library</strong></td><td>A connection between Fable and a folder on your server where book files are stored</td></tr>
-  <tr><td><strong>Personal library</strong></td><td>A private library auto-created for a household user under <code>/books/_users/{id}/</code>; only that user is mapped to it by default</td></tr>
+  <tr><td><strong>Personal library</strong></td><td>A private library auto-created for an additional user under <code>/books/_users/{id}/</code>; only that user is mapped to it by default</td></tr>
   <tr><td><strong>LLM Profile</strong></td><td>A saved configuration of AI model settings (provider, model, API key, tuning parameters) that can be switched with one click</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-m4a">M4A</span> / <span class="guide-badge guide-badge-m4b">M4B</span></strong></td><td>AAC-based audio formats; M4B is the audiobook variant with chapter markers and bookmarking support</td></tr>
   <tr><td><strong>Magic Shelf</strong></td><td>An automatically populated collection based on filter rules</td></tr>
@@ -2698,7 +2698,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
-  <tr><td>2026-07-14</td><td>1.1.115</td><td>Rewrote household user accounts for invitees and admins: personal libraries under <code>/books/_users/{id}/</code>, Show library / USERS sidebar, Reader&ndash;Admin presets, Copy-all invite handoff, Story Arc visibility, and clearer first-login guidance. Updated both single-page and modular guides.</td></tr>
+  <tr><td>2026-07-14</td><td>1.1.115</td><td>Rewrote multi-user accounts for invitees and admins: personal libraries under <code>/books/_users/{id}/</code>, Show library / USERS sidebar, Reader&ndash;Admin presets, Copy-all invite handoff, Story Arc visibility, and clearer first-login guidance. Updated both single-page and modular guides.</td></tr>
   <tr><td>2026-07-13</td><td>1.1.114</td><td>Compacted mobile dialog footers to Story Arc density (2.25rem), added Cancel to Lock/Unlock metadata, and made long Save actions icon-only on phones so Assign Media Type / Shelf footers no longer spill off a 375px screen.</td></tr>
   <tr><td>2026-07-13</td><td>1.1.113</td><td>Directory explorer on phones now dismisses with the system back gesture (and cleans up so the X close cannot get stuck); standardized dialog/panel footer button height and alignment on mobile (shared footer mixin, Story Arc / book-picker / sender footers); library title kebab menu keeps a 36px touch target per mobile rules.</td></tr>
   <tr><td>2026-07-13</td><td>1.1.112</td><td>Continued book-browser header mobile dialog polish: Lock/Unlock and header Sort/Display/Columns popovers, Bulk Metadata Update, File Mover, File Attacher, AI Search touch targets, Shelf Assigner footer density, metadata fetch/editor phone spacing, and system-back dismissal for confirmation dialogs.</td></tr>
