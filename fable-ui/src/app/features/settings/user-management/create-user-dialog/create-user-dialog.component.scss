@@ -402,3 +402,58 @@
     }
   }
 }
+
+.credentials-handoff {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-top: none;
+
+  .field-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  .credentials-textarea {
+    width: 100%;
+    min-height: 10rem;
+    resize: vertical;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--ground-background);
+    color: var(--text-color);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  .credentials-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    .credentials-textarea {
+      min-height: 12rem;
+      font-size: 0.95rem;
+    }
+
+    .credentials-actions {
+      flex-direction: column;
+
+      ::ng-deep .p-button {
+        width: 100%;
+        min-height: 44px;
+      }
+    }
+  }
+}

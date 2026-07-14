@@ -61,6 +61,8 @@ export class LoginComponent implements OnInit {
         this.infoMessage = this.translocoService.translate('auth.login.sessionRevoked');
       } else if (params['reason'] === 'session_expired') {
         this.infoMessage = this.translocoService.translate('auth.login.sessionExpired');
+      } else if (params['reason'] === 'invite') {
+        this.infoMessage = this.translocoService.translate('auth.login.inviteWelcome');
       }
 
       const oidcError = params['oidcError'];

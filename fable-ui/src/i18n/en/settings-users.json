@@ -177,6 +177,13 @@
     "createUser": "Create User",
     "validationError": "Please correct errors before submitting.",
     "createSuccess": "The user has been successfully created.",
+    "credentialsTitle": "Share login details",
+    "credentialsHint": "Copy this block and send it out of band. The Login link opens the sign-in screen and clears any previous session on that browser.",
+    "credentialsPackLabel": "Invite text",
+    "copyCredentials": "Copy all",
+    "doneCredentials": "Done",
+    "credentialsCopied": "Login details copied to clipboard.",
+    "credentialsCopyFailed": "Could not copy automatically. Select the text and copy manually.",
     "createFailed": "Unable to create user: {{message}}",
     "createError": "An unexpected error occurred while creating the user. Please try again later."
   },

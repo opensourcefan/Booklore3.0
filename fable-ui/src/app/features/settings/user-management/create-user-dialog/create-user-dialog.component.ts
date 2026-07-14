@@ -19,6 +19,7 @@ import {
   UserPermissionPresetId,
 } from './user-permission-presets';
 import {Subscription} from 'rxjs';
+import {buildUserInviteCredentialsPack, buildUserInviteLoginUrl, UserInviteCredentials} from './user-invite-credentials';
 
 
 @Component({
@@ -43,6 +44,9 @@ export class CreateUserDialogComponent implements OnInit, OnDestroy {
   libraries: Library[] = [];
   selectedPreset: UserPermissionPresetId = USER_PERMISSION_PRESET_DEFAULT;
   presetOptions: {label: string; value: UserPermissionPresetId}[] = [];
+  showCredentialsHandoff = false;
+  credentialsPackText = '';
+  private createdCredentials: UserInviteCredentials | null = null;
 
   private fb = inject(FormBuilder);
   private libraryService = inject(LibraryService);
@@ -165,6 +169,8 @@ export class CreateUserDialogComponent implements OnInit, OnDestroy {
 
     const email = typeof formValue.email === 'string' ? formValue.email.trim() : '';
     const selectedLibs = Array.isArray(formValue.selectedLibraries) ? formValue.selectedLibraries : [];
+    const username = String(formValue.username ?? '').trim();
+    const password = String(formValue.password ?? '');
     const userData = {
       ...formValue,
       email: email.length > 0 ? email : null,
@@ -175,12 +181,18 @@ export class CreateUserDialogComponent implements OnInit, OnDestroy {
 
     this.userService.createUser(userData).subscribe({
       next: () => {
+        this.createdCredentials = {
+          loginUrl: buildUserInviteLoginUrl(),
+          username,
+          password,
+        };
+        this.credentialsPackText = buildUserInviteCredentialsPack(this.createdCredentials);
+        this.showCredentialsHandoff = true;
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('common.success'),
           detail: this.t.translate('settingsUsers.createDialog.createSuccess')
         });
-        this.ref.close(true);
       },
       error: (err) => {
         this.toastError(this.t.translate('common.error'), err?.error?.message
@@ -190,8 +202,31 @@ export class CreateUserDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  async copyCredentialsPack(): Promise<void> {
+    if (!this.credentialsPackText) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(this.credentialsPackText);
+      this.messageService.add({
+        severity: 'success',
+        summary: this.t.translate('common.success'),
+        detail: this.t.translate('settingsUsers.createDialog.credentialsCopied'),
+      });
+    } catch {
+      this.toastError(
+        this.t.translate('common.error'),
+        this.t.translate('settingsUsers.createDialog.credentialsCopyFailed')
+      );
+    }
+  }
+
+  finishAfterCredentials(): void {
+    this.ref.close(true);
+  }
+
   closeDialog(): void {
-    this.ref.close();
+    this.ref.close(this.showCredentialsHandoff);
   }
 
   presetDescriptionKey(): string | null {

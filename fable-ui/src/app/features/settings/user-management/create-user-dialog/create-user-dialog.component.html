@@ -5,9 +5,9 @@
       <i class="pi pi-user-plus header-icon"></i>
     </div>
     <div class="header-text">
-      <h2 class="panel-title">{{ t('createDialog.title') }}</h2>
+      <h2 class="panel-title">{{ showCredentialsHandoff ? t('createDialog.credentialsTitle') : t('createDialog.title') }}</h2>
       <p class="panel-description">
-        {{ t('createDialog.description') }}
+        {{ showCredentialsHandoff ? t('createDialog.credentialsHint') : t('createDialog.description') }}
       </p>
     </div>
     <p-button
@@ -20,6 +20,7 @@
     />
   </div>
 
+  @if (!showCredentialsHandoff) {
   <form [formGroup]="userForm" (ngSubmit)="createUser()">
     <div class="form-container">
       <div class="form-section basic-info-section">
@@ -348,64 +349,6 @@
             </div>
           </div>
 
-          <div class="permission-group admin-territory-group">
-            <h4 class="permission-group-title">
-              <i class="pi pi-cog"></i>
-              {{ t('permGroups.systemConfig') }}
-              <span class="admin-territory-badge">{{ t('createDialog.adminTerritory') }}</span>
-            </h4>
-            <div class="permission-group-items">
-              <div class="permission-item admin-permission">
-                <p-checkbox formControlName="permissionManageMetadataConfig" [binary]="true" inputId="perm-metadata-config"></p-checkbox>
-                <label for="perm-metadata-config" class="permission-label">
-                  <div class="permission-icon-wrapper admin-icon">
-                    <i class="pi pi-cog permission-icon"></i>
-                  </div>
-                  <span class="permission-name admin-name">{{ t('perms.manageMetadataConfig') }}</span>
-                </label>
-              </div>
-
-              <div class="permission-item admin-permission">
-                <p-checkbox formControlName="permissionManageGlobalPreferences" [binary]="true" inputId="perm-global-prefs"></p-checkbox>
-                <label for="perm-global-prefs" class="permission-label">
-                  <div class="permission-icon-wrapper admin-icon">
-                    <i class="pi pi-sliders-h permission-icon"></i>
-                  </div>
-                  <span class="permission-name admin-name">{{ t('perms.manageAppPreferences') }}</span>
-                </label>
-              </div>
-
-              <div class="permission-item admin-permission">
-                <p-checkbox formControlName="permissionAccessTaskManager" [binary]="true" inputId="perm-task-manager"></p-checkbox>
-                <label for="perm-task-manager" class="permission-label">
-                  <div class="permission-icon-wrapper admin-icon">
-                    <i class="pi pi-list-check permission-icon"></i>
-                  </div>
-                  <span class="permission-name admin-name">{{ t('perms.accessTaskManager') }}</span>
-                </label>
-              </div>
-
-              <div class="permission-item admin-permission">
-                <p-checkbox formControlName="permissionManageIcons" [binary]="true" inputId="perm-icons"></p-checkbox>
-                <label for="perm-icons" class="permission-label">
-                  <div class="permission-icon-wrapper admin-icon">
-                    <i class="pi pi-images permission-icon"></i>
-                  </div>
-                  <span class="permission-name admin-name">{{ t('perms.manageIcons') }}</span>
-                </label>
-              </div>
-              <div class="permission-item admin-permission">
-                <p-checkbox formControlName="permissionManageFonts" [binary]="true" inputId="perm-fonts"></p-checkbox>
-                <label for="perm-fonts" class="permission-label">
-                  <div class="permission-icon-wrapper admin-icon">
-                    <i class="pi pi-palette permission-icon"></i>
-                  </div>
-                  <span class="permission-name admin-name">{{ t('perms.manageFonts') }}</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
           <div class="permission-group">
             <h4 class="permission-group-title">
               <i class="pi pi-pencil"></i>
@@ -507,6 +450,64 @@
 
           <div class="permission-group full-width admin-territory-group">
             <h4 class="permission-group-title">
+              <i class="pi pi-cog"></i>
+              {{ t('permGroups.systemConfig') }}
+              <span class="admin-territory-badge">{{ t('createDialog.adminTerritory') }}</span>
+            </h4>
+            <div class="permission-group-items">
+              <div class="permission-item admin-permission">
+                <p-checkbox formControlName="permissionManageMetadataConfig" [binary]="true" inputId="perm-metadata-config"></p-checkbox>
+                <label for="perm-metadata-config" class="permission-label">
+                  <div class="permission-icon-wrapper admin-icon">
+                    <i class="pi pi-cog permission-icon"></i>
+                  </div>
+                  <span class="permission-name admin-name">{{ t('perms.manageMetadataConfig') }}</span>
+                </label>
+              </div>
+
+              <div class="permission-item admin-permission">
+                <p-checkbox formControlName="permissionManageGlobalPreferences" [binary]="true" inputId="perm-global-prefs"></p-checkbox>
+                <label for="perm-global-prefs" class="permission-label">
+                  <div class="permission-icon-wrapper admin-icon">
+                    <i class="pi pi-sliders-h permission-icon"></i>
+                  </div>
+                  <span class="permission-name admin-name">{{ t('perms.manageAppPreferences') }}</span>
+                </label>
+              </div>
+
+              <div class="permission-item admin-permission">
+                <p-checkbox formControlName="permissionAccessTaskManager" [binary]="true" inputId="perm-task-manager"></p-checkbox>
+                <label for="perm-task-manager" class="permission-label">
+                  <div class="permission-icon-wrapper admin-icon">
+                    <i class="pi pi-list-check permission-icon"></i>
+                  </div>
+                  <span class="permission-name admin-name">{{ t('perms.accessTaskManager') }}</span>
+                </label>
+              </div>
+
+              <div class="permission-item admin-permission">
+                <p-checkbox formControlName="permissionManageIcons" [binary]="true" inputId="perm-icons"></p-checkbox>
+                <label for="perm-icons" class="permission-label">
+                  <div class="permission-icon-wrapper admin-icon">
+                    <i class="pi pi-images permission-icon"></i>
+                  </div>
+                  <span class="permission-name admin-name">{{ t('perms.manageIcons') }}</span>
+                </label>
+              </div>
+              <div class="permission-item admin-permission">
+                <p-checkbox formControlName="permissionManageFonts" [binary]="true" inputId="perm-fonts"></p-checkbox>
+                <label for="perm-fonts" class="permission-label">
+                  <div class="permission-icon-wrapper admin-icon">
+                    <i class="pi pi-palette permission-icon"></i>
+                  </div>
+                  <span class="permission-name admin-name">{{ t('perms.manageFonts') }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="permission-group full-width admin-territory-group">
+            <h4 class="permission-group-title">
               <i class="pi pi-shield"></i>
               {{ t('permGroups.administration') }}
               <span class="admin-territory-badge">{{ t('createDialog.adminTerritory') }}</span>
@@ -550,5 +551,35 @@
       </div>
     </div>
   </form>
+  } @else {
+  <div class="credentials-handoff">
+    <label class="field-label" for="created-credentials-pack">{{ t('createDialog.credentialsPackLabel') }}</label>
+    <textarea
+      id="created-credentials-pack"
+      class="credentials-textarea"
+      readonly
+      rows="8"
+      [value]="credentialsPackText"
+    ></textarea>
+
+    <div class="credentials-actions">
+      <p-button
+        [label]="t('createDialog.copyCredentials')"
+        icon="pi pi-copy"
+        severity="success"
+        type="button"
+        (onClick)="copyCredentialsPack()"
+      />
+      <p-button
+        [label]="t('createDialog.doneCredentials')"
+        icon="pi pi-check"
+        severity="secondary"
+        [outlined]="true"
+        type="button"
+        (onClick)="finishAfterCredentials()"
+      />
+    </div>
+  </div>
+  }
 </div>
 </ng-container>
