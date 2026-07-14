@@ -217,6 +217,35 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Detect AI image path changes
+        id: ai_image_changes
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            BASE="${{ github.event.before }}"
+          else
+            BASE="$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2>/dev/null || git rev-parse HEAD^)"
+          fi
+          HEAD="${{ github.sha }}"
+          echo "Comparing AI image contexts: $BASE -> $HEAD"
+
+          if git diff --name-only "$BASE" "$HEAD" -- docker/ai-panel | grep -q .; then
+            echo "ai_panel_changed=true" >> "$GITHUB_OUTPUT"
+            echo "AI Panel context changed — will publish"
+          else
+            echo "ai_panel_changed=false" >> "$GITHUB_OUTPUT"
+            echo "AI Panel context unchanged — skipping publish"
+          fi
+
+          if git diff --name-only "$BASE" "$HEAD" -- docker/ai-search | grep -q .; then
+            echo "ai_search_changed=true" >> "$GITHUB_OUTPUT"
+            echo "AI Search context changed — will publish"
+          else
+            echo "ai_search_changed=false" >> "$GITHUB_OUTPUT"
+            echo "AI Search context unchanged — skipping publish"
+          fi
+
       # ----------------------------------------
       # Native Angular build
       # ----------------------------------------
@@ -332,6 +361,7 @@ jobs:
             type=registry,ref=ghcr.io/opensourcefan/fable:buildcache,mode=max
 
       - name: Build and push AI Docker image
+        if: steps.ai_image_changes.outputs.ai_panel_changed == 'true'
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: ./docker/ai-panel
@@ -347,6 +377,7 @@ jobs:
             type=registry,ref=ghcr.io/opensourcefan/fable-panel-ai:buildcache,mode=max
 
       - name: Build and push AI Search Docker image
+        if: steps.ai_image_changes.outputs.ai_search_changed == 'true'
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: ./docker/ai-search

@@ -156,6 +156,8 @@ services:
     #   :vX.Y.Z  – pinned semver release (immutable, best for reproducibility)
     #   @sha256: – digest-pinned (most reproducible, immune to tag overwrites)
     #
+    # Note: fable-panel-ai / fable-search-ai are only republished when docker/ai-panel
+    # or docker/ai-search changes. Unrelated Fable app releases no longer move those tags.
     # For reproducible deployments pin to a specific semver tag or SHA digest:
     #   image: ghcr.io/opensourcefan/booklore3:v3.15.46
     #   image: ghcr.io/opensourcefan/booklore3@sha256:<digest>

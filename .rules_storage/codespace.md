@@ -50,8 +50,9 @@ The workspace root is `/home/michael/fable_test`. When working with file paths, 
 
 ### CI/CD Workflows
 
-- `develop-pipeline.yml` — builds and pushes on develop commits
-- `master-pipeline.yml` — production pipeline
+- `develop-pipeline.yml` — builds and pushes on develop commits (AI Panel/Search publish only when their `docker/` contexts change)
+- `master-pipeline.yml` — production pipeline (same AI image path gating)
+- `tag-pipeline.yml` — tagged releases (same AI image path gating)
 - `migrations-check.yml` — validates Flyway migrations
 - `dependabot-auto-merge.yml` — auto-merges safe dependency bumps
 
@@ -218,8 +219,8 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend version: `4.15.40` (in both `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest git tag: `v4.15.40`
+- Backend version: `4.15.41` (in both `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest git tag: `v4.15.41`
 
 ## Code Conventions
 
