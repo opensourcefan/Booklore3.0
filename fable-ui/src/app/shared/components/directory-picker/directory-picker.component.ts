@@ -50,8 +50,8 @@ export class DirectoryPickerComponent implements OnInit {
   home: MenuItem = {icon: 'pi pi-home', command: () => this.navigateToRoot()};
   importedFolders: string[] = [];
   importedFoldersMap: Record<string, boolean> = {};
-  /** Root the home/up controls cannot leave (admin: /books, non-admin: jail root). */
-  browseRoot = '/books';
+  /** Root the home/up controls cannot leave (admin: `/`, non-admin: jail root). */
+  browseRoot = '/';
 
   private utilityService = inject(UtilityService);
   private dynamicDialogRef = inject(DynamicDialogRef);
@@ -101,10 +101,9 @@ export class DirectoryPickerComponent implements OnInit {
     }
 
     const parts = path.split('/').filter(p => p);
-    const root = this.normalizePath(this.browseRoot);
     this.breadcrumbItems = parts.map((part, index) => {
       const fullPath = '/' + parts.slice(0, index + 1).join('/');
-      const withinRoot = fullPath === root || fullPath.startsWith(root + '/');
+      const withinRoot = this.isWithinBrowseRoot(fullPath);
       return {
         label: part,
         command: withinRoot ? () => this.navigateToPath(fullPath) : undefined
@@ -272,20 +271,20 @@ export class DirectoryPickerComponent implements OnInit {
   private isWithinBrowseRoot(path: string): boolean {
     const normalized = this.normalizePath(path);
     const root = this.normalizePath(this.browseRoot);
+    if (root === '/') {
+      return true;
+    }
     return normalized === root || normalized.startsWith(root + '/');
   }
 
   /**
-   * Admin → `/books`. Non-admin → personal library path, else first assigned path,
-   * else `/books/_users/{id}`.
+   * Admin → `/` (unjailed; mounts may live outside `/books`).
+   * Non-admin → personal library path, else first assigned path, else `/books/_users/{id}`.
    */
   private resolveDefaultBrowseRoot(): string {
     const user = this.userService.getCurrentUser();
-    if (!user) {
-      return '/books';
-    }
-    if (user.permissions?.admin) {
-      return '/books';
+    if (!user || user.permissions?.admin) {
+      return '/';
     }
 
     const libraries = this.libraryService.getLibrariesFromState() ?? [];

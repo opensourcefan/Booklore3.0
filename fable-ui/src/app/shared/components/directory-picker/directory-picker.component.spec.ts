@@ -158,8 +158,9 @@ describe('DirectoryPickerComponent import badges', () => {
     expect(exactBadge.textContent).toContain('Already Imported');
   });
 
-  it('starts admins at /books by default', async () => {
+  it('starts admins at / by default with no UI jail', async () => {
     TestBed.resetTestingModule();
+    utilityServiceMock.getFolders.mockClear();
     await TestBed.configureTestingModule({
       imports: [
         DirectoryPickerComponent,
@@ -192,9 +193,10 @@ describe('DirectoryPickerComponent import badges', () => {
     const fixture = TestBed.createComponent(DirectoryPickerComponent);
     fixture.detectChanges();
 
-    expect(utilityServiceMock.getFolders).toHaveBeenCalledWith('/books');
-    expect(fixture.componentInstance.browseRoot).toBe('/books');
+    expect(utilityServiceMock.getFolders).toHaveBeenCalledWith('/');
+    expect(fixture.componentInstance.browseRoot).toBe('/');
     expect(fixture.componentInstance.isAtBrowseRoot()).toBe(true);
+    expect(fixture.componentInstance['isWithinBrowseRoot']('/mnt/nas')).toBe(true);
   });
 
   it('starts non-admins at their personal library path', async () => {
