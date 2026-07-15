@@ -132,7 +132,7 @@ export class DialogLauncherService {
     });
   }
 
-  openDirectoryPickerDialog(data?: { existingFolders?: string[] }): DynamicDialogRef | null {
+  openDirectoryPickerDialog(data?: { existingFolders?: string[]; initialPath?: string }): DynamicDialogRef | null {
     return this.openDialog(DirectoryPickerComponent, {
       showHeader: false,
       styleClass: this.getDirectoryPickerDialogStyle(),

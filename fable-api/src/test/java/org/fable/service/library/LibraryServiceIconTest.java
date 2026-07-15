@@ -24,6 +24,7 @@ import org.fable.repository.LibraryPathRepository;
 import org.fable.repository.UserRepository;
 import org.fable.model.entity.FableUserEntity;
 import org.fable.service.NotificationService;
+import org.fable.service.file.PathService;
 import org.fable.service.monitoring.LibraryWatchService;
 import org.fable.util.FileService;
 
@@ -64,8 +65,10 @@ class LibraryServiceIconTest {
     private UserRepository userRepository;
     @Mock
     private AuditService auditService;
-        @Mock
-        private DirectoryTagTaskStarter directoryTagTaskStarter;
+    @Mock
+    private PathService pathService;
+    @Mock
+    private DirectoryTagTaskStarter directoryTagTaskStarter;
 
     @InjectMocks
     private LibraryService libraryService;

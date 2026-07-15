@@ -25,6 +25,8 @@ import org.fable.repository.LibraryPathRepository;
 import org.fable.repository.LibraryRepository;
 import org.fable.repository.UserRepository;
 import org.fable.service.NotificationService;
+import org.fable.service.audit.AuditService;
+import org.fable.service.file.PathService;
 import org.fable.service.monitoring.LibraryWatchService;
 import org.fable.task.options.RescanLibraryContext;
 import org.fable.util.FileService;
@@ -44,7 +46,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.fable.service.audit.AuditService;
 
 @Slf4j
 @Service
@@ -75,6 +76,7 @@ public class LibraryService {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final PathService pathService;
 
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
@@ -87,6 +89,8 @@ public class LibraryService {
     public Library updateLibrary(CreateLibraryRequest request, Long libraryId) {
         LibraryEntity library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+
+        assertRequestedPathsAllowed(request);
 
         library.setName(request.getName());
         library.setIcon(request.getIcon());
@@ -157,6 +161,8 @@ public class LibraryService {
     public Library createLibrary(CreateLibraryRequest request) {
         FableUser fableUser = authenticationService.getAuthenticatedUser();
         Optional<FableUserEntity> user = userRepository.findById(fableUser.getId());
+
+        assertRequestedPathsAllowed(request);
 
         List<LibraryPathEntity> paths = request.getPaths() == null || request.getPaths().isEmpty() ?
                 new ArrayList<>() :
@@ -431,6 +437,18 @@ public class LibraryService {
             }
         }
         return false;
+    }
+
+    private void assertRequestedPathsAllowed(CreateLibraryRequest request) {
+        if (request.getPaths() == null) {
+            return;
+        }
+        for (LibraryPath libraryPath : request.getPaths()) {
+            if (libraryPath == null || libraryPath.getPath() == null || libraryPath.getPath().isBlank()) {
+                continue;
+            }
+            pathService.assertPathAllowedForCurrentUser(libraryPath.getPath());
+        }
     }
 }
 

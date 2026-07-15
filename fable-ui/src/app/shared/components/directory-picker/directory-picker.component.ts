@@ -13,6 +13,9 @@ import {Button} from 'primeng/button';
 import {IconField} from 'primeng/iconfield';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoPipe} from '@jsverse/transloco';
+import {UserService} from '../../../features/settings/user-management/user.service';
+import {LibraryService} from '../../../features/book/service/library.service';
+import {Library} from '../../../features/book/model/library.model';
 
 @Component({
   selector: 'app-directory-picker-v2',
@@ -47,10 +50,14 @@ export class DirectoryPickerComponent implements OnInit {
   home: MenuItem = {icon: 'pi pi-home', command: () => this.navigateToRoot()};
   importedFolders: string[] = [];
   importedFoldersMap: Record<string, boolean> = {};
+  /** Root the home/up controls cannot leave (admin: /books, non-admin: jail root). */
+  browseRoot = '/books';
 
   private utilityService = inject(UtilityService);
   private dynamicDialogRef = inject(DynamicDialogRef);
   private dynamicDialogConfig = inject(DynamicDialogConfig);
+  private userService = inject(UserService);
+  private libraryService = inject(LibraryService);
 
   ngOnInit() {
     this.importedFolders = (this.dynamicDialogConfig.data?.existingFolders ?? []).map((folder: string) => this.normalizePath(folder));
@@ -58,7 +65,12 @@ export class DirectoryPickerComponent implements OnInit {
       acc[folder] = true;
       return acc;
     }, {});
-    const initialPath = '/';
+    const configuredRoot = this.dynamicDialogConfig.data?.initialPath as string | undefined;
+    const initialPath = configuredRoot?.trim()
+      ? this.normalizePath(configuredRoot)
+      : this.resolveDefaultBrowseRoot();
+    this.browseRoot = initialPath;
+    this.selectedProductName = initialPath;
     this.getFolders(initialPath);
   }
 
@@ -89,22 +101,27 @@ export class DirectoryPickerComponent implements OnInit {
     }
 
     const parts = path.split('/').filter(p => p);
+    const root = this.normalizePath(this.browseRoot);
     this.breadcrumbItems = parts.map((part, index) => {
       const fullPath = '/' + parts.slice(0, index + 1).join('/');
+      const withinRoot = fullPath === root || fullPath.startsWith(root + '/');
       return {
         label: part,
-        command: () => this.navigateToPath(fullPath)
+        command: withinRoot ? () => this.navigateToPath(fullPath) : undefined
       };
     });
   }
 
   navigateToRoot(): void {
-    this.selectedProductName = '/';
-    this.getFolders('/');
+    this.selectedProductName = this.browseRoot;
+    this.getFolders(this.browseRoot);
     this.searchQuery = '';
   }
 
   navigateToPath(path: string): void {
+    if (!this.isWithinBrowseRoot(path)) {
+      return;
+    }
     this.selectedProductName = path;
     this.getFolders(path);
     this.searchQuery = '';
@@ -130,13 +147,23 @@ export class DirectoryPickerComponent implements OnInit {
   }
 
   goUp(): void {
-    if (this.selectedProductName === '' || this.selectedProductName === '/') {
+    if (this.isAtBrowseRoot()) {
       return;
     }
     const result = this.selectedProductName.substring(0, this.selectedProductName.lastIndexOf('/')) || '/';
+    if (!this.isWithinBrowseRoot(result)) {
+      this.selectedProductName = this.browseRoot;
+      this.getFolders(this.browseRoot);
+      this.searchQuery = '';
+      return;
+    }
     this.selectedProductName = result;
     this.getFolders(result);
     this.searchQuery = '';
+  }
+
+  isAtBrowseRoot(): boolean {
+    return this.normalizePath(this.selectedProductName || this.browseRoot) === this.normalizePath(this.browseRoot);
   }
 
   onSearch(): void {
@@ -176,7 +203,7 @@ export class DirectoryPickerComponent implements OnInit {
   }
 
   selectCurrent(): void {
-    const currentPath = this.selectedProductName || '/';
+    const currentPath = this.selectedProductName || this.browseRoot;
     if (!this.selectedFolders.includes(currentPath)) {
       this.selectedFolders.push(currentPath);
     }
@@ -240,5 +267,42 @@ export class DirectoryPickerComponent implements OnInit {
 
     const normalized = path.replace(/\/+/g, '/').replace(/\/+$|\/$/g, '');
     return normalized || '/';
+  }
+
+  private isWithinBrowseRoot(path: string): boolean {
+    const normalized = this.normalizePath(path);
+    const root = this.normalizePath(this.browseRoot);
+    return normalized === root || normalized.startsWith(root + '/');
+  }
+
+  /**
+   * Admin → `/books`. Non-admin → personal library path, else first assigned path,
+   * else `/books/_users/{id}`.
+   */
+  private resolveDefaultBrowseRoot(): string {
+    const user = this.userService.getCurrentUser();
+    if (!user) {
+      return '/books';
+    }
+    if (user.permissions?.admin) {
+      return '/books';
+    }
+
+    const libraries = this.libraryService.getLibrariesFromState() ?? [];
+    const personal = libraries.find(lib => lib.ownerUserId === user.id)
+      ?? user.assignedLibraries?.find((lib: Library) => lib.ownerUserId === user.id);
+    const personalPath = personal?.paths?.[0]?.path;
+    if (personalPath) {
+      return this.normalizePath(personalPath);
+    }
+
+    const firstAssigned = libraries.find(lib => lib.paths?.[0]?.path)
+      ?? user.assignedLibraries?.find((lib: Library) => lib.paths?.[0]?.path);
+    const assignedPath = firstAssigned?.paths?.[0]?.path;
+    if (assignedPath) {
+      return this.normalizePath(assignedPath);
+    }
+
+    return this.normalizePath(`/books/_users/${user.id}`);
   }
 }

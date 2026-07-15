@@ -6,6 +6,8 @@ import {TranslocoTestingModule} from '@jsverse/transloco';
 
 import {DirectoryPickerComponent} from './directory-picker.component';
 import {UtilityService} from './utility.service';
+import {UserService} from '../../../features/settings/user-management/user.service';
+import {LibraryService} from '../../../features/book/service/library.service';
 
 describe('DirectoryPickerComponent import badges', () => {
   const translations = {
@@ -48,20 +50,44 @@ describe('DirectoryPickerComponent import badges', () => {
   };
 
   let utilityServiceMock: {
-    getFolders: (path: string) => Observable<string[]>;
+    getFolders: ReturnType<typeof vi.fn<(path: string) => Observable<string[]>>>;
+  };
+  let userServiceMock: {
+    getCurrentUser: ReturnType<typeof vi.fn>;
+  };
+  let libraryServiceMock: {
+    getLibrariesFromState: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     localStorage.clear();
 
     utilityServiceMock = {
-      getFolders: (path: string) => {
+      getFolders: vi.fn((path: string) => {
         if (path === '/library') {
           return of(['/library/child']);
         }
+        if (path === '/books') {
+          return of(['/books/fiction']);
+        }
+        if (path === '/books/_users/4') {
+          return of(['/books/_users/4/uploads']);
+        }
 
         return of(['/library', '/exact']);
-      }
+      })
+    };
+
+    userServiceMock = {
+      getCurrentUser: vi.fn(() => ({
+        id: 1,
+        permissions: {admin: true},
+        assignedLibraries: []
+      }))
+    };
+
+    libraryServiceMock = {
+      getLibrariesFromState: vi.fn(() => [])
     };
 
     await TestBed.configureTestingModule({
@@ -80,7 +106,8 @@ describe('DirectoryPickerComponent import badges', () => {
           provide: DynamicDialogConfig,
           useValue: {
             data: {
-              existingFolders: ['/library/child', '/exact']
+              existingFolders: ['/library/child', '/exact'],
+              initialPath: '/'
             }
           }
         },
@@ -93,6 +120,14 @@ describe('DirectoryPickerComponent import badges', () => {
         {
           provide: UtilityService,
           useValue: utilityServiceMock
+        },
+        {
+          provide: UserService,
+          useValue: userServiceMock
+        },
+        {
+          provide: LibraryService,
+          useValue: libraryServiceMock
         }
       ]
     }).compileComponents();
@@ -121,6 +156,100 @@ describe('DirectoryPickerComponent import badges', () => {
     expect(descendantBadge.textContent).toContain('Subdirectories Imported');
     expect(exactBadge).not.toBeNull();
     expect(exactBadge.textContent).toContain('Already Imported');
+  });
+
+  it('starts admins at /books by default', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [
+        DirectoryPickerComponent,
+        TranslocoTestingModule.forRoot({
+          langs: {en: translations},
+          translocoConfig: {
+            availableLangs: ['en'],
+            defaultLang: 'en'
+          }
+        })
+      ],
+      providers: [
+        {provide: DynamicDialogConfig, useValue: {data: {existingFolders: []}}},
+        {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
+        {provide: UtilityService, useValue: utilityServiceMock},
+        {
+          provide: UserService,
+          useValue: {
+            getCurrentUser: () => ({
+              id: 1,
+              permissions: {admin: true},
+              assignedLibraries: []
+            })
+          }
+        },
+        {provide: LibraryService, useValue: libraryServiceMock}
+      ]
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(DirectoryPickerComponent);
+    fixture.detectChanges();
+
+    expect(utilityServiceMock.getFolders).toHaveBeenCalledWith('/books');
+    expect(fixture.componentInstance.browseRoot).toBe('/books');
+    expect(fixture.componentInstance.isAtBrowseRoot()).toBe(true);
+  });
+
+  it('starts non-admins at their personal library path', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [
+        DirectoryPickerComponent,
+        TranslocoTestingModule.forRoot({
+          langs: {en: translations},
+          translocoConfig: {
+            availableLangs: ['en'],
+            defaultLang: 'en'
+          }
+        })
+      ],
+      providers: [
+        {provide: DynamicDialogConfig, useValue: {data: {existingFolders: []}}},
+        {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
+        {provide: UtilityService, useValue: utilityServiceMock},
+        {
+          provide: UserService,
+          useValue: {
+            getCurrentUser: () => ({
+              id: 4,
+              permissions: {admin: false, canManageLibrary: true},
+              assignedLibraries: [{
+                id: 9,
+                name: "guest's Library",
+                ownerUserId: 4,
+                paths: [{path: '/books/_users/4'}],
+                watch: true
+              }]
+            })
+          }
+        },
+        {
+          provide: LibraryService,
+          useValue: {
+            getLibrariesFromState: () => [{
+              id: 9,
+              name: "guest's Library",
+              ownerUserId: 4,
+              paths: [{path: '/books/_users/4'}],
+              watch: true
+            }]
+          }
+        }
+      ]
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(DirectoryPickerComponent);
+    fixture.detectChanges();
+
+    expect(utilityServiceMock.getFolders).toHaveBeenCalledWith('/books/_users/4');
+    expect(fixture.componentInstance.browseRoot).toBe('/books/_users/4');
   });
 
 });

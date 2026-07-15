@@ -53,7 +53,7 @@
       <p-button
         icon="pi pi-arrow-up"
         (click)="goUp()"
-        [disabled]="selectedProductName === '/' || selectedProductName === ''"
+        [disabled]="isAtBrowseRoot()"
         [pTooltip]="t('goUpTooltip')"
         tooltipPosition="bottom"
       />
