@@ -20,7 +20,10 @@ import org.fable.service.file.FileMovingHelper;
 import org.fable.model.dto.BookMetadata;
 import org.fable.model.enums.BookFileExtension;
 import org.fable.service.metadata.extractor.MetadataExtractorFactory;
+import org.fable.config.security.service.AuthenticationService;
 import org.fable.service.audit.AuditService;
+import org.fable.service.bookdrop.BookdropInboxService;
+import org.fable.service.bookdrop.BookdropMonitoringService;
 import org.fable.service.monitoring.MonitoringRegistrationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,8 +82,13 @@ class FileUploadServiceTest {
     MonitoringRegistrationService monitoringRegistrationService;
     @Mock
     AuditService auditService;
+    @Mock
+    AuthenticationService authenticationService;
+    @Mock
+    BookdropMonitoringService bookdropMonitoringService;
 
     AppProperties appProperties;
+    BookdropInboxService bookdropInboxService;
     FileUploadService service;
 
     @BeforeEach
@@ -88,15 +96,18 @@ class FileUploadServiceTest {
         MockitoAnnotations.openMocks(this);
         appProperties = new AppProperties();
         appProperties.setBookdropFolder(tempDir.toString());
+        bookdropInboxService = new BookdropInboxService(appProperties);
 
         AppSettings settings = new AppSettings();
         settings.setMaxFileUploadSizeInMb(10);
         settings.setUploadPattern("{currentFilename}");
         when(appSettingService.getAppSettings()).thenReturn(settings);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(null);
 
         service = new FileUploadService(
                 libraryRepository, bookRepository, bookAdditionalFileRepository,
-                appSettingService, appProperties, metadataExtractorFactory, additionalFileMapper, fileMovingHelper, monitoringRegistrationService, auditService
+                appSettingService, appProperties, metadataExtractorFactory, additionalFileMapper, fileMovingHelper,
+                monitoringRegistrationService, auditService, authenticationService, bookdropInboxService, bookdropMonitoringService
         );
     }
 

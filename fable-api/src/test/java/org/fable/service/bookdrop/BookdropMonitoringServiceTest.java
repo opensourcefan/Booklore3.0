@@ -16,7 +16,6 @@ import static org.mockito.Mockito.*;
 
 class BookdropMonitoringServiceTest {
 
-    private AppProperties appProperties;
     private BookdropEventHandlerService eventHandler;
     private BookdropFileRepository bookdropFileRepository;
     private BookdropMonitoringService monitoringService;
@@ -26,12 +25,14 @@ class BookdropMonitoringServiceTest {
 
     @BeforeEach
     void setUp() {
-        appProperties = mock(AppProperties.class);
         eventHandler = mock(BookdropEventHandlerService.class);
         bookdropFileRepository = mock(BookdropFileRepository.class);
-        
-        when(appProperties.getBookdropFolder()).thenReturn(tempDir.toString());
-        monitoringService = new BookdropMonitoringService(appProperties, eventHandler, bookdropFileRepository);
+
+        AppProperties appProperties = new AppProperties();
+        appProperties.setBookdropFolder(tempDir.toString());
+        BookdropInboxService inboxService = new BookdropInboxService(appProperties);
+
+        monitoringService = new BookdropMonitoringService(inboxService, eventHandler, bookdropFileRepository);
     }
 
     @Test
@@ -41,7 +42,7 @@ class BookdropMonitoringServiceTest {
 
         Path invalidFile = tempDir.resolve("._book.epub");
         Files.createFile(invalidFile);
-        
+
         Path hiddenFile = tempDir.resolve(".hidden.epub");
         Files.createFile(hiddenFile);
 
@@ -56,7 +57,7 @@ class BookdropMonitoringServiceTest {
         when(bookdropFileRepository.findAllFilePathsIn(anyList())).thenReturn(List.of());
 
         monitoringService.start();
-        
+
         monitoringService.stop();
 
         verify(eventHandler).enqueueFile(eq(validFile), eq(StandardWatchEventKinds.ENTRY_CREATE));
@@ -79,10 +80,9 @@ class BookdropMonitoringServiceTest {
                 .thenReturn(List.of(alreadyTracked.toAbsolutePath().toString()));
 
         monitoringService.start();
-
         monitoringService.stop();
 
-        verify(eventHandler, never()).enqueueFile(eq(alreadyTracked), eq(StandardWatchEventKinds.ENTRY_CREATE));
         verify(eventHandler).enqueueFile(eq(newFile), eq(StandardWatchEventKinds.ENTRY_CREATE));
+        verify(eventHandler, never()).enqueueFile(eq(alreadyTracked), any());
     }
 }

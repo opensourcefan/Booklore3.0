@@ -35,5 +35,9 @@ public interface UserRepository extends JpaRepository<FableUserEntity, Long> {
             + "LEFT JOIN FETCH u.libraries "
          + "WHERE u.id = :id")
     Optional<FableUserEntity> fetchByIdWithSettingsAndLibraries(@Param("id") Long id);
+
+    @Query("SELECT u FROM FableUserEntity u JOIN u.permissions p "
+            + "WHERE p.permissionAccessBookdrop = true AND p.permissionAdmin = false")
+    java.util.List<FableUserEntity> findNonAdminBookdropUsers();
 }
 

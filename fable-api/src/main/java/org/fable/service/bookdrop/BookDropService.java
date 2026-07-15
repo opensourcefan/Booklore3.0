@@ -3,6 +3,7 @@ package org.fable.service.bookdrop;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.fable.config.AppProperties;
+import org.fable.config.security.service.AuthenticationService;
 import org.fable.exception.ApiError;
 import org.fable.mapper.BookdropFileMapper;
 import org.fable.model.FileProcessResult;
@@ -11,6 +12,7 @@ import org.fable.model.MetadataUpdateWrapper;
 import org.fable.model.dto.BookMetadata;
 import org.fable.model.dto.BookdropFile;
 import org.fable.model.dto.BookdropFileNotification;
+import org.fable.model.dto.FableUser;
 import org.fable.model.dto.request.BookdropFinalizeRequest;
 import org.fable.model.dto.response.BookdropFileResult;
 import org.fable.model.dto.response.BookdropFinalizeResult;
@@ -32,6 +34,7 @@ import org.fable.service.file.FileMovingHelper;
 import org.fable.service.fileprocessor.BookFileProcessor;
 import org.fable.service.fileprocessor.BookFileProcessorRegistry;
 import org.fable.service.kobo.KoboAutoShelfService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.service.metadata.MetadataRefreshService;
 import org.fable.service.monitoring.MonitoringRegistrationService;
 import org.fable.util.FileUtils;
@@ -75,24 +78,57 @@ public class BookDropService {
     private final FileMovingHelper fileMovingHelper;
     private final MonitoringRegistrationService monitoringRegistrationService;
     private final KoboAutoShelfService koboAutoShelfService;
+    private final AuthenticationService authenticationService;
+    private final BookdropInboxService bookdropInboxService;
+    private final LibraryVisibilityService libraryVisibilityService;
 
     private static final int CHUNK_SIZE = 100;
 
     public BookdropFileNotification getFileNotificationSummary() {
-        long pendingCount = bookdropFileRepository.countByStatus(BookdropFileEntity.Status.PENDING_REVIEW);
-        long totalCount = bookdropFileRepository.count();
+        FableUser user = authenticationService.getAuthenticatedUser();
+        long pendingCount;
+        long totalCount;
+        if (bookdropInboxService.isAdminUser(user)) {
+            pendingCount = bookdropFileRepository.countByStatusAndOwnerUserIdIsNull(BookdropFileEntity.Status.PENDING_REVIEW);
+            totalCount = bookdropFileRepository.countByOwnerUserIdIsNull();
+        } else if (user != null && user.getId() != null) {
+            pendingCount = bookdropFileRepository.countByStatusAndOwnerUserId(BookdropFileEntity.Status.PENDING_REVIEW, user.getId());
+            totalCount = bookdropFileRepository.countByOwnerUserId(user.getId());
+        } else {
+            pendingCount = 0;
+            totalCount = 0;
+        }
         return new BookdropFileNotification((int) pendingCount, (int) totalCount, Instant.now().toString());
     }
 
     public Page<BookdropFile> getFilesByStatus(String status, Pageable pageable) {
-        if ("pending".equalsIgnoreCase(status)) {
-            return bookdropFileRepository.findAllByStatus(BookdropFileEntity.Status.PENDING_REVIEW, pageable).map(mapper::toDto);
-        } else {
-            return bookdropFileRepository.findAll(pageable).map(mapper::toDto);
+        FableUser user = authenticationService.getAuthenticatedUser();
+        boolean pending = "pending".equalsIgnoreCase(status);
+        if (bookdropInboxService.isAdminUser(user)) {
+            if (pending) {
+                return bookdropFileRepository
+                        .findAllByStatusAndOwnerUserIdIsNull(BookdropFileEntity.Status.PENDING_REVIEW, pageable)
+                        .map(mapper::toDto);
+            }
+            return bookdropFileRepository.findAllByOwnerUserIdIsNull(pageable).map(mapper::toDto);
         }
+        Long ownerId = user != null ? user.getId() : null;
+        if (ownerId == null) {
+            return Page.empty(pageable);
+        }
+        if (pending) {
+            return bookdropFileRepository
+                    .findAllByStatusAndOwnerUserId(BookdropFileEntity.Status.PENDING_REVIEW, ownerId, pageable)
+                    .map(mapper::toDto);
+        }
+        return bookdropFileRepository.findAllByOwnerUserId(ownerId, pageable).map(mapper::toDto);
     }
 
     public Resource getBookdropCover(long bookdropId) {
+        BookdropFileEntity entity = bookdropFileRepository.findById(bookdropId).orElse(null);
+        if (entity == null || !canAccessBookdropFile(entity)) {
+            return null;
+        }
         String coverPath = Paths.get(appProperties.getPathConfig(), "bookdrop_temp", bookdropId + ".jpg").toString();
         File coverFile = new File(coverPath);
         if (coverFile.exists() && coverFile.isFile()) {
@@ -114,21 +150,20 @@ public class BookDropService {
 
     public void discardSelectedFiles(boolean selectAll, List<Long> excludedIds, List<Long> selectedIds) {
         bookdropMonitoringService.pauseMonitoring();
-        Path bookdropPath = Path.of(appProperties.getBookdropFolder());
 
         AtomicInteger deletedFiles = new AtomicInteger();
         AtomicInteger deletedDirs = new AtomicInteger();
         AtomicInteger deletedCovers = new AtomicInteger();
 
         try {
-            if (!Files.exists(bookdropPath)) {
-                log.info("Bookdrop folder does not exist: {}", bookdropPath);
-                return;
-            }
-
             List<BookdropFileEntity> filesToDelete = getFilesToDelete(selectAll, excludedIds, selectedIds);
             deleteFilesAndCovers(filesToDelete, deletedFiles, deletedCovers);
-            deleteEmptyDirectories(bookdropPath, deletedDirs);
+
+            FableUser user = authenticationService.getAuthenticatedUser();
+            Path inboxRoot = bookdropInboxService.resolveInboxForUser(user);
+            if (Files.exists(inboxRoot)) {
+                deleteEmptyDirectories(inboxRoot, deletedDirs);
+            }
 
             bookdropFileRepository.deleteAllById(filesToDelete.stream().map(BookdropFileEntity::getId).toList());
             log.info("Deleted {} bookdrop DB entries", filesToDelete.size());
@@ -185,12 +220,7 @@ public class BookDropService {
                                  AtomicInteger failedCount,
                                  AtomicInteger totalFilesProcessed) {
         List<Long> excludedIds = Optional.ofNullable(request.getExcludedIds()).orElse(List.of());
-        List<Long> allIds;
-        if (excludedIds.isEmpty()) {
-            allIds = bookdropFileRepository.findAllIds();
-        } else {
-            allIds = bookdropFileRepository.findAllExcludingIdsFlat(excludedIds);
-        }
+        List<Long> allIds = resolveScopedFileIds(true, excludedIds, List.of());
         log.info("SelectAll: Total files to finalize (after exclusions): {}, Excluded IDs: {}", allIds.size(), excludedIds);
 
         processFileChunks(allIds, metadataById, defaultLibraryId, defaultPathId, results, failedCount, totalFilesProcessed);
@@ -203,11 +233,12 @@ public class BookDropService {
                                       BookdropFinalizeResult results,
                                       AtomicInteger failedCount,
                                       AtomicInteger totalFilesProcessed) {
-        List<Long> ids = Optional.ofNullable(request.getFiles())
+        List<Long> requestedIds = Optional.ofNullable(request.getFiles())
                 .orElse(List.of())
                 .stream()
                 .map(BookdropFinalizeRequest.BookdropFinalizeFile::getFileId)
                 .toList();
+        List<Long> ids = resolveScopedFileIds(false, List.of(), requestedIds);
 
         log.info("Processing {} manually selected files in chunks of {}. File IDs: {}", ids.size(), CHUNK_SIZE, ids);
         processFileChunks(ids, metadataById, defaultLibraryId, defaultPathId, results, failedCount, totalFilesProcessed);
@@ -375,6 +406,15 @@ public class BookDropService {
     }
 
     private BookdropFileResult moveFile(long libraryId, long pathId, BookMetadata metadata, BookdropFileEntity bookdropFile) {
+        if (!canAccessBookdropFile(bookdropFile)) {
+            return failureResult(bookdropFile.getFileName(), "File is outside your BookDrop inbox");
+        }
+
+        FableUser user = authenticationService.getAuthenticatedUser();
+        if (!libraryVisibilityService.isLibraryAccessible(user, libraryId)) {
+            return failureResult(bookdropFile.getFileName(), "You do not have access to the target library");
+        }
+
         LibraryEntity library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
@@ -565,17 +605,55 @@ public class BookDropService {
     }
 
     private List<BookdropFileEntity> getFilesToDelete(boolean selectAll, List<Long> excludedIds, List<Long> selectedIds) {
+        List<Long> scopedIds = resolveScopedFileIds(selectAll, excludedIds, selectedIds);
+        List<BookdropFileEntity> filesToDelete = bookdropFileRepository.findAllById(scopedIds);
+        log.info("Discarding {} scoped bookdrop files (selectAll={})", filesToDelete.size(), selectAll);
+        return filesToDelete;
+    }
+
+    /**
+     * Admin → global inbox rows ({@code owner_user_id IS NULL}).
+     * Non-admin → rows owned by the current user.
+     */
+    List<Long> resolveScopedFileIds(boolean selectAll, List<Long> excludedIds, List<Long> selectedIds) {
+        FableUser user = authenticationService.getAuthenticatedUser();
+        boolean admin = bookdropInboxService.isAdminUser(user);
+        Long ownerId = user != null ? user.getId() : null;
+
         if (selectAll) {
-            List<BookdropFileEntity> filesToDelete = bookdropFileRepository.findAll().stream()
-                    .filter(f -> excludedIds == null || !excludedIds.contains(f.getId()))
-                    .toList();
-            log.info("Discarding all files except excluded IDs: {}", excludedIds);
-            return filesToDelete;
-        } else {
-            List<BookdropFileEntity> filesToDelete = bookdropFileRepository.findAllById(selectedIds == null ? List.of() : selectedIds);
-            log.info("Discarding selected files: {}", selectedIds);
-            return filesToDelete;
+            List<Long> excluded = excludedIds != null ? excludedIds : List.of();
+            if (admin) {
+                return excluded.isEmpty()
+                        ? bookdropFileRepository.findAllGlobalIds()
+                        : bookdropFileRepository.findAllGlobalExcludingIdsFlat(excluded);
+            }
+            if (ownerId == null) {
+                return List.of();
+            }
+            return excluded.isEmpty()
+                    ? bookdropFileRepository.findAllIdsByOwnerUserId(ownerId)
+                    : bookdropFileRepository.findAllByOwnerExcludingIdsFlat(ownerId, excluded);
         }
+
+        List<Long> requested = selectedIds != null ? selectedIds : List.of();
+        if (requested.isEmpty()) {
+            return List.of();
+        }
+        return bookdropFileRepository.findAllById(requested).stream()
+                .filter(this::canAccessBookdropFile)
+                .map(BookdropFileEntity::getId)
+                .toList();
+    }
+
+    private boolean canAccessBookdropFile(BookdropFileEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+        FableUser user = authenticationService.getAuthenticatedUser();
+        if (bookdropInboxService.isAdminUser(user)) {
+            return entity.getOwnerUserId() == null;
+        }
+        return user != null && user.getId() != null && user.getId().equals(entity.getOwnerUserId());
     }
 
     private void deleteFilesAndCovers(List<BookdropFileEntity> filesToDelete, AtomicInteger deletedFiles, AtomicInteger deletedCovers) {

@@ -781,6 +781,7 @@
   <ul>
     <li><strong>Book Deletion</strong> can remove files from disk&mdash;only enable for people you trust.</li>
     <li><strong>Manage Library</strong> lets someone point libraries at folders <em>inside their allowlisted roots</em> (personal <code>/books/_users/{id}/</code> plus any shared library paths already mapped to them). Non-admins can no longer browse the whole server filesystem from the directory picker. Prefer the Reader or Contributor preset unless you trust Librarian fully.</li>
+    <li><strong>BookDrop</strong> for invited users lands in their personal inbox at <code>/books/_users/{id}/bookdrop/</code> (excluded from library scans). Admins still use the shared <code>/bookdrop</code> mount. Pending review lists do not mix across users.</li>
     <li><strong>Admins do not automatically see every personal library.</strong> Personal libraries stay out of the admin catalog unless <strong>Show library</strong> is on. Story Arcs follow the same rule: only books in your visible catalog.</li>
     <li>Everyone shares the same Fable server and database. This is shared multi-user on one server, not separate cloud tenants.</li>
   </ul>

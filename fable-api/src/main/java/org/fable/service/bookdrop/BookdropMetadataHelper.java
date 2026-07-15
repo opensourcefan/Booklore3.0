@@ -2,7 +2,9 @@ package org.fable.service.bookdrop;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.fable.config.security.service.AuthenticationService;
 import org.fable.model.dto.BookMetadata;
+import org.fable.model.dto.FableUser;
 import org.fable.model.entity.BookdropFileEntity;
 import org.fable.repository.BookdropFileRepository;
 import org.springframework.stereotype.Component;
@@ -18,17 +20,44 @@ public class BookdropMetadataHelper {
 
     private final BookdropFileRepository bookdropFileRepository;
     private final ObjectMapper objectMapper;
+    private final AuthenticationService authenticationService;
+    private final BookdropInboxService bookdropInboxService;
 
     public List<Long> resolveFileIds(boolean selectAll, List<Long> excludedIds, List<Long> selectedIds) {
+        FableUser user = authenticationService.getAuthenticatedUser();
+        boolean admin = bookdropInboxService.isAdminUser(user);
+        Long ownerId = user != null ? user.getId() : null;
+
         if (selectAll) {
             List<Long> excluded = excludedIds != null ? excludedIds : Collections.emptyList();
-            if (excluded.isEmpty()) {
-                return bookdropFileRepository.findAllIds();
-            } else {
-                return bookdropFileRepository.findAllExcludingIdsFlat(excluded);
+            if (admin) {
+                return excluded.isEmpty()
+                        ? bookdropFileRepository.findAllGlobalIds()
+                        : bookdropFileRepository.findAllGlobalExcludingIdsFlat(excluded);
             }
+            if (ownerId == null) {
+                return Collections.emptyList();
+            }
+            return excluded.isEmpty()
+                    ? bookdropFileRepository.findAllIdsByOwnerUserId(ownerId)
+                    : bookdropFileRepository.findAllByOwnerExcludingIdsFlat(ownerId, excluded);
         }
-        return selectedIds != null ? selectedIds : Collections.emptyList();
+
+        List<Long> requested = selectedIds != null ? selectedIds : Collections.emptyList();
+        if (requested.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return bookdropFileRepository.findAllById(requested).stream()
+                .filter(file -> canAccess(file, user, admin))
+                .map(BookdropFileEntity::getId)
+                .toList();
+    }
+
+    private boolean canAccess(BookdropFileEntity file, FableUser user, boolean admin) {
+        if (admin) {
+            return file.getOwnerUserId() == null;
+        }
+        return user != null && user.getId() != null && user.getId().equals(file.getOwnerUserId());
     }
 
     public BookMetadata getCurrentMetadata(BookdropFileEntity file) {

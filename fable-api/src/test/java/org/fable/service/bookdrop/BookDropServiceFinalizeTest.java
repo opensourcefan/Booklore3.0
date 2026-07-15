@@ -1,13 +1,17 @@
 package org.fable.service.bookdrop;
 
 import org.fable.config.AppProperties;
+import org.fable.config.security.service.AuthenticationService;
+import org.fable.model.dto.FableUser;
 import org.fable.model.dto.request.BookdropFinalizeRequest;
 import org.fable.repository.BookdropFileRepository;
 import org.fable.repository.LibraryRepository;
 import org.fable.service.NotificationService;
 import org.fable.service.file.FileMovingHelper;
 import org.fable.service.kobo.KoboAutoShelfService;
+import org.fable.service.library.LibraryVisibilityService;
 import org.fable.service.monitoring.MonitoringRegistrationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,41 +49,58 @@ class BookDropServiceFinalizeTest {
     private BookdropNotificationService bookdropNotificationService;
     @Mock
     private KoboAutoShelfService koboAutoShelfService;
+    @Mock
+    private AuthenticationService authenticationService;
+    @Mock
+    private BookdropInboxService bookdropInboxService;
+    @Mock
+    private LibraryVisibilityService libraryVisibilityService;
 
     @InjectMocks
     private BookDropService bookDropService;
 
+    @BeforeEach
+    void setUp() {
+        FableUser admin = new FableUser();
+        admin.setId(1L);
+        FableUser.UserPermissions perms = new FableUser.UserPermissions();
+        perms.setAdmin(true);
+        admin.setPermissions(perms);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(admin);
+        when(bookdropInboxService.isAdminUser(admin)).thenReturn(true);
+    }
+
     @Test
-    void finalizeImport_selectAll_emptyExcludedIds_shouldCallFindAllIds() {
+    void finalizeImport_selectAll_emptyExcludedIds_shouldCallFindAllGlobalIds() {
         BookdropFinalizeRequest request = new BookdropFinalizeRequest();
         request.setSelectAll(true);
         request.setExcludedIds(Collections.emptyList());
         request.setDefaultLibraryId(1L);
         request.setDefaultPathId(1L);
 
-        when(bookdropFileRepository.findAllIds()).thenReturn(List.of(1L, 2L));
-        when(bookdropFileRepository.findAllById(anyList())).thenReturn(Collections.emptyList()); // Mock chunk processing
+        when(bookdropFileRepository.findAllGlobalIds()).thenReturn(List.of(1L, 2L));
+        when(bookdropFileRepository.findAllById(anyList())).thenReturn(Collections.emptyList());
 
         bookDropService.finalizeImport(request);
 
-        verify(bookdropFileRepository).findAllIds();
-        verify(bookdropFileRepository, never()).findAllExcludingIdsFlat(anyList());
+        verify(bookdropFileRepository).findAllGlobalIds();
+        verify(bookdropFileRepository, never()).findAllGlobalExcludingIdsFlat(anyList());
     }
 
     @Test
-    void finalizeImport_selectAll_withExcludedIds_shouldCallFindAllExcludingIdsFlat() {
+    void finalizeImport_selectAll_withExcludedIds_shouldCallFindAllGlobalExcludingIdsFlat() {
         BookdropFinalizeRequest request = new BookdropFinalizeRequest();
         request.setSelectAll(true);
         request.setExcludedIds(List.of(3L));
         request.setDefaultLibraryId(1L);
         request.setDefaultPathId(1L);
 
-        when(bookdropFileRepository.findAllExcludingIdsFlat(anyList())).thenReturn(List.of(1L, 2L));
-        when(bookdropFileRepository.findAllById(anyList())).thenReturn(Collections.emptyList()); // Mock chunk processing
+        when(bookdropFileRepository.findAllGlobalExcludingIdsFlat(anyList())).thenReturn(List.of(1L, 2L));
+        when(bookdropFileRepository.findAllById(anyList())).thenReturn(Collections.emptyList());
 
         bookDropService.finalizeImport(request);
 
-        verify(bookdropFileRepository).findAllExcludingIdsFlat(List.of(3L));
-        verify(bookdropFileRepository, never()).findAllIds();
+        verify(bookdropFileRepository).findAllGlobalExcludingIdsFlat(List.of(3L));
+        verify(bookdropFileRepository, never()).findAllGlobalIds();
     }
 }

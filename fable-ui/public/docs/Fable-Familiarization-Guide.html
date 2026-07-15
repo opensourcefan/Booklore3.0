@@ -659,7 +659,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.118 &mdash; July 14, 2026<br>
+    Version 1.1.119 &mdash; July 14, 2026<br>
     Audience: New users, invited users, and non-technical readers<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -2208,6 +2208,7 @@
   <ul>
     <li><strong>Book Deletion</strong> can remove files from disk&mdash;only enable for people you trust.</li>
     <li><strong>Manage Library</strong> lets someone point libraries at folders <em>inside their allowlisted roots</em> (personal <code>/books/_users/{id}/</code> plus any shared library paths already mapped to them). Non-admins can no longer browse the whole server filesystem from the directory picker. Prefer the Reader or Contributor preset unless you trust Librarian fully.</li>
+    <li><strong>BookDrop</strong> for invited users lands in their personal inbox at <code>/books/_users/{id}/bookdrop/</code> (excluded from library scans). Admins still use the shared <code>/bookdrop</code> mount. Pending review lists do not mix across users.</li>
     <li><strong>Admins do not automatically see every personal library.</strong> Personal libraries stay out of the admin catalog unless <strong>Show library</strong> is on. Story Arcs follow the same rule: only books in your visible catalog.</li>
     <li>Everyone shares the same Fable server and database. This is shared multi-user on one server, not separate cloud tenants.</li>
   </ul>
@@ -2698,6 +2699,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-14</td><td>1.1.119</td><td>Stage 2 personal BookDrop: non-admin uploads and pending files use <code>/books/_users/{id}/bookdrop/</code> with per-user review queues; admin global <code>/bookdrop</code> unchanged. Updated both guides.</td></tr>
   <tr><td>2026-07-14</td><td>1.1.118</td><td>Admin directory picker again defaults to <code>/</code> (no UI root lock) so mounts outside <code>/books</code> stay reachable; non-admin Stage 1 path jail unchanged.</td></tr>
   <tr><td>2026-07-14</td><td>1.1.117</td><td>Stage 1 path jail: non-admin directory picker and library path APIs are limited to personal <code>/books/_users/{id}/</code> plus assigned library paths; picker defaults to personal (or <code>/</code> for admins). Updated both single-page and modular guides.</td></tr>
   <tr><td>2026-07-14</td><td>1.1.116</td><td>Neutralized invitee wording (no family-specific language) in multi-user account guidance. Updated both guides.</td></tr>

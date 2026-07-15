@@ -29,6 +29,13 @@ public class BookdropFileEntity {
     @Column(name = "file_size")
     private Long fileSize;
 
+    /**
+     * Null = global admin inbox ({@code app.bookdrop-folder}).
+     * Non-null = personal inbox under {@code /books/_users/{ownerUserId}/bookdrop}.
+     */
+    @Column(name = "owner_user_id")
+    private Long ownerUserId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     @Builder.Default

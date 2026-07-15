@@ -12,6 +12,8 @@ import org.fable.model.enums.MetadataSource;
 import org.fable.repository.LibraryRepository;
 import org.fable.repository.UserRepository;
 import org.fable.service.audit.AuditService;
+import org.fable.service.bookdrop.BookdropInboxService;
+import org.fable.service.bookdrop.BookdropMonitoringService;
 import org.fable.service.monitoring.LibraryWatchService;
 import org.springframework.context.annotation.Lazy;
 import jakarta.transaction.Transactional;
@@ -39,16 +41,22 @@ public class PersonalLibraryService {
     private final UserRepository userRepository;
     private final LibraryWatchService libraryWatchService;
     private final AuditService auditService;
+    private final BookdropInboxService bookdropInboxService;
+    private final BookdropMonitoringService bookdropMonitoringService;
 
     public PersonalLibraryService(
             LibraryRepository libraryRepository,
             UserRepository userRepository,
             @Lazy LibraryWatchService libraryWatchService,
-            AuditService auditService) {
+            AuditService auditService,
+            BookdropInboxService bookdropInboxService,
+            @Lazy BookdropMonitoringService bookdropMonitoringService) {
         this.libraryRepository = libraryRepository;
         this.userRepository = userRepository;
         this.libraryWatchService = libraryWatchService;
         this.auditService = auditService;
+        this.bookdropInboxService = bookdropInboxService;
+        this.bookdropMonitoringService = bookdropMonitoringService;
     }
 
     @Transactional
@@ -104,6 +112,13 @@ public class PersonalLibraryService {
             libraryWatchService.registerPath(dir, library.getId());
         } catch (Exception e) {
             log.warn("Could not register watch for personal library {}: {}", library.getId(), e.getMessage());
+        }
+
+        try {
+            Path personalBookdrop = bookdropInboxService.ensurePersonalInbox(user.getId());
+            bookdropMonitoringService.ensureWatched(personalBookdrop);
+        } catch (Exception e) {
+            log.warn("Could not provision personal BookDrop inbox for user {}: {}", user.getId(), e.getMessage());
         }
 
         auditService.log(AuditAction.LIBRARY_CREATED, "Library", library.getId(),

@@ -29,6 +29,7 @@ public class BookdropEventHandlerService {
     private final BookdropNotificationService bookdropNotificationService;
     private final AppSettingService appSettingService;
     private final BookdropMetadataService bookdropMetadataService;
+    private final BookdropInboxService bookdropInboxService;
 
     private static final long STABILITY_CHECK_INTERVAL_MS = 500;
     private static final int STABILITY_REQUIRED_CHECKS = 3;
@@ -112,6 +113,7 @@ public class BookdropEventHandlerService {
                         .filePath(filePath)
                         .fileName(fileName)
                         .fileSize(Files.size(file))
+                        .ownerUserId(bookdropInboxService.resolveOwnerUserId(file).orElse(null))
                         .status(BookdropFileEntity.Status.PENDING_REVIEW)
                         .createdAt(Instant.now())
                         .updatedAt(Instant.now())

@@ -18,6 +18,10 @@ import org.fable.repository.BookRepository;
 import org.fable.repository.LibraryRepository;
 import org.fable.service.file.FileFingerprint;
 import org.fable.service.appsettings.AppSettingService;
+import org.fable.config.security.service.AuthenticationService;
+import org.fable.model.dto.FableUser;
+import org.fable.service.bookdrop.BookdropInboxService;
+import org.fable.service.bookdrop.BookdropMonitoringService;
 import org.fable.service.file.FileMovingHelper;
 import org.fable.service.monitoring.MonitoringRegistrationService;
 import org.fable.service.metadata.extractor.MetadataExtractorFactory;
@@ -58,6 +62,9 @@ public class FileUploadService {
     private final FileMovingHelper fileMovingHelper;
     private final MonitoringRegistrationService monitoringRegistrationService;
     private final AuditService auditService;
+    private final AuthenticationService authenticationService;
+    private final BookdropInboxService bookdropInboxService;
+    private final BookdropMonitoringService bookdropMonitoringService;
 
     public void uploadFile(MultipartFile file, long libraryId, long pathId) {
         validateFile(file);
@@ -212,8 +219,15 @@ public class FileUploadService {
     public Book uploadFileBookDrop(MultipartFile file) throws IOException {
         validateFile(file);
 
-        final Path dropFolder = Paths.get(appProperties.getBookdropFolder());
-        Files.createDirectories(dropFolder);
+        final FableUser user = authenticationService.getAuthenticatedUser();
+        final Path dropFolder;
+        if (bookdropInboxService.isAdminUser(user) || user == null) {
+            dropFolder = bookdropInboxService.getGlobalInbox();
+            Files.createDirectories(dropFolder);
+        } else {
+            dropFolder = bookdropInboxService.ensurePersonalInbox(user.getId());
+            bookdropMonitoringService.ensureWatched(dropFolder);
+        }
 
         final String originalFilename = getValidatedFileName(file);
         final String sanitizedFilename = PathPatternResolver.truncateFilenameWithExtension(originalFilename);

@@ -1,6 +1,5 @@
 package org.fable.service.bookdrop;
 
-import org.fable.config.AppProperties;
 import org.fable.model.enums.BookFileExtension;
 import org.fable.repository.BookdropFileRepository;
 import org.fable.util.FileUtils;
@@ -13,58 +12,63 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 @Slf4j
 @Service
 public class BookdropMonitoringService {
 
-    private final AppProperties appProperties;
+    private final BookdropInboxService bookdropInboxService;
     private final BookdropEventHandlerService eventHandler;
     private final BookdropFileRepository bookdropFileRepository;
 
-    private Path bookdrop;
     private WatchService watchService;
     private Thread watchThread;
     private volatile boolean running;
-    private WatchKey watchKey;
     private volatile boolean paused;
     private volatile boolean disabled;
 
+    /** Inbox root → active watch key (null value when paused but still tracked). */
+    private final Map<Path, WatchKey> watchedRoots = new ConcurrentHashMap<>();
+
     public BookdropMonitoringService(
-            AppProperties appProperties,
+            BookdropInboxService bookdropInboxService,
             BookdropEventHandlerService eventHandler,
             BookdropFileRepository bookdropFileRepository
     ) {
-        this.appProperties = appProperties;
+        this.bookdropInboxService = bookdropInboxService;
         this.eventHandler = eventHandler;
         this.bookdropFileRepository = bookdropFileRepository;
     }
 
     @PostConstruct
     public void start() {
-        bookdrop = Path.of(appProperties.getBookdropFolder());
-        if (Files.notExists(bookdrop)) {
-            try {
-                Files.createDirectories(bookdrop);
-                log.info("Created missing bookdrop folder: {}", bookdrop);
-            } catch (IOException e) {
-                log.warn("Bookdrop folder is not available at '{}'. Bookdrop monitoring is disabled. " +
-                        "Mount a volume at this path to enable it.", bookdrop);
-                this.disabled = true;
-                return;
-            }
-        }
-
         try {
-            log.info("Starting bookdrop folder monitor: {}", bookdrop);
+            Path global = bookdropInboxService.getGlobalInbox();
+            if (Files.notExists(global)) {
+                try {
+                    Files.createDirectories(global);
+                    log.info("Created missing bookdrop folder: {}", global);
+                } catch (IOException e) {
+                    log.warn("Bookdrop folder is not available at '{}'. Bookdrop monitoring is disabled. " +
+                            "Mount a volume at this path to enable it.", global);
+                    this.disabled = true;
+                    return;
+                }
+            }
+
+            log.info("Starting bookdrop folder monitor for global + personal inboxes");
             this.watchService = FileSystems.getDefault().newWatchService();
-            this.watchKey = bookdrop.register(watchService,
-                    StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_DELETE);
             this.running = true;
             this.paused = false;
+
+            for (Path root : bookdropInboxService.allWatchRoots()) {
+                registerRoot(root);
+            }
+
             this.watchThread = new Thread(this::processEvents, "BookdropFolderWatcher");
             this.watchThread.setDaemon(true);
             this.watchThread.start();
@@ -88,18 +92,44 @@ public class BookdropMonitoringService {
                 log.error("Error closing WatchService", e);
             }
         }
+        watchedRoots.clear();
         log.info("Stopped bookdrop folder monitor");
+    }
+
+    /**
+     * Ensures a personal (or other) inbox is watched and scanned for existing files.
+     */
+    public synchronized void ensureWatched(Path inbox) {
+        if (disabled || inbox == null) {
+            return;
+        }
+        Path root = inbox.toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(root);
+        } catch (IOException e) {
+            log.warn("Cannot create bookdrop inbox to watch: {}", root, e);
+            return;
+        }
+        if (!watchedRoots.containsKey(root)) {
+            registerRoot(root);
+            scanRoot(root);
+        } else if (!paused && (watchedRoots.get(root) == null || !watchedRoots.get(root).isValid())) {
+            registerRoot(root);
+        }
     }
 
     public synchronized void pauseMonitoring() {
         if (disabled) return;
         if (!paused) {
-            if (watchKey != null) {
-                watchKey.cancel();
-                watchKey = null;
+            for (Map.Entry<Path, WatchKey> entry : watchedRoots.entrySet()) {
+                WatchKey key = entry.getValue();
+                if (key != null) {
+                    key.cancel();
+                    entry.setValue(null);
+                }
             }
             paused = true;
-            log.info("Bookdrop monitoring paused.");
+            log.info("Bookdrop monitoring paused ({} roots).", watchedRoots.size());
         } else {
             log.info("Bookdrop monitoring already paused.");
         }
@@ -108,17 +138,38 @@ public class BookdropMonitoringService {
     public synchronized void resumeMonitoring() {
         if (disabled) return;
         if (paused) {
-            try {
-                watchKey = bookdrop.register(watchService,
-                        StandardWatchEventKinds.ENTRY_CREATE,
-                        StandardWatchEventKinds.ENTRY_DELETE);
-                paused = false;
-                log.info("Bookdrop monitoring resumed.");
-            } catch (IOException e) {
-                log.error("Error reregistering bookdrop folder during resume", e);
+            for (Path root : watchedRoots.keySet()) {
+                registerRoot(root);
             }
+            paused = false;
+            log.info("Bookdrop monitoring resumed ({} roots).", watchedRoots.size());
         } else {
             log.info("Bookdrop monitoring is not paused, cannot resume.");
+        }
+    }
+
+    private void registerRoot(Path root) {
+        Path normalized = root.toAbsolutePath().normalize();
+        if (!Files.isDirectory(normalized)) {
+            return;
+        }
+        if (watchService == null || paused) {
+            watchedRoots.putIfAbsent(normalized, null);
+            return;
+        }
+        try {
+            WatchKey existing = watchedRoots.get(normalized);
+            if (existing != null && existing.isValid()) {
+                return;
+            }
+            WatchKey key = normalized.register(watchService,
+                    StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_DELETE);
+            watchedRoots.put(normalized, key);
+            log.info("Watching bookdrop inbox: {}", normalized);
+        } catch (IOException e) {
+            log.warn("Failed to register bookdrop watch on {}: {}", normalized, e.getMessage());
+            watchedRoots.putIfAbsent(normalized, null);
         }
     }
 
@@ -147,16 +198,25 @@ public class BookdropMonitoringService {
                 return;
             }
 
+            Path root;
+            try {
+                root = (Path) key.watchable();
+            } catch (Exception e) {
+                log.warn("Could not resolve watchable path for key");
+                key.reset();
+                continue;
+            }
+
             for (WatchEvent<?> event : key.pollEvents()) {
                 WatchEvent.Kind<?> kind = event.kind();
 
                 if (kind == StandardWatchEventKinds.OVERFLOW) {
-                    log.warn("Overflow event detected");
+                    log.warn("Overflow event detected on {}", root);
                     continue;
                 }
 
                 Path context = (Path) event.context();
-                Path fullPath = bookdrop.resolve(context);
+                Path fullPath = root.resolve(context);
 
                 log.info("Detected {} event on: {}", kind.name(), fullPath);
 
@@ -193,8 +253,8 @@ public class BookdropMonitoringService {
 
             boolean valid = key.reset();
             if (!valid) {
-                log.warn("WatchKey is no longer valid");
-                break;
+                log.warn("WatchKey is no longer valid for {}", root);
+                watchedRoots.computeIfPresent(root.toAbsolutePath().normalize(), (p, k) -> null);
             }
         }
     }
@@ -204,11 +264,27 @@ public class BookdropMonitoringService {
             log.warn("Bookdrop monitoring is disabled. Skipping rescan.");
             return;
         }
-        log.info("Rescan of Bookdrop folder triggered.");
+        log.info("Rescan of Bookdrop folders triggered.");
+        for (Path personal : bookdropInboxService.discoverPersonalInboxes()) {
+            ensureWatched(personal);
+        }
         scanExistingBookdropFiles();
     }
 
     private void scanExistingBookdropFiles() {
+        Set<Path> roots = new HashSet<>(watchedRoots.keySet());
+        if (roots.isEmpty()) {
+            roots.addAll(bookdropInboxService.allWatchRoots());
+        }
+        for (Path root : roots) {
+            scanRoot(root);
+        }
+    }
+
+    private void scanRoot(Path bookdrop) {
+        if (!Files.isDirectory(bookdrop)) {
+            return;
+        }
         List<Path> supportedFiles;
         try (Stream<Path> files = Files.walk(bookdrop)) {
             supportedFiles = files.filter(Files::isRegularFile)
@@ -216,7 +292,7 @@ public class BookdropMonitoringService {
                     .filter(path -> BookFileExtension.fromFileName(path.getFileName().toString()).isPresent())
                     .toList();
         } catch (IOException e) {
-            log.error("Error scanning bookdrop folder", e);
+            log.error("Error scanning bookdrop folder {}", bookdrop, e);
             return;
         }
 
