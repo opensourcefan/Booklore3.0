@@ -16,7 +16,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {IconSelection} from '../../../service/icon-picker.service';
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MenuItem, MessageService} from 'primeng/api';
-import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbnail-prefetch.service';
 import {DirectoryFilterService} from '../../../../features/book/service/directory-filter.service';
@@ -43,7 +43,7 @@ export interface AppMenuItem extends MenuItem {
   endActionCommand?: () => void;
   endActionClass?: string;
   activeMatch?: (url: string, queryParams: Record<string, unknown>) => boolean;
-  onItemsReorder?: (items: AppMenuItem[]) => void;
+  onItemsReorder?: (items: AppMenuItem[]) => boolean | void;
   onCreate?: () => void;
   isPublicShelf?: boolean;
   isKoboShelf?: boolean;
@@ -66,7 +66,8 @@ export interface AppMenuItem extends MenuItem {
     Tooltip,
     TranslocoPipe,
     CdkDropList,
-    CdkDrag
+    CdkDrag,
+    CdkDragHandle
   ],
   animations: [
     trigger('children', [
@@ -87,6 +88,9 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   @Input() parentKey!: string;
   @Input() menuKey!: string;
   @Input() reorderMode = false;
+  @Input() childIndex = -1;
+  @Input() childCount = 0;
+  @Input() onMoveChild?: (index: number, direction: 'up' | 'down') => void;
   @ViewChild('linkRef') linkRef!: ElementRef<HTMLAnchorElement>;
 
   hovered = false;
@@ -207,16 +211,68 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     }
 
     moveItemInArray(this.item.items, event.previousIndex, event.currentIndex);
-    if (this.item.onItemsReorder) {
-      this.item.onItemsReorder(this.item.items);
+    this.persistChildOrder();
+  }
+
+  moveChildOrder(index: number, direction: 'up' | 'down'): void {
+    if (!this.reorderMode || !this.root || !this.item?.items) {
       return;
     }
 
-    this.saveNestedOrder();
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= this.item.items.length) {
+      return;
+    }
+
+    moveItemInArray(this.item.items, index, targetIndex);
+    this.persistChildOrder();
+  }
+
+  readonly moveChildOrderFn = (index: number, direction: 'up' | 'down'): void => {
+    this.moveChildOrder(index, direction);
+  };
+
+  onChildMoveClick(direction: 'up' | 'down', event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.onMoveChild?.(this.childIndex, direction);
+  }
+
+  translateMenuKey(key: string): string {
+    return this.translocoService.translate(`layout.menu.${key}`);
   }
 
   isChildSortable(): boolean {
     return this.reorderMode && this.root && !!this.item?.items?.length;
+  }
+
+  private persistChildOrder(): void {
+    if (this.item.onItemsReorder) {
+      const result = this.item.onItemsReorder(this.item.items!);
+      this.notifyReorderPersistence(result !== false);
+      return;
+    }
+
+    this.notifyReorderPersistence(this.saveNestedOrder());
+  }
+
+  private notifyReorderPersistence(saved: boolean): void {
+    if (saved) {
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('layout.menu.reorderSaved'),
+        detail: this.translocoService.translate('layout.menu.reorderSavedDetail'),
+        life: 1600,
+      });
+      return;
+    }
+
+    this.messageService.add({
+      severity: 'warn',
+      summary: this.translocoService.translate('layout.menu.reorderSaveFailed'),
+      detail: this.translocoService.translate('layout.menu.reorderSaveFailedDetail'),
+      life: 4000,
+    });
   }
 
   updateActiveStateFromRoute() {
@@ -415,13 +471,13 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     };
   }
 
-  private saveNestedOrder(): void {
+  private saveNestedOrder(): boolean {
     if (!this.menuKey || !Array.isArray(this.item?.items)) {
-      return;
+      return false;
     }
 
     const order = this.item.items!.map((child: AppMenuItem) => this.getItemOrderId(child));
-    this.localStorageService.set(`sidebarNestedOrder_${this.menuKey}`, order);
+    return this.localStorageService.trySet(`sidebarNestedOrder_${this.menuKey}`, order);
   }
 
   private getItemOrderId(item: AppMenuItem): string {

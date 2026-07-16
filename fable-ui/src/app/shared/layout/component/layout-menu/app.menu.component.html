@@ -55,7 +55,16 @@
 
   @if (isReorderMode) {
     <div class="reorder-mode-banner" role="status" aria-live="polite">
-      <div class="reorder-mode-title">{{ t('reorderModeTitle') }}</div>
+      <div class="reorder-mode-banner-top">
+        <div class="reorder-mode-title">{{ t('reorderModeTitle') }}</div>
+        <button
+          type="button"
+          class="reorder-done-btn"
+          (click)="toggleReorderMode()"
+          [attr.aria-label]="t('finishReorder')">
+          {{ t('reorderDone') }}
+        </button>
+      </div>
       <p class="reorder-mode-copy">{{ t('reorderModeHint') }}</p>
     </div>
   }
@@ -67,9 +76,42 @@
       [cdkDropListData]="visibleSectionOrder"
       [cdkDropListDisabled]="!isReorderMode"
       (cdkDropListDropped)="onSectionDrop($event)">
-      @for (section of visibleSectionOrder; track section) {
+      @for (section of visibleSectionOrder; track section; let sectionIndex = $index) {
         @if (isReorderMode) {
           <div class="menu-section" cdkDrag>
+            <div class="section-reorder-toolbar">
+              <button
+                type="button"
+                class="sidebar-drag-handle"
+                cdkDragHandle
+                [attr.aria-label]="t('dragToReorder')"
+                [pTooltip]="t('dragToReorder')"
+                tooltipPosition="right">
+                <i class="pi pi-bars" aria-hidden="true"></i>
+              </button>
+              <div class="section-order-actions">
+                <button
+                  type="button"
+                  class="sidebar-order-btn"
+                  (click)="moveSectionOrder(section, 'up')"
+                  [disabled]="sectionIndex === 0"
+                  [attr.aria-label]="t('moveSectionUp')"
+                  [pTooltip]="t('moveSectionUp')"
+                  tooltipPosition="right">
+                  <i class="pi pi-chevron-up" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="sidebar-order-btn"
+                  (click)="moveSectionOrder(section, 'down')"
+                  [disabled]="sectionIndex === visibleSectionOrder.length - 1"
+                  [attr.aria-label]="t('moveSectionDown')"
+                  [pTooltip]="t('moveSectionDown')"
+                  tooltipPosition="right">
+                  <i class="pi pi-chevron-down" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
             <ng-container
               [ngTemplateOutlet]="sectionTemplate"
               [ngTemplateOutletContext]="{ $implicit: section }"></ng-container>

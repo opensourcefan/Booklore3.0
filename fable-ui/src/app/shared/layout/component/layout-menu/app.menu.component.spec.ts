@@ -26,7 +26,7 @@ import {SidebarBadgeRefreshService} from '../../../../features/book/service/side
 describe('AppMenuComponent reorder mode', () => {
   let component: AppMenuComponent;
   let routerMock: {navigate: ReturnType<typeof vi.fn>; url: string; events: typeof NEVER; parseUrl: ReturnType<typeof vi.fn>};
-  let localStorageMock: {get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; keyChanges$: typeof NEVER};
+  let localStorageMock: {get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; trySet: ReturnType<typeof vi.fn>; keyChanges$: typeof NEVER};
   let mediaTypePreferencesMock: {setSidebarOrder: ReturnType<typeof vi.fn>; settings$: Observable<{customTypes: string[]; sidebarOrder: string[]}>};
   let versionServiceMock: {getVersion: ReturnType<typeof vi.fn>};
   let libraryServiceMock: {libraryState$: Observable<{libraries: {id?: number; name: string; watch: boolean; paths: never[]}[]}>; getBookCount: ReturnType<typeof vi.fn>};
@@ -49,6 +49,10 @@ describe('AppMenuComponent reorder mode', () => {
     localStorageMock = {
       get: vi.fn(),
       set: vi.fn(),
+      trySet: vi.fn().mockImplementation((key: string, value: unknown) => {
+        localStorageMock.set(key, value);
+        return true;
+      }),
       keyChanges$: keyChanges$.asObservable() as typeof NEVER
     };
     mediaTypePreferencesMock = {
@@ -135,6 +139,15 @@ describe('AppMenuComponent reorder mode', () => {
 
     expect(component.sectionOrder).toEqual(['library', 'home', 'shelf']);
     expect(localStorageMock.set).toHaveBeenCalledWith('sidebarSectionOrder', ['library', 'home', 'shelf']);
+    expect(localStorageMock.trySet).toHaveBeenCalledWith('sidebarSectionOrder', ['library', 'home', 'shelf']);
+  });
+
+  it('moves visible sections with up/down controls while reorder mode is enabled', () => {
+    component.isReorderMode = true;
+    component.moveSectionOrder('home', 'down');
+
+    expect(component.sectionOrder).toEqual(['library', 'home', 'shelf']);
+    expect(localStorageMock.trySet).toHaveBeenCalledWith('sidebarSectionOrder', ['library', 'home', 'shelf']);
   });
 
   it('blocks media type navigation while reorder mode is enabled', () => {

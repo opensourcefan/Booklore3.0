@@ -4,7 +4,7 @@ import {BehaviorSubject, of, Subject} from 'rxjs';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {By} from '@angular/platform-browser';
-import {CdkDrag} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragHandle} from '@angular/cdk/drag-drop';
 
 import {AppMenuitemComponent} from './app.menuitem.component';
 import {MenuService} from './service/app.menu.service';
@@ -67,6 +67,7 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
           provide: LocalStorageService,
           useValue: {
             set: vi.fn(),
+            trySet: vi.fn().mockReturnValue(true),
             get: vi.fn(),
           },
         },
@@ -246,6 +247,7 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
 
     const dragRows = fixture.debugElement.queryAll(By.directive(CdkDrag));
     expect(dragRows.length).toBe(0);
+    expect(fixture.debugElement.queryAll(By.directive(CdkDragHandle)).length).toBe(0);
   });
 
   it('renders child row drag directives when reorder mode is enabled', () => {
@@ -253,6 +255,26 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
 
     const dragRows = fixture.debugElement.queryAll(By.directive(CdkDrag));
     expect(dragRows.length).toBeGreaterThan(0);
+    const handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
+    expect(handles.length).toBeGreaterThan(0);
+    expect(fixture.nativeElement.querySelectorAll('.sidebar-drag-handle').length).toBeGreaterThan(0);
+    expect(fixture.nativeElement.querySelectorAll('.row-order-actions .sidebar-order-btn').length).toBeGreaterThan(0);
+  });
+
+  it('moves child rows with up/down controls and persists nested order', () => {
+    const fixture = createRootWithChildrenFixture(true);
+    const component = fixture.componentInstance;
+    const localStorage = TestBed.inject(LocalStorageService) as unknown as {
+      trySet: ReturnType<typeof vi.fn>;
+    };
+
+    component.moveChildOrder(0, 'down');
+
+    expect(component.item.items?.map(item => item.label)).toEqual(['Library B', 'Library A']);
+    expect(localStorage.trySet).toHaveBeenCalledWith(
+      'sidebarNestedOrder_library',
+      ['/library/2', '/library/1']
+    );
   });
 
   it('renders an inline end action button and triggers it without navigating the row', () => {

@@ -160,7 +160,64 @@
 :host-context(.reorder-mode-active) .layout-menuitem-root-text,
 :host-context(.reorder-mode-active) .menu-item-container,
 :host-context(.reorder-mode-active) .menu-item-container.draggable-child {
+  cursor: default;
+}
+
+:host-context(.reorder-mode-active) .menu-item-container.reorder-row {
+  gap: 0.25rem;
+  padding-left: 0.2rem;
+}
+
+:host-context(.reorder-mode-active) .sidebar-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--p-surface-700), transparent 20%);
+  color: var(--p-surface-300);
+  touch-action: none;
   cursor: grab;
+}
+
+:host-context(.reorder-mode-active) .sidebar-drag-handle:active {
+  cursor: grabbing;
+}
+
+:host-context(.reorder-mode-active) .sidebar-order-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.35rem;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--p-surface-700), transparent 20%);
+  color: var(--p-surface-300);
+  cursor: pointer;
+}
+
+:host-context(.reorder-mode-active) .sidebar-order-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+:host-context(.reorder-mode-active) .row-order-actions {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  flex-shrink: 0;
 }
 
 :host-context(.reorder-mode-active) .cdk-drag-dragging .layout-menuitem-root-text,
@@ -175,6 +232,19 @@
 :host-context(.mobile-sidebar-popover) .menu-item-link,
 :host-context(.mobile-sidebar-popover) .drag-press-target {
   touch-action: pan-y;
+}
+
+@media (max-width: 768px) {
+  :host-context(.reorder-mode-active) .sidebar-drag-handle,
+  :host-context(.reorder-mode-active) .row-order-actions .sidebar-order-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  :host-context(.reorder-mode-active) .row-order-actions .sidebar-order-btn {
+    width: 2rem;
+    height: 1.6rem;
+  }
 }
 
 :host-context(.mobile-sidebar-popover) .menu-item-link {

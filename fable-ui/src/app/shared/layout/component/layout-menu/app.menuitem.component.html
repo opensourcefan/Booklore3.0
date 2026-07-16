@@ -97,6 +97,34 @@
       (dragleave)="onDragLeave($event)"
       (drop)="onDrop($event)"
     >
+      @if (reorderMode && !root) {
+        <button
+          type="button"
+          class="sidebar-drag-handle"
+          cdkDragHandle
+          [attr.aria-label]="translateMenuKey('dragToReorder')"
+          (click)="$event.preventDefault(); $event.stopPropagation()">
+          <i class="pi pi-bars" aria-hidden="true"></i>
+        </button>
+        <div class="row-order-actions">
+          <button
+            type="button"
+            class="sidebar-order-btn"
+            (click)="onChildMoveClick('up', $event)"
+            [disabled]="childIndex <= 0"
+            [attr.aria-label]="translateMenuKey('moveRowUp')">
+            <i class="pi pi-chevron-up" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="sidebar-order-btn"
+            (click)="onChildMoveClick('down', $event)"
+            [disabled]="childIndex < 0 || childIndex >= childCount - 1"
+            [attr.aria-label]="translateMenuKey('moveRowDown')">
+            <i class="pi pi-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
       @if ((item.routerLink && !item.items)) {
         <a
           #link
@@ -223,6 +251,9 @@
                 [parentKey]="key"
                 [menuKey]="menuKey"
                 [reorderMode]="reorderMode"
+                [childIndex]="i"
+                [childCount]="item.items.length"
+                [onMoveChild]="moveChildOrderFn"
                 [class]="child.badgeClass"
                 cdkDrag></li>
             } @else {

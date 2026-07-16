@@ -7,19 +7,31 @@ import {UserService} from '../../settings/user-management/user.service';
 
 describe('MediaTypePreferencesService', () => {
   let service: MediaTypePreferencesService;
-  let localStorageMock: { get: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn> };
-  let userState$: BehaviorSubject<{loaded: boolean; user: null}>;
-  let userServiceMock: { getCurrentUser: ReturnType<typeof vi.fn>; updateUserSetting: ReturnType<typeof vi.fn>; userState$: typeof userState$ };
+  let localStorageMock: {
+    get: ReturnType<typeof vi.fn>;
+    remove: ReturnType<typeof vi.fn>;
+    trySet: ReturnType<typeof vi.fn>;
+  };
+  let userState$: BehaviorSubject<{loaded: boolean; user: null | {
+    id: number;
+    userSettings: {mediaTypeSettings?: {customTypes?: string[]; recentTypes?: string[]; sidebarOrder?: string[]}};
+  }}>;
+  let userServiceMock: {
+    getCurrentUser: ReturnType<typeof vi.fn>;
+    updateUserSetting: ReturnType<typeof vi.fn>;
+    userState$: typeof userState$;
+  };
 
   beforeEach(() => {
     localStorageMock = {
       get: vi.fn().mockReturnValue(undefined),
       remove: vi.fn(),
+      trySet: vi.fn().mockReturnValue(true),
     };
     userState$ = new BehaviorSubject<{loaded: boolean; user: null}>({loaded: false, user: null});
     userServiceMock = {
       userState$,
-      getCurrentUser: vi.fn().mockReturnValue(null),
+      getCurrentUser: vi.fn().mockReturnValue({id: 7}),
       updateUserSetting: vi.fn(),
     };
 
@@ -41,5 +53,18 @@ describe('MediaTypePreferencesService', () => {
 
     expect(service.getCustomTypes()).toEqual(['Comics']);
     expect(service.getRecentTypes()).toEqual(['Magazine']);
+  });
+
+  it('persists sidebar order to device-local storage instead of user settings', () => {
+    const saved = service.setSidebarOrder(['PDF', 'CBZ', 'PHYSICAL']);
+
+    expect(saved).toBe(true);
+    expect(localStorageMock.trySet).toHaveBeenCalledWith('sidebarBookTypeOrder', ['PDF', 'CBZ']);
+    expect(service.getSidebarOrder()).toEqual(['PDF', 'CBZ']);
+    expect(userServiceMock.updateUserSetting).not.toHaveBeenCalledWith(
+      expect.anything(),
+      'mediaTypeSettings',
+      expect.objectContaining({sidebarOrder: ['PDF', 'CBZ']})
+    );
   });
 });

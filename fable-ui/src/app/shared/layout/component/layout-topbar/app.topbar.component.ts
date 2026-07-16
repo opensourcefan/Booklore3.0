@@ -502,7 +502,7 @@ export class AppTopBarComponent implements OnDestroy {
     // (including section headers that expand/collapse).
     const selectedRow = target.closest('.menu-item-container, .sidebar-bottom-btn');
     const inlineAction = target.closest(
-      '.entity-menu-button, .expand-icon, .plus-icon, .sidebar-heading-nav, .section-visibility-btn, .sidebar-reorder-btn, .reorder-row, .root-item-with-dropdown'
+      '.entity-menu-button, .expand-icon, .plus-icon, .sidebar-heading-nav, .section-visibility-btn, .sidebar-reorder-btn, .reorder-row, .root-item-with-dropdown, .sidebar-drag-handle, .sidebar-order-btn, .section-reorder-toolbar, .reorder-done-btn, .row-order-actions, .section-order-actions'
     );
 
     if (selectedRow && !inlineAction) {

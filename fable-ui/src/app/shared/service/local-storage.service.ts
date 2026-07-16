@@ -16,11 +16,21 @@ export class LocalStorageService {
   }
 
   set<T>(key: string, value: T): void {
+    this.trySet(key, value);
+  }
+
+  /**
+   * Persist a value and report whether the write succeeded.
+   * Use for user-visible preferences (e.g. sidebar order) where silent failure would erode trust.
+   */
+  trySet<T>(key: string, value: T): boolean {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       this.keyChangesSubject.next(key);
+      return true;
     } catch {
-      // localStorage unavailable (private mode / storage full) — safe to ignore
+      // localStorage unavailable (private mode / storage full)
+      return false;
     }
   }
 

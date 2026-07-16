@@ -277,6 +277,7 @@ The app has a dedicated mobile UX system built around three services:
 - `_responsive.scss` handles all layout breakpoints (992px, 768px, 1960px)
 - `_topbar.scss` hides the logo on `≤ 991px` and styles `.mobile-sidebar-popover` popover content (16rem wide, scrollbar hidden, touch-optimized)
 - Mobile left sidebar (`app.menuitem`): dropdown section headers (`.root-item-with-dropdown`) toggle expand/collapse on the full header tap — including Story Arcs, which uses a plain heading label like Libraries/Shelves; section destinations (Story Arcs → `/story-arcs`) use a sibling `.sidebar-heading-nav` control so navigation does not block collapse; create (+) does not toggle
+- Sidebar reorder mode uses handle-only CDK drag (`cdkDragHandle` on `.sidebar-drag-handle`) plus up/down buttons so mobile vertical scroll remains usable; section/row order and media-type row order persist in device-browser localStorage (`sidebarSectionOrder`, `sidebarNestedOrder_*`, `sidebarBookTypeOrder`)
 - `.mobile-right-dir-trigger` in `_menu.scss` for mobile directory panel
 
 ### Key DTOs

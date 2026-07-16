@@ -16,13 +16,14 @@ export class MediaTypePreferencesService {
   private readonly customMediaTypesKey = 'customMediaTypes';
   private readonly legacyBookTypesKey = 'customBookTypes';
   private readonly recentMediaTypesKey = 'FABLE_RECENT_MEDIA_TYPES';
+  /** Device-browser-local sidebar row order for media types (not synced to the account). */
   private readonly sidebarBookTypeOrderKey = 'sidebarBookTypeOrder';
   private readonly maxRecent = 5;
 
   private readonly localStorageService = inject(LocalStorageService);
   private readonly userService = inject(UserService);
 
-  private readonly settingsSubject = new BehaviorSubject<ResolvedMediaTypeSettings>(this.readLegacySettings());
+  private readonly settingsSubject = new BehaviorSubject<ResolvedMediaTypeSettings>(this.readInitialSettings());
   readonly settings$ = this.settingsSubject.asObservable();
 
   constructor() {
@@ -50,7 +51,7 @@ export class MediaTypePreferencesService {
   }
 
   setCustomTypes(types: string[]): void {
-    this.persistSettings({customTypes: this.mergeTypes(types)});
+    this.persistAccountSettings({customTypes: this.mergeTypes(types)});
   }
 
   rememberRecentType(type: string): void {
@@ -62,51 +63,109 @@ export class MediaTypePreferencesService {
     const merged = [normalized, ...this.settings.recentTypes.filter(item => item.toLowerCase() !== normalized.toLowerCase())]
       .slice(0, this.maxRecent);
 
-    this.persistSettings({recentTypes: merged});
+    this.persistAccountSettings({recentTypes: merged});
   }
 
-  setSidebarOrder(order: string[]): void {
-    const normalizedOrder = order.map(item => item.trim()).filter(Boolean);
-    this.persistSettings({sidebarOrder: [...new Set(normalizedOrder)]});
+  /**
+   * Persist media-type sidebar row order on this device/browser only.
+   * Returns false when localStorage cannot save (private mode / quota).
+   */
+  setSidebarOrder(order: string[]): boolean {
+    const normalizedOrder = this.normalizeStringList(order);
+    const saved = this.localStorageService.trySet(this.sidebarBookTypeOrderKey, normalizedOrder);
+    this.settingsSubject.next({
+      ...this.settings,
+      sidebarOrder: normalizedOrder,
+    });
+    return saved;
   }
 
   private initializeForUser(userId: number, persisted: MediaTypeSettings | undefined): void {
-    const normalizedPersisted = this.normalizeSettings(persisted);
-    const legacy = this.readLegacySettings();
-    const hasLegacy = legacy.customTypes.length > 0 || legacy.recentTypes.length > 0 || legacy.sidebarOrder.length > 0;
+    const normalizedPersisted = this.normalizeAccountSettings(persisted);
+    const legacy = this.readLegacyAccountSettings();
+    const hasLegacyAccount = legacy.customTypes.length > 0 || legacy.recentTypes.length > 0;
 
-    if (!persisted && hasLegacy) {
-      const migrated = this.normalizeSettings({
-        customTypes: this.mergeTypes([...normalizedPersisted.customTypes, ...legacy.customTypes]),
-        recentTypes: this.mergeRecent([...legacy.recentTypes, ...normalizedPersisted.recentTypes]),
-        sidebarOrder: legacy.sidebarOrder.length ? legacy.sidebarOrder : normalizedPersisted.sidebarOrder,
+    let customTypes = normalizedPersisted.customTypes;
+    let recentTypes = normalizedPersisted.recentTypes;
+
+    if (!persisted && hasLegacyAccount) {
+      customTypes = this.mergeTypes([...normalizedPersisted.customTypes, ...legacy.customTypes]);
+      recentTypes = this.mergeRecent([...legacy.recentTypes, ...normalizedPersisted.recentTypes]);
+      this.userService.updateUserSetting(userId, 'mediaTypeSettings', {
+        customTypes,
+        recentTypes,
+        // Sidebar row order is device-local; do not push it to the account.
+        sidebarOrder: [],
       });
-      this.settingsSubject.next(migrated);
-      this.userService.updateUserSetting(userId, 'mediaTypeSettings', migrated);
-      this.clearLegacySettings();
-      return;
     }
 
-    this.settingsSubject.next(normalizedPersisted);
-    this.clearLegacySettings();
+    this.clearLegacyAccountKeys();
+
+    const sidebarOrder = this.resolveDeviceSidebarOrder(persisted?.sidebarOrder, legacy.sidebarOrder);
+
+    this.settingsSubject.next({
+      customTypes,
+      recentTypes,
+      sidebarOrder,
+    });
   }
 
-  private persistSettings(partial: Partial<ResolvedMediaTypeSettings>): void {
-    const next = this.normalizeSettings({...this.settings, ...partial});
+  private persistAccountSettings(partial: Partial<Pick<ResolvedMediaTypeSettings, 'customTypes' | 'recentTypes'>>): void {
+    const next: ResolvedMediaTypeSettings = {
+      customTypes: partial.customTypes !== undefined ? this.mergeTypes(partial.customTypes) : this.settings.customTypes,
+      recentTypes: partial.recentTypes !== undefined ? this.mergeRecent(partial.recentTypes) : this.settings.recentTypes,
+      sidebarOrder: this.readDeviceSidebarOrder(),
+    };
     this.settingsSubject.next(next);
-    this.clearLegacySettings();
+    this.clearLegacyAccountKeys();
 
     const userId = this.userService.getCurrentUser()?.id;
     if (userId != null) {
-      this.userService.updateUserSetting(userId, 'mediaTypeSettings', next);
+      this.userService.updateUserSetting(userId, 'mediaTypeSettings', {
+        customTypes: next.customTypes,
+        recentTypes: next.recentTypes,
+        // Do not overwrite server sidebarOrder with device-local order; leave empty / prior semantics alone.
+        sidebarOrder: [],
+      });
     }
   }
 
-  private normalizeSettings(settings: MediaTypeSettings | ResolvedMediaTypeSettings | undefined): ResolvedMediaTypeSettings {
+  private resolveDeviceSidebarOrder(persistedOrder: string[] | undefined, legacyOrder: string[]): string[] {
+    const existingLocal = this.localStorageService.get<string[]>(this.sidebarBookTypeOrderKey);
+    if (existingLocal?.length) {
+      return this.normalizeStringList(existingLocal);
+    }
+
+    const seed = this.normalizeStringList(
+      (persistedOrder?.length ? persistedOrder : null)
+      ?? (legacyOrder.length ? legacyOrder : null)
+      ?? []
+    );
+
+    if (seed.length) {
+      this.localStorageService.trySet(this.sidebarBookTypeOrderKey, seed);
+    }
+
+    return seed;
+  }
+
+  private readDeviceSidebarOrder(): string[] {
+    return this.normalizeStringList(this.localStorageService.get<string[]>(this.sidebarBookTypeOrderKey) ?? []);
+  }
+
+  private readInitialSettings(): ResolvedMediaTypeSettings {
+    const legacy = this.readLegacyAccountSettings();
+    return {
+      customTypes: legacy.customTypes,
+      recentTypes: legacy.recentTypes,
+      sidebarOrder: this.resolveDeviceSidebarOrder(undefined, legacy.sidebarOrder),
+    };
+  }
+
+  private normalizeAccountSettings(settings: MediaTypeSettings | undefined): Pick<ResolvedMediaTypeSettings, 'customTypes' | 'recentTypes'> {
     return {
       customTypes: this.mergeTypes(settings?.customTypes ?? []),
       recentTypes: this.mergeRecent(settings?.recentTypes ?? []),
-      sidebarOrder: this.normalizeStringList(settings?.sidebarOrder ?? []),
     };
   }
 
@@ -132,21 +191,21 @@ export class MediaTypePreferencesService {
     return normalized;
   }
 
-  private readLegacySettings(): ResolvedMediaTypeSettings {
-    return this.normalizeSettings({
-      customTypes: [
+  private readLegacyAccountSettings(): ResolvedMediaTypeSettings {
+    return {
+      customTypes: this.mergeTypes([
         ...(this.localStorageService.get<string[]>(this.customMediaTypesKey) ?? []),
         ...(this.localStorageService.get<string[]>(this.legacyBookTypesKey) ?? []),
-      ],
-      recentTypes: this.localStorageService.get<string[]>(this.recentMediaTypesKey) ?? [],
-      sidebarOrder: this.localStorageService.get<string[]>(this.sidebarBookTypeOrderKey) ?? [],
-    });
+      ]),
+      recentTypes: this.mergeRecent(this.localStorageService.get<string[]>(this.recentMediaTypesKey) ?? []),
+      sidebarOrder: this.normalizeStringList(this.localStorageService.get<string[]>(this.sidebarBookTypeOrderKey) ?? []),
+    };
   }
 
-  private clearLegacySettings(): void {
+  private clearLegacyAccountKeys(): void {
     this.localStorageService.remove(this.customMediaTypesKey);
     this.localStorageService.remove(this.legacyBookTypesKey);
     this.localStorageService.remove(this.recentMediaTypesKey);
-    this.localStorageService.remove(this.sidebarBookTypeOrderKey);
+    // Intentionally keep sidebarBookTypeOrder — it is the live device-local order key.
   }
 }

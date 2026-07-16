@@ -29,7 +29,7 @@ import {FormsModule} from '@angular/forms';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
-import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
 import {SidebarBadgeRefreshService} from '../../../../features/book/service/sidebar-badge-refresh.service';
@@ -41,7 +41,7 @@ type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'serie
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgTemplateOutlet, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgTemplateOutlet, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, CdkDragHandle, Popover, CheckboxModule, FormsModule],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -372,7 +372,34 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
     const visibleSections = [...this.visibleSectionOrder];
     moveItemInArray(visibleSections, event.previousIndex, event.currentIndex);
+    this.applyVisibleSectionOrder(visibleSections);
+  }
 
+  moveSectionOrder(section: string, direction: 'up' | 'down'): void {
+    if (!this.isReorderMode) {
+      return;
+    }
+
+    const visibleSections = [...this.visibleSectionOrder];
+    const index = visibleSections.indexOf(section);
+    if (index < 0) {
+      return;
+    }
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= visibleSections.length) {
+      return;
+    }
+
+    moveItemInArray(visibleSections, index, targetIndex);
+    this.applyVisibleSectionOrder(visibleSections);
+  }
+
+  toggleReorderMode(): void {
+    this.isReorderMode = !this.isReorderMode;
+  }
+
+  private applyVisibleSectionOrder(visibleSections: string[]): void {
     let visibleIndex = 0;
     this.sectionOrder = this.sectionOrder.map(section => {
       if (this.sectionVisibility[section] !== false) {
@@ -381,11 +408,27 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       return section;
     });
 
-    this.localStorageService.set(this.sectionOrderKey, this.sectionOrder);
+    const saved = this.localStorageService.trySet(this.sectionOrderKey, this.sectionOrder);
+    this.notifyReorderPersistence(saved);
   }
 
-  toggleReorderMode(): void {
-    this.isReorderMode = !this.isReorderMode;
+  private notifyReorderPersistence(saved: boolean): void {
+    if (saved) {
+      this.messageService.add({
+        severity: 'success',
+        summary: this.t.translate('layout.menu.reorderSaved'),
+        detail: this.t.translate('layout.menu.reorderSavedDetail'),
+        life: 1600,
+      });
+      return;
+    }
+
+    this.messageService.add({
+      severity: 'warn',
+      summary: this.t.translate('layout.menu.reorderSaveFailed'),
+      detail: this.t.translate('layout.menu.reorderSaveFailedDetail'),
+      life: 4000,
+    });
   }
 
   getSectionHeading(section: string): string {
