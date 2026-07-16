@@ -45,6 +45,7 @@ import {ResizableDividerDirective} from '../../../directives/resizable-divider.d
 import {AiSearchDialogComponent, AiSearchDialogService} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
 import {AppSettingsService} from '../../../service/app-settings.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
+import {getFullscreenElement, toggleAppFullscreen} from '../../../util/fullscreen.util';
 
 @Component({
   selector: 'app-topbar',
@@ -484,12 +485,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   toggleFullscreen(): void {
-    if (document.fullscreenElement) {
-      document.exitFullscreen?.().catch(() => undefined);
-      return;
-    }
-
-    document.documentElement.requestFullscreen?.().catch(() => undefined);
+    void toggleAppFullscreen();
   }
 
   toggleMobileBookFilter(event: MouseEvent): void {
@@ -1223,7 +1219,7 @@ export class AppTopBarComponent implements OnDestroy {
   };
 
   private syncFullscreenState(): void {
-    this.isFullscreen = !!document.fullscreenElement;
+    this.isFullscreen = !!getFullscreenElement();
   }
 
   private get isMetadataFetchPaused(): boolean {

@@ -21,6 +21,7 @@ export class UiPreferencesService {
   private readonly PHONE_BREAKPOINT_KEY = 'bl-phone-breakpoint';
   private readonly TABLET_BREAKPOINT_KEY = 'bl-tablet-breakpoint';
   private readonly HEADER_POSITION_KEY = 'bl-header-position';
+  private readonly TABLET_NAV_GESTURES_KEY = 'bl-tablet-nav-gestures';
 
   private _showCoverPreview$ = new BehaviorSubject<boolean>(
     localStorage.getItem(this.COVER_PREVIEW_KEY) !== 'false'
@@ -41,6 +42,20 @@ export class UiPreferencesService {
   setShowResizeHandles(value: boolean): void {
     localStorage.setItem(this.RESIZE_HANDLES_KEY, String(value));
     this._showResizeHandles$.next(value);
+  }
+
+  /**
+   * Opt-in tablet/kiosk navigation gestures (contextmenu suppress, edge swipe, 3-finger sheet).
+   * Never applies in Phone Mode — gated by MobileUxService consumers.
+   */
+  private _tabletNavGestures$ = new BehaviorSubject<boolean>(
+    localStorage.getItem(this.TABLET_NAV_GESTURES_KEY) === 'true'
+  );
+  readonly tabletNavGestures$ = this._tabletNavGestures$.asObservable();
+  get tabletNavGestures(): boolean { return this._tabletNavGestures$.value; }
+  setTabletNavGestures(value: boolean): void {
+    localStorage.setItem(this.TABLET_NAV_GESTURES_KEY, String(value));
+    this._tabletNavGestures$.next(value);
   }
 
   private _layoutMode$ = new BehaviorSubject<LayoutMode>(

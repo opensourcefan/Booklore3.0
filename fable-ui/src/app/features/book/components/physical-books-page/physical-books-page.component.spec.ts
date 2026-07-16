@@ -111,8 +111,6 @@ describe('PhysicalBooksPageComponent', () => {
   });
 
   it('closes the mobile viewer on popstate to match Android edge-swipe back behavior', () => {
-    const component = createComponent();
-    const first = createBook({ id: 66, metadata: { bookId: 66, title: 'Popstate Viewer' } as Book['metadata'] });
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 
@@ -120,6 +118,9 @@ describe('PhysicalBooksPageComponent', () => {
     Object.defineProperty(window, 'innerHeight', { configurable: true, writable: true, value: 844 });
 
     try {
+      const component = createComponent();
+      const first = createBook({ id: 66, metadata: { bookId: 66, title: 'Popstate Viewer' } as Book['metadata'] });
+
       component.screenWidth = 390;
       component.screenHeight = 844;
       component.toggleMobileBookViewer([

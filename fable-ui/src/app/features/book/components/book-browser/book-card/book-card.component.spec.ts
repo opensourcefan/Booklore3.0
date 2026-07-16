@@ -284,8 +284,6 @@ describe('BookCardComponent', () => {
   });
 
   it('closes the inline mobile preview on popstate for Android back gesture support', () => {
-    const fixture = createFixture();
-    const component = fixture.componentInstance;
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 
@@ -293,6 +291,9 @@ describe('BookCardComponent', () => {
     Object.defineProperty(window, 'innerHeight', { configurable: true, writable: true, value: 412 });
 
     try {
+      const fixture = createFixture();
+      const component = fixture.componentInstance;
+
       component.book = createBook({
         id: 29,
         metadata: {

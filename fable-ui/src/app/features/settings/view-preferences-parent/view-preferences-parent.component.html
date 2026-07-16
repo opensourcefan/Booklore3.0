@@ -78,6 +78,34 @@
     <div class="preferences-section">
       <div class="section-header">
         <h3 class="section-title">
+          <i class="pi pi-mobile"></i>
+          Tablet Navigation Gestures
+        </h3>
+      </div>
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <span class="setting-label">Enable tablet / kiosk gestures</span>
+              <p-toggleswitch
+                [(ngModel)]="tabletNavGestures"
+                (onChange)="onTabletNavGesturesToggle($event.checked)">
+              </p-toggleswitch>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              On tablets and desktop-touch (never in Phone Mode): suppress the browser long-press menu, enable edge swipe history (right-edge left-swipe = back), and open a three-finger action sheet for fullscreen / reload. Stored per browser.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"><hr></div>
+
+    <div class="preferences-section">
+      <div class="section-header">
+        <h3 class="section-title">
           <i class="pi pi-arrow-down"></i>
           Header Position (Phone Mode)
         </h3>

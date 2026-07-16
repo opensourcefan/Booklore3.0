@@ -1,5 +1,6 @@
 import {Injectable, OnDestroy, inject} from '@angular/core';
 import {Router} from '@angular/router';
+import {MobileUxService} from '../../core/services/mobile-ux.service';
 
 export interface MobileBackHandle {
   release: (removeHistoryEntry?: boolean) => void;
@@ -14,10 +15,10 @@ interface MobileBackEntry {
   providedIn: 'root'
 })
 export class MobileBackNavigationService implements OnDestroy {
-  private readonly MOBILE_BREAKPOINT = 768;
   private readonly STATE_KEY = 'fableMobileBackToken';
 
   private readonly router = inject(Router);
+  private readonly mobileUx = inject(MobileUxService);
 
   private nextToken = 0;
   private stack: MobileBackEntry[] = [];
@@ -65,6 +66,23 @@ export class MobileBackNavigationService implements OnDestroy {
     };
   }
 
+  /** True when at least one overlay/dialog back token is registered. */
+  get hasOverlayEntry(): boolean {
+    return this.stack.length > 0;
+  }
+
+  /**
+   * Invoke the same history.back() path used by OS / edge-swipe back.
+   * When an overlay token exists, popstate closes it; otherwise route history pops.
+   */
+  requestBack(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    window.history.back();
+    return true;
+  }
+
   private releaseEntry(token: number, removeHistoryEntry: boolean): void {
     const index = this.stack.findIndex(entry => entry.token === token);
     if (index === -1) {
@@ -97,7 +115,6 @@ export class MobileBackNavigationService implements OnDestroy {
   };
 
   private isMobileInteractionMode(): boolean {
-    const shortEdge = Math.min(window.innerWidth, window.innerHeight);
-    return shortEdge <= this.MOBILE_BREAKPOINT;
+    return this.mobileUx.isMobileInteractionMode;
   }
 }

@@ -5,14 +5,20 @@ import {Subject} from 'rxjs';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {AppLayoutComponent} from './app.layout.component';
 import {LayoutService} from './service/app.layout.service';
+import {TabletNavigationGesturesService} from '../../../../core/services/tablet-navigation-gestures.service';
 
 describe('AppLayoutComponent route reattach', () => {
   let fixture: ComponentFixture<AppLayoutComponent>;
   let component: AppLayoutComponent;
   let routerEvents: Subject<unknown>;
+  let tabletNavGestures: {start: ReturnType<typeof vi.fn>; ngOnDestroy: ReturnType<typeof vi.fn>};
 
   beforeEach(async () => {
     routerEvents = new Subject<unknown>();
+    tabletNavGestures = {
+      start: vi.fn(),
+      ngOnDestroy: vi.fn()
+    };
 
     await TestBed.configureTestingModule({
       imports: [AppLayoutComponent],
@@ -43,6 +49,10 @@ describe('AppLayoutComponent route reattach', () => {
           useValue: {
             events: routerEvents.asObservable()
           }
+        },
+        {
+          provide: TabletNavigationGesturesService,
+          useValue: tabletNavGestures
         }
       ]
     })
@@ -85,5 +95,13 @@ describe('AppLayoutComponent route reattach', () => {
   it('should ignore detached components without a detach hook', async () => {
     expect(() => component.onRouteDetach({})).not.toThrow();
     await Promise.resolve();
+  });
+
+  it('starts tablet navigation gestures on init and tears them down on destroy', () => {
+    component.ngOnInit();
+    expect(tabletNavGestures.start).toHaveBeenCalledTimes(1);
+
+    component.ngOnDestroy();
+    expect(tabletNavGestures.ngOnDestroy).toHaveBeenCalledTimes(1);
   });
 });

@@ -442,6 +442,15 @@ body.tooltip-suppressed .p-tooltip {
   }
 }
 
+/* Tablet / kiosk gestures only — never under layout-phone. */
+body.tablet-nav-gestures:not(.layout-phone) {
+  .book-cover,
+  .cover-container img,
+  .book-card-mobile-preview img {
+    -webkit-touch-callout: none;
+  }
+}
+
 // Global Tactile Press Feedback for Touch UX
 button, a, .p-button, .p-link, [role="button"], .chapter-sort-item {
   -webkit-tap-highlight-color: transparent !important;

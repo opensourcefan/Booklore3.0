@@ -8,6 +8,7 @@ import {NgClass} from '@angular/common';
 import {ToastModule} from 'primeng/toast';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
 import {DirectoryPanelComponent} from '../../../../features/book/components/directory-panel/directory-panel.component';
+import {TabletNavigationGesturesService} from '../../../../core/services/tablet-navigation-gestures.service';
 
 @Component({
   selector: 'app-layout',
@@ -37,6 +38,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   public layoutService = inject(LayoutService);
   public renderer = inject(Renderer2);
   public router = inject(Router);
+  private readonly tabletNavGestures = inject(TabletNavigationGesturesService);
 
   constructor() {
     this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
@@ -65,6 +67,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     localStorage.removeItem('sidebarWidth');
     const width = saved ? parseInt(saved, 10) : 225;
     document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+    this.tabletNavGestures.start();
   }
 
   onRouteAttach(component: unknown): void {
@@ -154,5 +157,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     if (this.menuOutsideClickListener) {
       this.menuOutsideClickListener();
     }
+
+    this.tabletNavGestures.ngOnDestroy();
   }
 }

@@ -36,6 +36,7 @@ export class ViewPreferencesParentComponent implements OnInit {
   private uiPrefs = inject(UiPreferencesService);
   showCoverPreview = false;
   showResizeHandles = false;
+  tabletNavGestures = false;
   private messageService = inject(MessageService);
 
   layoutModeOptions = [
@@ -59,6 +60,7 @@ export class ViewPreferencesParentComponent implements OnInit {
   ngOnInit(): void {
     this.showCoverPreview = this.uiPrefs.showCoverPreview;
     this.showResizeHandles = this.uiPrefs.showResizeHandles;
+    this.tabletNavGestures = this.uiPrefs.tabletNavGestures;
     this.selectedLayoutMode = this.uiPrefs.layoutMode;
     this.selectedHeaderPosition = this.uiPrefs.headerPosition;
     this.phoneBreakpoint = this.uiPrefs.phoneBreakpoint;
@@ -77,6 +79,18 @@ export class ViewPreferencesParentComponent implements OnInit {
     this.uiPrefs.setShowResizeHandles(checked);
     this.messageService.add({ severity: 'success', summary: 'Saved',
       detail: checked ? 'Resize handles enabled' : 'Resize handles hidden until hover' });
+  }
+
+  onTabletNavGesturesToggle(checked: boolean): void {
+    this.tabletNavGestures = checked;
+    this.uiPrefs.setTabletNavGestures(checked);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Saved',
+      detail: checked
+        ? 'Tablet navigation gestures enabled (never applies in Phone Mode)'
+        : 'Tablet navigation gestures disabled'
+    });
   }
 
   onHeaderPositionChange(value: 'top' | 'bottom'): void {
