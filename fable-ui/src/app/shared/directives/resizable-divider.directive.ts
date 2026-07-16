@@ -69,8 +69,11 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.handle, 'position', 'fixed');
     this.renderer.setStyle(this.handle, 'width', '6px');
     this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
-    // Below topbar (997) and PrimeNG overlays/popovers (~1000+), above page content.
-    this.renderer.setStyle(this.handle, 'z-index', '990');
+    // Sit above the fixed side panels (layout-sidebar is z-index 999) and the
+    // topbar (997) so the whole grip is on the panel edge and draggable, but
+    // below PrimeNG overlays/menus/popovers (first instance renders at 1001)
+    // so it never draws over the topbar toolbar-sort popover.
+    this.renderer.setStyle(this.handle, 'z-index', '1000');
     this.renderer.setStyle(this.handle, 'background', 'transparent');
     this.renderer.setStyle(this.handle, 'transition', 'background 0.15s ease');
     this.renderer.setStyle(this.handle, 'touch-action', 'none');
@@ -365,9 +368,11 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     if (document.body.classList.contains('p-overflow-hidden') || document.documentElement.classList.contains('cdk-global-scrollblock')) {
       return true;
     }
-    const overlay = document.querySelector(
-      '.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane, .p-popover'
-    );
+    // Note: do NOT treat .p-popover as blocking. Some resizable panels (mobile
+    // sidebar, mobile filter) are hosted inside popovers while their handle lives
+    // on document.body; the handle sits below popovers by z-index (1000 < 1001),
+    // so the toolbar-sort popover is never covered without hiding those handles.
+    const overlay = document.querySelector('.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane');
     if (overlay && (overlay.contains(this.handle) || overlay === this.handle)) {
       return false;
     }
