@@ -462,6 +462,9 @@ export class AppTopBarComponent implements OnDestroy {
         this.mobileSearchVisible = false;
       });
     }
+    // Attempt focus in the same turn as the open tap (desktop touch OSK).
+    // onShow remains the mount-timing backup when the dialog content appears later.
+    queueMicrotask(() => this.mobileBookSearcher?.focusInput());
   }
 
   closeMobileSearch(): void {
@@ -476,8 +479,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileSearchShow(): void {
-    // User tapped Search — focus so Android/iOS can open the keyboard (Apple HIG:
-    // dedicated search areas should focus immediately when entered).
+    // User tapped Search — focus so Android/iOS/desktop-touch can open the keyboard.
     this.mobileBookSearcher?.focusInput();
   }
 

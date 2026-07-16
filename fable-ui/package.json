@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "4.15.50",
+  "version": "4.15.51",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

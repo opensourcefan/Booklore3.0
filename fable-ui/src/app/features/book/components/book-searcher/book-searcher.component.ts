@@ -17,6 +17,11 @@ import {AiSearchDialogService} from '../ai-search-dialog/ai-search-dialog.compon
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
 import {TooltipModule} from 'primeng/tooltip';
+import {
+  blurSearchOverlayInput,
+  focusSearchOverlayInput,
+  SearchOverlayFocusHandle
+} from '../../../../shared/util/search-overlay-focus.util';
 
 @Component({
   selector: 'app-book-searcher',
@@ -46,7 +51,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   #searchSubject = new BehaviorSubject<string>('');
   #subscription!: Subscription;
   isSearchFocused = false;
-  private focusRetryTimeouts: ReturnType<typeof setTimeout>[] = [];
+  private focusHandle: SearchOverlayFocusHandle | null = null;
 
   private bookService = inject(BookService);
   private router = inject(Router);
@@ -186,36 +191,27 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Focus the search field so the mobile OSK can open after a user-initiated
-   * open (e.g. topbar search dialog). Retries briefly for dialog mount timing;
-   * iOS may still require the call to stay near the opening tap gesture.
+   * Focus the search field so the OSK can open after a user-initiated open
+   * (e.g. topbar search dialog). Uses sync + microtask first so desktop touch
+   * browsers keep user-activation; short retries cover dialog mount timing.
    */
   focusInput(): void {
-    this.clearFocusRetries();
-    const tryFocus = (): void => {
-      const input = this.resolveSearchInput();
-      if (!input) {
-        return;
+    this.focusHandle?.clear();
+    this.focusHandle = focusSearchOverlayInput(() => this.resolveSearchInput(), {
+      onFocused: () => {
+        this.isSearchFocused = true;
       }
-      input.focus({preventScroll: true});
-      this.isSearchFocused = true;
-    };
-
-    requestAnimationFrame(() => {
-      tryFocus();
-      this.focusRetryTimeouts.push(setTimeout(tryFocus, 50));
-      this.focusRetryTimeouts.push(setTimeout(tryFocus, 150));
     });
   }
 
   /**
-   * Blur the search field so the mobile OSK dismisses when the overlay closes
+   * Blur the search field so the OSK dismisses when the overlay closes
    * (back gesture, close control, or mask dismiss).
    */
   blurInput(): void {
-    this.clearFocusRetries();
-    const input = this.resolveSearchInput();
-    input?.blur();
+    this.focusHandle?.clear();
+    this.focusHandle = null;
+    blurSearchOverlayInput(() => this.resolveSearchInput());
     this.isSearchFocused = false;
   }
 
@@ -224,13 +220,6 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
       this.searchInput?.nativeElement ??
       (this.elRef.nativeElement.querySelector('input.search-input') as HTMLInputElement | null)
     );
-  }
-
-  private clearFocusRetries(): void {
-    for (const id of this.focusRetryTimeouts) {
-      clearTimeout(id);
-    }
-    this.focusRetryTimeouts = [];
   }
 
   openAiSearch(): void {
@@ -274,7 +263,8 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.clearFocusRetries();
+    this.focusHandle?.clear();
+    this.focusHandle = null;
     if (this.#subscription) {
       this.#subscription.unsubscribe();
     }

@@ -23,7 +23,12 @@
             [placeholder]="t('searchPlaceholder')"
             [ngModel]="searchTerm$ | async"
             (ngModelChange)="onSearchChange($event)"
-            class="search-input"/>
+            class="search-input"
+            inputmode="search"
+            enterkeyhint="search"
+            autocapitalize="off"
+            autocomplete="off"
+            spellcheck="false"/>
         </div>
 
         <div class="filter-sort-wrapper">

@@ -121,8 +121,10 @@
 #   P-Header.1 Page header compaction
 #   P-Safe.1  Fixed/sticky bottom chrome safe-area
 #   P-Keyboard.1 Search-only overlay missing focus-on-open
+#   P-Keyboard.1b Search-only popover (search-input-full) missing focus-on-open
 #   P-Keyboard.2 Page-load autofocus on mobile page hosts
 #   P-Keyboard.3 Search-only overlay missing blur-on-close
+#   P-Keyboard.3b Search-only popover missing blur-on-close
 #
 # ALLOWLIST
 #   Optional: scripts/audit-mobile-styling.allowlist
@@ -1516,6 +1518,64 @@ while IFS= read -r -d '' html_file; do
 done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================
+# P-Keyboard.1b: Search-only popover missing focus-on-open
+# =============================================================================
+# Narrow: p-popover that hosts an input.search-input-full (book-browser mobile
+# search). Pass: (onShow) handler focuses via focusSearchOverlayInput / .focus(.
+# =============================================================================
+section "P-Keyboard.1b — Search-only popover missing focus-on-open" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if [[ "$html_file" =~ \.spec\. ]]; then
+        continue
+    fi
+    if ! grep -qE 'class="[^"]*search-input-full' "$html_file" 2>/dev/null \
+        && ! grep -qE "class='[^']*search-input-full" "$html_file" 2>/dev/null \
+        && ! grep -qE 'search-input-full' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    if ! grep -qE '<p-popover\b' "$html_file" 2>/dev/null; then
+        continue
+    fi
+
+    ts_file="${html_file%.html}.ts"
+    [ -f "$ts_file" ] || continue
+
+    while IFS=: read -r line _content; do
+        start=$((line - 40))
+        [ "$start" -lt 1 ] && start=1
+        window=$(sed -n "${start},${line}p" "$html_file" 2>/dev/null)
+        if ! echo "$window" | grep -qE '<p-popover\b'; then
+            continue
+        fi
+
+        on_show=$(echo "$window" | grep -oE '\(onShow\)="[a-zA-Z_][a-zA-Z0-9_]*\(' | head -1 | sed -E 's/\(onShow\)="([a-zA-Z_][a-zA-Z0-9_]*)\(.*/\1/')
+
+        focused=false
+        if [ -n "$on_show" ]; then
+            if awk -v fn="$on_show" '
+                $0 ~ fn "\\s*\\(" { in_fn=1; depth=0; seen_open=0 }
+                in_fn {
+                    if ($0 ~ /\{/) { depth++; seen_open=1 }
+                    if ($0 ~ /\}/) {
+                        depth--
+                        if (depth <= 0 && seen_open) { in_fn=0 }
+                    }
+                    if (in_fn && /(focusSearchOverlayInput|focusInput|\.focus\s*\(|nativeElement\.focus)/) { print "yes"; exit }
+                }
+            ' "$ts_file" 2>/dev/null | grep -q yes; then
+                focused=true
+            fi
+        fi
+
+        if [ "$focused" = false ]; then
+            warn "$html_file:$line — search-only p-popover hosts search-input-full but does not focus the query field on open (need onShow → focusSearchOverlayInput/.focus)" "$(surface_for "$html_file")"
+        fi
+    done < <(grep -nE 'search-input-full' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
 # P-Keyboard.2: Page-load autofocus on mobile page hosts
 # =============================================================================
 # Forbidden: autofocus on routed/full-viewport pages (unexpected OSK on load).
@@ -1598,6 +1658,65 @@ while IFS= read -r -d '' html_file; do
             warn "$html_file:$line — search-only p-dialog hosts app-book-searcher but does not blur the query field on close (need onHide/close → blurInput/.blur)" "$(surface_for "$html_file")"
         fi
     done < <(grep -nE '<app-book-searcher\b' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Keyboard.3b: Search-only popover missing blur-on-close
+# =============================================================================
+section "P-Keyboard.3b — Search-only popover missing blur-on-close" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if [[ "$html_file" =~ \.spec\. ]]; then
+        continue
+    fi
+    if ! grep -qE 'search-input-full' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    if ! grep -qE '<p-popover\b' "$html_file" 2>/dev/null; then
+        continue
+    fi
+
+    ts_file="${html_file%.html}.ts"
+    [ -f "$ts_file" ] || continue
+
+    while IFS=: read -r line _content; do
+        start=$((line - 40))
+        [ "$start" -lt 1 ] && start=1
+        window=$(sed -n "${start},${line}p" "$html_file" 2>/dev/null)
+        if ! echo "$window" | grep -qE '<p-popover\b'; then
+            continue
+        fi
+
+        on_hide=$(echo "$window" | grep -oE '\(onHide\)="[a-zA-Z_][a-zA-Z0-9_]*\(' | head -1 | sed -E 's/\(onHide\)="([a-zA-Z_][a-zA-Z0-9_]*)\(.*/\1/')
+
+        blurred=false
+        if [ -n "$on_hide" ]; then
+            if awk -v fn="$on_hide" '
+                $0 ~ fn "\\s*\\(" { in_fn=1; depth=0; seen_open=0 }
+                in_fn {
+                    if ($0 ~ /\{/) { depth++; seen_open=1 }
+                    if ($0 ~ /\}/) {
+                        depth--
+                        if (depth <= 0 && seen_open) { in_fn=0 }
+                    }
+                    if (in_fn && /(blurSearchOverlayInput|blurInput|\.blur\s*\()/ ) { print "yes"; exit }
+                }
+            ' "$ts_file" 2>/dev/null | grep -q yes; then
+                blurred=true
+            fi
+        fi
+        if [ "$blurred" = false ] && grep -qE 'blurSearchOverlayInput\s*\(|blurInput\s*\(' "$ts_file" 2>/dev/null; then
+            # Accept any blur helper in companion TS when onHide is wired
+            if [ -n "$on_hide" ]; then
+                blurred=true
+            fi
+        fi
+
+        if [ "$blurred" = false ]; then
+            warn "$html_file:$line — search-only p-popover hosts search-input-full but does not blur the query field on close (need onHide → blurSearchOverlayInput/.blur)" "$(surface_for "$html_file")"
+        fi
+    done < <(grep -nE 'search-input-full' "$html_file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================

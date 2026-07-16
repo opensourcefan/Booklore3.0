@@ -2,6 +2,7 @@ import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 import { UiPreferencesService } from '../../shared/service/ui-preferences.service';
+import { detectHasTouchInput } from '../../shared/util/search-overlay-focus.util';
 
 export type DeviceBreakpoint = 'mobile' | 'mobile-tablet' | 'desktop';
 
@@ -19,6 +20,20 @@ export class MobileUxService implements OnDestroy {
   );
   private screenHeightSubject = new BehaviorSubject<number>(
     typeof window !== 'undefined' ? window.innerHeight : 768
+  );
+
+  /**
+   * True when the device exposes a touch digitizer.
+   * Used for OSK / focus behavior only — does NOT change layout breakpoints.
+   */
+  private readonly hasTouchInputSubject = new BehaviorSubject<boolean>(
+    typeof window !== 'undefined' ? detectHasTouchInput() : false
+  );
+
+  /** Touch-capability signal for keyboard helpers (not layout chrome). */
+  public readonly hasTouchInput$: Observable<boolean> = this.hasTouchInputSubject.pipe(
+    distinctUntilChanged(),
+    shareReplay(1)
   );
 
   /** Debounced screen width observable (150ms). */
@@ -118,6 +133,15 @@ export class MobileUxService implements OnDestroy {
 
   get isDesktop(): boolean {
     return !this.isMobileOrTablet;
+  }
+
+  /**
+   * Touch digitizer present (maxTouchPoints / ontouchstart).
+   * Prefer this over width checks when deciding whether to run OSK focus helpers.
+   * Does not affect layout-phone / layout-desktop body classes.
+   */
+  get hasTouchInput(): boolean {
+    return this.hasTouchInputSubject.value;
   }
 
   private resizeListener: (() => void) | null = null;

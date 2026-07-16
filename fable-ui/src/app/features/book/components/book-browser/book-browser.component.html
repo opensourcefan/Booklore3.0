@@ -435,9 +435,17 @@
               <i class="pi pi-search"></i>
             </button>
 
-            <p-popover #searchDropdown [dismissable]="true" appendTo="body" [style]="{ width: '24rem' }">
+            <p-popover
+              #searchDropdown
+              [dismissable]="true"
+              appendTo="body"
+              [style]="{ width: '24rem' }"
+              (onShow)="onMobileSearchPopoverShow()"
+              (onHide)="onMobileSearchPopoverHide()"
+            >
               <div class="search-popover-content">
                 <input
+                  #mobileSearchInput
                   type="text"
                   pInputText
                   [placeholder]="t('placeholder.search')"
@@ -445,6 +453,11 @@
                   (ngModelChange)="onSearchTermChange($event)"
                   class="search-input-full"
                   [class.has-ai-btn]="aiSearchEnabled"
+                  inputmode="search"
+                  enterkeyhint="search"
+                  autocapitalize="off"
+                  autocomplete="off"
+                  spellcheck="false"
                 />
                 @if (bookTitle) {
                   <p-button
@@ -483,6 +496,11 @@
               (ngModelChange)="onSearchTermChange($event)"
               class="search-input"
               [class.has-ai-btn]="aiSearchEnabled"
+              inputmode="search"
+              enterkeyhint="search"
+              autocapitalize="off"
+              autocomplete="off"
+              spellcheck="false"
             />
             @if (bookTitle) {
               <p-button

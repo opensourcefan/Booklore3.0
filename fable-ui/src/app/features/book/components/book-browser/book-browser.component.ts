@@ -96,6 +96,11 @@ import {
 import { ProgressBar } from 'primeng/progressbar';
 import { AiSearchDialogService } from '../ai-search-dialog/ai-search-dialog.component';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
+import {
+  blurSearchOverlayInput,
+  focusSearchOverlayInput,
+  SearchOverlayFocusHandle
+} from '../../../../shared/util/search-overlay-focus.util';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -317,12 +322,15 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   columnPopover: Popover | undefined;
   @ViewChild('mobileDirPop')
   mobileDirPop: Popover | undefined;
+  @ViewChild('mobileSearchInput')
+  mobileSearchInput?: ElementRef<HTMLInputElement>;
   isMobileRightSidebarOpen = false;
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
   private sortPopoverBackHandle: MobileBackHandle | null = null;
   private displaySettingsBackHandle: MobileBackHandle | null = null;
   private columnPopoverBackHandle: MobileBackHandle | null = null;
   private mobileDirectoryBackHandle: MobileBackHandle | null = null;
+  private mobileSearchFocusHandle: SearchOverlayFocusHandle | null = null;
 
   mobileDirectoryPopoverOpen = false;
 
@@ -340,6 +348,19 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mobileDirectoryPopoverOpen = false;
     this.mobileDirectoryBackHandle?.release();
     this.mobileDirectoryBackHandle = null;
+  }
+
+  onMobileSearchPopoverShow(): void {
+    this.mobileSearchFocusHandle?.clear();
+    this.mobileSearchFocusHandle = focusSearchOverlayInput(
+      () => this.mobileSearchInput?.nativeElement ?? null
+    );
+  }
+
+  onMobileSearchPopoverHide(): void {
+    this.mobileSearchFocusHandle?.clear();
+    this.mobileSearchFocusHandle = null;
+    blurSearchOverlayInput(() => this.mobileSearchInput?.nativeElement ?? null);
   }
 
   get isMobile(): boolean {
@@ -663,6 +684,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.mobileSearchFocusHandle?.clear();
+    this.mobileSearchFocusHandle = null;
     this.resizeSub?.unsubscribe();
     this.forceCloseMobileRightSidebar(false);
     this.forceCloseHeaderPopovers(false);
