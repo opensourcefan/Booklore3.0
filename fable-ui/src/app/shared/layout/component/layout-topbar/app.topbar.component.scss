@@ -621,6 +621,16 @@
       color: var(--p-primary-contrast-color) !important;
     }
   }
+
+  &.quick-layout-btn--shape-active {
+    background: color-mix(in srgb, var(--p-primary-color) 12%, transparent) !important;
+    border: 1px solid var(--p-primary-color) !important;
+    color: var(--p-primary-color) !important;
+
+    .topbar-icon {
+      color: var(--p-primary-color) !important;
+    }
+  }
 }
 
 .highlight {

@@ -531,3 +531,13 @@ body.header-bottom {
   }
 }
 
+.quick-layout-btn--shape-active {
+  background-color: var(--card-background) !important;
+  border-color: var(--p-primary-color) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--p-primary-color) 55%, transparent);
+
+  i {
+    color: var(--p-primary-color) !important;
+  }
+}
+
