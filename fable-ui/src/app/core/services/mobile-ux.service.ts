@@ -53,14 +53,19 @@ export class MobileUxService implements OnDestroy {
   /** Three-tier breakpoint: mobile (≤phoneBreakpoint), mobile-tablet (phoneBreakpoint–tabletBreakpoint), desktop (>tabletBreakpoint). */
   public readonly breakpoint$: Observable<DeviceBreakpoint> = combineLatest([
     this.screenWidth$,
+    this.screenHeight$,
     this.uiPrefs.layoutMode$,
     this.uiPrefs.phoneBreakpoint$,
     this.uiPrefs.tabletBreakpoint$
   ]).pipe(
-    map(([width, mode, phoneBreakpoint, tabletBreakpoint]) => {
+    map(([width, height, mode, phoneBreakpoint, tabletBreakpoint]) => {
       if (mode === 'phone') return 'mobile';
       if (mode === 'tablet') return 'mobile-tablet';
       if (mode === 'desktop') return 'desktop';
+      if (mode === 'auto-shape') {
+        if (width <= phoneBreakpoint) return 'mobile';
+        return height > width ? 'mobile-tablet' : 'desktop';
+      }
       if (width <= phoneBreakpoint) {
         return 'mobile';
       } else if (width <= tabletBreakpoint) {
@@ -114,18 +119,11 @@ export class MobileUxService implements OnDestroy {
   }
 
   get isPhone(): boolean {
-    const mode = this.uiPrefs.layoutMode;
-    if (mode === 'phone') return true;
-    if (mode === 'tablet' || mode === 'desktop') return false;
-    return this.screenWidthSubject.value <= this.uiPrefs.phoneBreakpoint;
+    return this.getBreakpointForCurrentViewport() === 'mobile';
   }
 
   get isTablet(): boolean {
-    const mode = this.uiPrefs.layoutMode;
-    if (mode === 'tablet') return true;
-    if (mode === 'phone' || mode === 'desktop') return false;
-    const width = this.screenWidthSubject.value;
-    return width > this.uiPrefs.phoneBreakpoint && width <= this.uiPrefs.tabletBreakpoint;
+    return this.getBreakpointForCurrentViewport() === 'mobile-tablet';
   }
 
   get isMobileOrTablet(): boolean {
@@ -183,6 +181,25 @@ export class MobileUxService implements OnDestroy {
     } else {
       body.classList.remove('header-bottom');
     }
+  }
+
+  private getBreakpointForCurrentViewport(): DeviceBreakpoint {
+    const width = this.screenWidthSubject.value;
+    const height = this.screenHeightSubject.value;
+    const mode = this.uiPrefs.layoutMode;
+
+    if (mode === 'phone') return 'mobile';
+    if (mode === 'tablet') return 'mobile-tablet';
+    if (mode === 'desktop') return 'desktop';
+
+    if (mode === 'auto-shape') {
+      if (width <= this.uiPrefs.phoneBreakpoint) return 'mobile';
+      return height > width ? 'mobile-tablet' : 'desktop';
+    }
+
+    if (width <= this.uiPrefs.phoneBreakpoint) return 'mobile';
+    if (width <= this.uiPrefs.tabletBreakpoint) return 'mobile-tablet';
+    return 'desktop';
   }
 
   ngOnDestroy(): void {

@@ -9,6 +9,10 @@ describe('MobileUxService hasTouchInput', () => {
   let service: MobileUxService;
   let layoutMode$: BehaviorSubject<LayoutMode>;
 
+  async function waitForResizeDebounce(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 175));
+  }
+
   beforeEach(() => {
     layoutMode$ = new BehaviorSubject<LayoutMode>('auto');
     TestBed.configureTestingModule({
@@ -58,6 +62,7 @@ describe('MobileUxService hasTouchInput', () => {
 
     layoutMode$.next('desktop');
     service.setLayoutMode('desktop');
+    await waitForResizeDebounce();
 
     expect(service.layoutMode).toBe('desktop');
     expect(service.isPhone).toBe(false);
@@ -65,5 +70,42 @@ describe('MobileUxService hasTouchInput', () => {
     expect(service.isDesktop).toBe(true);
     expect(service.isMobileInteractionMode).toBe(false);
     expect(await firstValueFrom(service.breakpoint$)).toBe('desktop');
+  });
+
+  it('uses tablet in portrait and desktop in landscape for auto-shape on non-phone viewports', async () => {
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 1200});
+    Object.defineProperty(window, 'innerHeight', {configurable: true, value: 2000});
+    window.dispatchEvent(new Event('resize'));
+
+    layoutMode$.next('auto-shape');
+    service.setLayoutMode('auto-shape');
+    await waitForResizeDebounce();
+
+    expect(await firstValueFrom(service.breakpoint$)).toBe('mobile-tablet');
+    expect(service.isTablet).toBe(true);
+    expect(service.isDesktop).toBe(false);
+
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 2000});
+    Object.defineProperty(window, 'innerHeight', {configurable: true, value: 1200});
+    window.dispatchEvent(new Event('resize'));
+    await waitForResizeDebounce();
+
+    expect(await firstValueFrom(service.breakpoint$)).toBe('desktop');
+    expect(service.isTablet).toBe(false);
+    expect(service.isDesktop).toBe(true);
+  });
+
+  it('keeps phone viewport in phone mode even when auto-shape is enabled', async () => {
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 700});
+    Object.defineProperty(window, 'innerHeight', {configurable: true, value: 1200});
+    window.dispatchEvent(new Event('resize'));
+
+    layoutMode$.next('auto-shape');
+    service.setLayoutMode('auto-shape');
+    await waitForResizeDebounce();
+
+    expect(await firstValueFrom(service.breakpoint$)).toBe('mobile');
+    expect(service.isPhone).toBe(true);
+    expect(service.isTablet).toBe(false);
   });
 });

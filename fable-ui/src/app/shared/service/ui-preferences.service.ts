@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-/** Forced layout override, or auto (responsive from viewport width). */
-export type LayoutMode = 'auto' | 'phone' | 'tablet' | 'desktop';
+/** Forced layout override, or auto responsive variants derived from viewport size. */
+export type LayoutMode = 'auto' | 'auto-shape' | 'phone' | 'tablet' | 'desktop';
 
-const LAYOUT_MODES: ReadonlySet<LayoutMode> = new Set(['auto', 'phone', 'tablet', 'desktop']);
+const LAYOUT_MODES: ReadonlySet<LayoutMode> = new Set(['auto', 'auto-shape', 'phone', 'tablet', 'desktop']);
 
 function parseLayoutMode(raw: string | null): LayoutMode {
   if (raw && LAYOUT_MODES.has(raw as LayoutMode)) {

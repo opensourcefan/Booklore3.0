@@ -104,12 +104,12 @@
             </div>
             <p class="setting-description">
               <i class="pi pi-info-circle"></i>
-              Force the application layout to look like a phone, tablet, or desktop, or automatically match your screen.
+              Force the application layout to look like a phone, tablet, or desktop, or automatically match your screen. Viewport Shape Aware keeps phone widths as phone, uses tablet for portrait non-phone layouts, and desktop for landscape non-phone layouts.
             </p>
           </div>
         </div>
 
-        @if (selectedLayoutMode === 'auto') {
+        @if (selectedLayoutMode === 'auto' || selectedLayoutMode === 'auto-shape') {
           <div class="setting-item">
             <div class="setting-info">
               <div class="setting-label-row">

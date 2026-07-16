@@ -39,6 +39,7 @@ export class ViewPreferencesParentComponent implements OnInit {
 
   layoutModeOptions = [
     { label: 'Automatic (Responsive)', value: 'auto' },
+    { label: 'Automatic (Viewport Shape Aware)', value: 'auto-shape' },
     { label: 'Phone Layout', value: 'phone' },
     { label: 'Tablet Layout', value: 'tablet' },
     { label: 'Desktop Layout', value: 'desktop' }
