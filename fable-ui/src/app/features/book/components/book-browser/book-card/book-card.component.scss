@@ -112,6 +112,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 100%;
   margin-top: 0.24rem;
   padding: 0.1rem 0.4rem 0.2rem;
@@ -150,8 +151,9 @@
   margin: 0;
   width: 100%;
   line-height: var(--title-line-height);
-  max-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em + 0.16em);
-  padding: 0 0 0.06em;
+  // Rely on line-clamp alone — a tight max-height caused an off-by-one row clip
+  // on some Chromium/tablet font metrics when combined with -webkit-line-clamp.
+  padding: 0;
 
   @media (max-width: 768px) {
     font-size: 0.75rem;

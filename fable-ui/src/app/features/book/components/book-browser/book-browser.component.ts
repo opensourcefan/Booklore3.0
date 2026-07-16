@@ -397,7 +397,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const base = this.coverScalePreferenceService.currentCardSize;
     if (this.isAudiobookOnlyLibrary) {
       const squareSide = Math.round(base.width * 1.1);
-      return { width: squareSide, height: squareSide + 31 };
+      return {
+        width: squareSide,
+        height: squareSide + this.coverScalePreferenceService.TITLE_BAR_HEIGHT
+      };
     }
     return base;
   }
@@ -416,11 +419,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isMobile) {
       return this.mobileCardSize.height;
     }
-    const desktopTitleRowsExtra = (this.desktopTitleRows - 1) * 18;
+    const extraRows = (this.desktopTitleRows - 1) * this.coverScalePreferenceService.TITLE_ROW_EXTRA_HEIGHT;
     if (this.isAudiobookOnlyLibrary) {
-      return this.currentCardSize.height + desktopTitleRowsExtra;
+      return this.currentCardSize.height + extraRows;
     }
-    return this.coverScalePreferenceService.getCardHeight(_book) + desktopTitleRowsExtra;
+    return this.coverScalePreferenceService.getCardHeightForTitleRows(this.desktopTitleRows);
   }
 
   get viewIcon(): string {
@@ -1725,11 +1728,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isMobile) {
       return this.mobileCardSize.height;
     }
-    const desktopTitleRowsExtra = (this.desktopTitleRows - 1) * 18;
+    const extraRows = (this.desktopTitleRows - 1) * this.coverScalePreferenceService.TITLE_ROW_EXTRA_HEIGHT;
     if (this.isAudiobookOnlyLibrary) {
-      return this.currentCardSize.height + desktopTitleRowsExtra;
+      return this.currentCardSize.height + extraRows;
     }
-    return this.coverScalePreferenceService.currentCardSize.height + desktopTitleRowsExtra;
+    return this.coverScalePreferenceService.getCardHeightForTitleRows(this.desktopTitleRows);
   }
 
   private updateVirtualGridDomBindings(): void {
@@ -2660,6 +2663,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   setDesktopTitleRows(rows: number): void {
     this.desktopTitleRows = Math.min(5, Math.max(1, rows));
     this.localStorageService.set(this.DESKTOP_TITLE_ROWS_STORAGE_KEY, this.desktopTitleRows);
+    this.cardHeightSig.set(this.getUniformCardHeight());
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
   }
 
   private loadMobileColumnsPreference(): void {
@@ -2686,6 +2691,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (savedDesktopRows !== null && [1, 2, 3, 4, 5].includes(savedDesktopRows)) {
       this.desktopTitleRows = savedDesktopRows;
     }
+
+    // Field-init cardHeightSig runs before preferences load; sync after restore.
+    this.cardHeightSig.set(this.getUniformCardHeight());
   }
 
   private loadSubtitlePreference(): void {

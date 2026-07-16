@@ -13,8 +13,15 @@ import {Book} from '../../model/book.model';
 export class CoverScalePreferenceService {
 
   private readonly BASE_WIDTH = 135;
-  private readonly BASE_HEIGHT = 220;
-  private readonly TITLE_BAR_HEIGHT = 31;
+  /** Matches book-card `.cover-container { aspect-ratio: 5/7 }` (height/width = 7/5). */
+  private readonly COVER_ASPECT_RATIO = 7 / 5;
+  /**
+   * Fixed strip for one title row. Must NOT scale with cover size — title font is rem-based
+   * (html $scale), so shrinking the card used to steal the last visible text row on tablets.
+   */
+  readonly TITLE_BAR_HEIGHT = 31;
+  /** Extra height per additional title row beyond the first. */
+  readonly TITLE_ROW_EXTRA_HEIGHT = 20;
   private readonly DEBOUNCE_MS = 1000;
   private readonly STORAGE_KEY = 'coverScalePreference';
 
@@ -51,9 +58,11 @@ export class CoverScalePreferenceService {
   }
 
   get currentCardSize(): { width: number; height: number } {
+    const width = Math.round(this.BASE_WIDTH * this.scaleFactor);
+    const coverHeight = Math.round(width * this.COVER_ASPECT_RATIO);
     return {
-      width: Math.round(this.BASE_WIDTH * this.scaleFactor),
-      height: Math.round(this.BASE_HEIGHT * this.scaleFactor),
+      width,
+      height: coverHeight + this.TITLE_BAR_HEIGHT,
     };
   }
 
@@ -66,6 +75,12 @@ export class CoverScalePreferenceService {
     // Mixed heights cause choppy/jumpy scrolling because the virtual scroller
     // cannot accurately estimate positions when item heights vary.
     return this.currentCardSize.height;
+  }
+
+  /** Card height including room for the requested number of rem-based title rows. */
+  getCardHeightForTitleRows(titleRows: number): number {
+    const rows = Math.min(5, Math.max(1, titleRows || 1));
+    return this.currentCardSize.height + (rows - 1) * this.TITLE_ROW_EXTRA_HEIGHT;
   }
 
   private saveScalePreference(scale: number): void {
