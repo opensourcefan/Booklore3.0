@@ -22,7 +22,7 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'layoutPhone', type: 'button', visible: true, label: 'Phone Mode', icon: 'pi pi-mobile'},
   {id: 'layoutTablet', type: 'button', visible: true, label: 'Tablet Mode', icon: 'pi pi-tablet'},
   {id: 'layoutDesktop', type: 'button', visible: true, label: 'Desktop Mode', icon: 'pi pi-desktop'},
-  {id: 'layoutAuto', type: 'button', visible: true, label: 'Auto Mode', icon: 'pi pi-sync'},
+  {id: 'layoutAuto', type: 'button', visible: true, label: 'Auto Mode', icon: 'pi pi-objects-column'},
   {id: 'sep3', type: 'separator', visible: true},
   {id: 'fullscreen', type: 'button', visible: true, label: 'Fullscreen', icon: 'pi pi-window-maximize'},
   {id: 'notifications', type: 'button', visible: true, label: 'Notifications', icon: 'pi pi-bell'},
