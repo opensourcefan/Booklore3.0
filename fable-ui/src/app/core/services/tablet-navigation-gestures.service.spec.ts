@@ -140,21 +140,21 @@ describe('TabletNavigationGesturesService', () => {
     input.remove();
   });
 
-  it('invokes requestBack on right-edge left swipe with a touch pointer', () => {
+  it('invokes requestBack on left-edge right swipe with a touch pointer', () => {
     configure({pref: true, layoutMode: 'tablet', breakpoint: 'mobile-tablet', hasTouch: true});
     Object.defineProperty(window, 'innerWidth', {configurable: true, value: 1200});
 
     document.dispatchEvent(new PointerEvent('pointerdown', {
       pointerId: 1,
       pointerType: 'touch',
-      clientX: 1185,
+      clientX: 20,
       clientY: 400,
       bubbles: true
     }));
     document.dispatchEvent(new PointerEvent('pointerup', {
       pointerId: 1,
       pointerType: 'touch',
-      clientX: 1050,
+      clientX: 140,
       clientY: 405,
       bubbles: true
     }));
@@ -169,14 +169,14 @@ describe('TabletNavigationGesturesService', () => {
     document.dispatchEvent(new PointerEvent('pointerdown', {
       pointerId: 1,
       pointerType: 'mouse',
-      clientX: 1185,
+      clientX: 20,
       clientY: 400,
       bubbles: true
     }));
     document.dispatchEvent(new PointerEvent('pointerup', {
       pointerId: 1,
       pointerType: 'mouse',
-      clientX: 1050,
+      clientX: 140,
       clientY: 405,
       bubbles: true
     }));

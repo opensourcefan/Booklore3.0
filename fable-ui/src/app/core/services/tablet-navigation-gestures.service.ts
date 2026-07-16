@@ -13,12 +13,17 @@ import {KioskActionsSheetComponent} from '../../shared/components/kiosk-actions-
  * - contextmenu suppress (keep app long-press)
  * - edge swipe history (Pointer Events, touch only)
  * - 3-finger tap → kiosk action sheet
+ *
+ * Edge directions match Chromium / Android / iOS:
+ * left-edge swipe right → back; right-edge swipe left → forward.
+ * (Matches the browser overscroll “back arrow” the user already sees.)
  */
 @Injectable({providedIn: 'root'})
 export class TabletNavigationGesturesService implements OnDestroy {
-  private readonly EDGE_INSET_PX = 28;
-  private readonly MIN_SWIPE_PX = 80;
-  private readonly MAX_VERTICAL_DRIFT_PX = 40;
+  /** CSS-px inset; slightly generous for high-res tablets / bezel miss. */
+  private readonly EDGE_INSET_PX = 48;
+  private readonly MIN_SWIPE_PX = 72;
+  private readonly MAX_VERTICAL_DRIFT_PX = 48;
   private readonly THREE_FINGER_MAX_DURATION_MS = 450;
   private readonly THREE_FINGER_MAX_MOVE_PX = 36;
   private readonly BODY_CLASS = 'tablet-nav-gestures';
@@ -62,7 +67,7 @@ export class TabletNavigationGesturesService implements OnDestroy {
       return;
     }
 
-    const width = window.innerWidth;
+    const width = this.viewportWidth();
     if (event.clientX <= this.EDGE_INSET_PX) {
       this.edgePointerId = event.pointerId;
       this.edgeStartX = event.clientX;
@@ -98,12 +103,12 @@ export class TabletNavigationGesturesService implements OnDestroy {
       return;
     }
 
-    // Right-edge left-swipe → back; left-edge right-swipe → forward
-    if (from === 'right' && deltaX <= -this.MIN_SWIPE_PX) {
+    // Chromium/OS-aligned: left-edge → back, right-edge → forward
+    if (from === 'left' && deltaX >= this.MIN_SWIPE_PX) {
       this.mobileBack.requestBack();
       return;
     }
-    if (from === 'left' && deltaX >= this.MIN_SWIPE_PX && !this.mobileBack.hasOverlayEntry) {
+    if (from === 'right' && deltaX <= -this.MIN_SWIPE_PX && !this.mobileBack.hasOverlayEntry) {
       window.history.forward();
     }
   };
@@ -275,6 +280,18 @@ export class TabletNavigationGesturesService implements OnDestroy {
     this.edgeFrom = null;
     this.edgeStartX = 0;
     this.edgeStartY = 0;
+  }
+
+  /**
+   * Prefer visualViewport width when present so rotated / sensor-driven layouts
+   * still measure the CSS viewport the finger is drawing in.
+   */
+  private viewportWidth(): number {
+    const vv = window.visualViewport;
+    if (vv && vv.width > 0) {
+      return vv.width;
+    }
+    return window.innerWidth;
   }
 
   private openKioskSheet(): void {
