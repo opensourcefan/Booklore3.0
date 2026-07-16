@@ -338,9 +338,12 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.removeStyle(this.handle, 'display');
     this.applyHandlePresentation();
     if (this.isThumbHandleMode()) {
-      // Place grip mid-edge so thumbs can reach it without covering panel chrome
+      // Keep the grip in the lower reach zone for a thumb holding a tablet.
+      // The inset scales for short panels but is capped so tall panels do not
+      // push the handle too far upward.
       const touchHandleHeight = 56;
-      const top = rect.top + Math.max(12, (rect.height - touchHandleHeight) / 2);
+      const bottomInset = Math.min(96, Math.max(24, rect.height * 0.12));
+      const top = Math.max(rect.top + 12, rect.bottom - touchHandleHeight - bottomInset);
       this.renderer.setStyle(this.handle, 'top', top + 'px');
       this.renderer.setStyle(this.handle, 'height', touchHandleHeight + 'px');
     } else {

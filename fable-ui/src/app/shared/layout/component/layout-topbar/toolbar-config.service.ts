@@ -1,5 +1,7 @@
-import {Injectable, inject} from '@angular/core';
+import {Injectable, OnDestroy, inject} from '@angular/core';
+import {Subscription} from 'rxjs';
 import {User, UserService} from '../../../../features/settings/user-management/user.service';
+import {LayoutMode, UiPreferencesService} from '../../../service/ui-preferences.service';
 
 export interface ToolbarItem {
   id: string;
@@ -9,7 +11,12 @@ export interface ToolbarItem {
   icon?: string;
 }
 
+/** Legacy single-layout key (migrated into the current mode once). */
 export const STORAGE_KEY = 'bl-toolbar-config';
+/** Per layout-mode toolbar layouts for this browser. */
+export const STORAGE_KEY_BY_MODE = 'bl-toolbar-config-by-mode';
+
+type ToolbarConfigByMode = Partial<Record<LayoutMode, ToolbarItem[]>>;
 
 const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'bookdrop', type: 'button', visible: true, label: 'Bookdrop', icon: 'pi pi-inbox'},
@@ -33,43 +40,71 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
 ];
 
 /**
- * Toolbar layout is stored per-browser in localStorage so desktop and tablet
- * clients can keep independent button layouts for the same account.
+ * Toolbar layout is stored per browser AND per layout mode, so tablet/desktop
+ * (and phone / auto variants) can keep independent button layouts.
  */
 @Injectable({providedIn: 'root'})
-export class ToolbarConfigService {
+export class ToolbarConfigService implements OnDestroy {
   private userService = inject(UserService);
+  private uiPrefs = inject(UiPreferencesService);
+  private layoutModeSub: Subscription;
   items: ToolbarItem[] = this.getDefaultItems();
+  /** Bumped whenever items are replaced so OnPush consumers can refresh. */
+  revision = 0;
+
+  constructor() {
+    this.layoutModeSub = this.uiPrefs.layoutMode$.subscribe(() => {
+      this.load(this.userService.getCurrentUser());
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.layoutModeSub.unsubscribe();
+  }
 
   load(user: User | null | undefined = this.userService.getCurrentUser()): void {
-    const localItems = this.readLocalStorage();
-    if (localItems) {
-      this.items = this.mergeWithDefaults(localItems);
+    const mode = this.uiPrefs.layoutMode;
+    const byMode = this.readByModeMap();
+    const modeItems = byMode[mode];
+
+    if (Array.isArray(modeItems)) {
+      this.setActiveItems(this.mergeWithDefaults(modeItems));
       return;
     }
 
-    // One-time seed from any previously synced server config, then stay local.
+    // One-time migrate legacy single-key config into the current mode only.
+    const legacyItems = this.readLegacyLocalStorage();
+    if (legacyItems) {
+      const migrated = this.mergeWithDefaults(legacyItems);
+      this.setActiveItems(migrated);
+      this.writeModeItems(mode, migrated);
+      this.clearLegacyLocalStorage();
+      return;
+    }
+
+    // One-time seed from any previously synced server config into the current mode.
     const serverItems = user?.userSettings?.toolbarConfig;
     if (Array.isArray(serverItems)) {
-      this.items = this.mergeWithDefaults(serverItems);
-      this.writeLocalStorage(this.items);
+      const seeded = this.mergeWithDefaults(serverItems);
+      this.setActiveItems(seeded);
+      this.writeModeItems(mode, seeded);
       return;
     }
 
-    this.items = this.getDefaultItems();
+    this.setActiveItems(this.getDefaultItems());
   }
 
   setItems(items: ToolbarItem[]): void {
-    this.items = this.normalizeItems(items);
+    this.setActiveItems(this.normalizeItems(items));
   }
 
   save(): void {
-    this.writeLocalStorage(this.items);
+    this.writeModeItems(this.uiPrefs.layoutMode, this.items);
   }
 
   reset(): void {
-    this.items = this.getDefaultItems();
-    this.writeLocalStorage(this.items);
+    this.setActiveItems(this.getDefaultItems());
+    this.writeModeItems(this.uiPrefs.layoutMode, this.items);
   }
 
   getDefaultItems(): ToolbarItem[] {
@@ -100,12 +135,16 @@ export class ToolbarConfigService {
     return this.items.find(i => i.id === id)?.visible ?? true;
   }
 
+  private setActiveItems(items: ToolbarItem[]): void {
+    this.items = items;
+    this.revision++;
+  }
+
   private normalizeItems(items: ToolbarItem[]): ToolbarItem[] {
     const defaults = new Map(DEFAULT_ITEMS.map(item => [item.id, item]));
     const seen = new Set<string>();
     const normalized: ToolbarItem[] = [];
 
-    // First pass: add all saved items that exist in defaults OR are separators (maintaining saved order)
     for (const item of items) {
       if (item.type === 'separator' || item.id.startsWith('sep')) {
         if (seen.has(item.id)) {
@@ -127,15 +166,11 @@ export class ToolbarConfigService {
       }
     }
 
-    // Second pass: insert new default items in their correct position relative to
-    // their predecessors in DEFAULT_ITEMS (so new toolbar items aren't appended at the end).
-    // Note: We skip default separators here to avoid re-inserting them if deleted by user.
     for (let i = 0; i < DEFAULT_ITEMS.length; i++) {
       const defaultItem = DEFAULT_ITEMS[i];
       if (defaultItem.type === 'separator') continue;
       if (seen.has(defaultItem.id)) continue;
 
-      // Find the last predecessor (from DEFAULT_ITEMS) that is already in normalized
       let insertAfterIdx = -1;
       for (let j = i - 1; j >= 0; j--) {
         const predecessorId = DEFAULT_ITEMS[j].id;
@@ -153,13 +188,6 @@ export class ToolbarConfigService {
       }
     }
 
-    // Settings must remain available as an escape hatch from a bad toolbar layout.
-    for (const item of normalized) {
-      if (item.id === 'settings') {
-        item.visible = true;
-      }
-    }
-
     return normalized;
   }
 
@@ -167,7 +195,26 @@ export class ToolbarConfigService {
     return this.normalizeItems(saved);
   }
 
-  private readLocalStorage(): ToolbarItem[] | null {
+  private readByModeMap(): ToolbarConfigByMode {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_BY_MODE);
+      if (!saved) {
+        return {};
+      }
+      const parsed = JSON.parse(saved) as ToolbarConfigByMode;
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private writeModeItems(mode: LayoutMode, items: ToolbarItem[]): void {
+    const byMode = this.readByModeMap();
+    byMode[mode] = items;
+    localStorage.setItem(STORAGE_KEY_BY_MODE, JSON.stringify(byMode));
+  }
+
+  private readLegacyLocalStorage(): ToolbarItem[] | null {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) as ToolbarItem[] : null;
@@ -176,7 +223,7 @@ export class ToolbarConfigService {
     }
   }
 
-  private writeLocalStorage(items: ToolbarItem[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  private clearLegacyLocalStorage(): void {
+    localStorage.removeItem(STORAGE_KEY);
   }
 }

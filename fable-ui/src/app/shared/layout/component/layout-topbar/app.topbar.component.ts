@@ -879,6 +879,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get visibleDesktopToolbarItems(): ToolbarItem[] {
+    void this.toolbarConfig.revision;
     const filtered = this.toolbarConfig.items.filter(item => this.isToolbarItemVisible(item));
     return this.normalizeToolbarSequence(filtered);
   }
@@ -1179,11 +1180,6 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   private isToolbarItemVisible(item: ToolbarItem): boolean {
-    // Settings is always shown so users can recover from a bad toolbar layout.
-    if (item.id === 'settings') {
-      return this.toolbarConfig.isAllowed(item.id);
-    }
-
     if (!item.visible) {
       return false;
     }
