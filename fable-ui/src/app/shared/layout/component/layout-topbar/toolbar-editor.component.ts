@@ -9,7 +9,7 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
     <div class="toolbar-editor">
       <div class="toolbar-editor-header">
         <span>Customize Toolbar</span>
-        <span class="toolbar-editor-hint">Saved for this layout mode on this browser</span>
+        <span class="toolbar-editor-hint">Saved for the current layout (phone, tablet, or desktop) on this browser</span>
       </div>
       <ul class="toolbar-editor-list">
         @for (item of draftItems; track item.id; let i = $index) {

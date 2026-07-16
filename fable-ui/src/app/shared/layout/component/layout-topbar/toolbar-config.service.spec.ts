@@ -3,17 +3,21 @@ import {TestBed} from '@angular/core/testing';
 import {BehaviorSubject} from 'rxjs';
 import {STORAGE_KEY, STORAGE_KEY_BY_MODE, ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 import {UserService} from '../../../../features/settings/user-management/user.service';
-import {LayoutMode, UiPreferencesService} from '../../../service/ui-preferences.service';
+import {DeviceBreakpoint, MobileUxService} from '../../../../core/services/mobile-ux.service';
 
-describe('ToolbarConfigService per-mode storage', () => {
+describe('ToolbarConfigService per-layout storage', () => {
   let service: ToolbarConfigService;
   let updateUserSetting: ReturnType<typeof vi.fn>;
-  let layoutMode$: BehaviorSubject<LayoutMode>;
+  let breakpoint$: BehaviorSubject<DeviceBreakpoint>;
+
+  function setBreakpoint(bp: DeviceBreakpoint): void {
+    breakpoint$.next(bp);
+  }
 
   beforeEach(() => {
     localStorage.clear();
     updateUserSetting = vi.fn();
-    layoutMode$ = new BehaviorSubject<LayoutMode>('desktop');
+    breakpoint$ = new BehaviorSubject<DeviceBreakpoint>('desktop');
 
     TestBed.configureTestingModule({
       providers: [
@@ -30,12 +34,18 @@ describe('ToolbarConfigService per-mode storage', () => {
           }
         },
         {
-          provide: UiPreferencesService,
+          provide: MobileUxService,
           useValue: {
-            get layoutMode() {
-              return layoutMode$.value;
+            breakpoint$,
+            get isPhone() {
+              return breakpoint$.value === 'mobile';
             },
-            layoutMode$
+            get isTablet() {
+              return breakpoint$.value === 'mobile-tablet';
+            },
+            get isDesktop() {
+              return breakpoint$.value === 'desktop';
+            }
           }
         }
       ]
@@ -44,14 +54,14 @@ describe('ToolbarConfigService per-mode storage', () => {
   });
 
   it('keeps independent toolbar layouts for tablet and desktop on the same browser', () => {
-    layoutMode$.next('tablet');
+    setBreakpoint('mobile-tablet');
     const tabletItems: ToolbarItem[] = service.getDefaultItems().map(item =>
       item.id === 'stats' ? {...item, visible: false} : item
     );
     service.setItems(tabletItems);
     service.save();
 
-    layoutMode$.next('desktop');
+    setBreakpoint('desktop');
     expect(service.items.find(item => item.id === 'stats')?.visible).toBe(true);
 
     const desktopItems: ToolbarItem[] = service.getDefaultItems().map(item =>
@@ -60,23 +70,54 @@ describe('ToolbarConfigService per-mode storage', () => {
     service.setItems(desktopItems);
     service.save();
 
-    layoutMode$.next('tablet');
+    setBreakpoint('mobile-tablet');
     expect(service.items.find(item => item.id === 'stats')?.visible).toBe(false);
     expect(service.items.find(item => item.id === 'theme')?.visible).toBe(true);
 
-    layoutMode$.next('desktop');
+    setBreakpoint('desktop');
     expect(service.items.find(item => item.id === 'stats')?.visible).toBe(true);
     expect(service.items.find(item => item.id === 'theme')?.visible).toBe(false);
     expect(updateUserSetting).not.toHaveBeenCalled();
   });
 
-  it('migrates legacy single-key config into only the current layout mode', () => {
+  it('uses tablet/desktop storage keys when the effective breakpoint changes under auto-shape', () => {
+    // Simulate auto-shape portrait → tablet layout, then landscape → desktop.
+    setBreakpoint('mobile-tablet');
+    const tabletItems: ToolbarItem[] = service.getDefaultItems().map(item =>
+      item.id === 'metadata' ? {...item, visible: false} : item
+    );
+    service.setItems(tabletItems);
+    service.save();
+
+    setBreakpoint('desktop');
+    expect(service.resolveLayoutKey()).toBe('desktop');
+    expect(service.items.find(item => item.id === 'metadata')?.visible).toBe(true);
+
+    const desktopItems: ToolbarItem[] = service.getDefaultItems().map(item =>
+      item.id === 'upload' ? {...item, visible: false} : item
+    );
+    service.setItems(desktopItems);
+    service.save();
+
+    const byMode = JSON.parse(localStorage.getItem(STORAGE_KEY_BY_MODE) || '{}');
+    expect(byMode['auto-shape']).toBeUndefined();
+    expect(byMode.auto).toBeUndefined();
+    expect(byMode.tablet.find((item: ToolbarItem) => item.id === 'metadata')?.visible).toBe(false);
+    expect(byMode.desktop.find((item: ToolbarItem) => item.id === 'upload')?.visible).toBe(false);
+
+    setBreakpoint('mobile-tablet');
+    expect(service.resolveLayoutKey()).toBe('tablet');
+    expect(service.items.find(item => item.id === 'metadata')?.visible).toBe(false);
+    expect(service.items.find(item => item.id === 'upload')?.visible).toBe(true);
+  });
+
+  it('migrates legacy single-key config into only the current effective layout', () => {
     const legacy = service.getDefaultItems().map(item =>
       item.id === 'upload' ? {...item, visible: false} : item
     );
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacy));
 
-    layoutMode$.next('tablet');
+    setBreakpoint('mobile-tablet');
     service.load();
 
     expect(service.items.find(item => item.id === 'upload')?.visible).toBe(false);
@@ -86,7 +127,7 @@ describe('ToolbarConfigService per-mode storage', () => {
     expect(byMode.tablet.find((item: ToolbarItem) => item.id === 'upload')?.visible).toBe(false);
     expect(byMode.desktop).toBeUndefined();
 
-    layoutMode$.next('desktop');
+    setBreakpoint('desktop');
     expect(service.items.find(item => item.id === 'upload')?.visible).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import {Injectable, OnDestroy, inject} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {User, UserService} from '../../../../features/settings/user-management/user.service';
-import {LayoutMode, UiPreferencesService} from '../../../service/ui-preferences.service';
+import {DeviceBreakpoint, MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 export interface ToolbarItem {
   id: string;
@@ -11,12 +11,19 @@ export interface ToolbarItem {
   icon?: string;
 }
 
-/** Legacy single-layout key (migrated into the current mode once). */
+/** Legacy single-layout key (migrated into the current effective layout once). */
 export const STORAGE_KEY = 'bl-toolbar-config';
-/** Per layout-mode toolbar layouts for this browser. */
+/** Per effective layout (phone/tablet/desktop) toolbar layouts for this browser. */
 export const STORAGE_KEY_BY_MODE = 'bl-toolbar-config-by-mode';
 
-type ToolbarConfigByMode = Partial<Record<LayoutMode, ToolbarItem[]>>;
+/**
+ * Storage keys follow the rendered layout, not the topbar mode-button selection.
+ * Forced phone/tablet/desktop map 1:1; auto / auto-shape resolve to the active
+ * breakpoint so rotating a tablet swaps tablet ↔ desktop toolbar configs.
+ */
+export type ToolbarLayoutKey = 'phone' | 'tablet' | 'desktop';
+
+type ToolbarConfigByMode = Partial<Record<ToolbarLayoutKey, ToolbarItem[]>>;
 
 const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'bookdrop', type: 'button', visible: true, label: 'Bookdrop', icon: 'pi pi-inbox'},
@@ -40,54 +47,68 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
 ];
 
 /**
- * Toolbar layout is stored per browser AND per layout mode, so tablet/desktop
- * (and phone / auto variants) can keep independent button layouts.
+ * Toolbar layout is stored per browser AND per effective layout (phone / tablet /
+ * desktop). Mode-button selections like auto-shape do not get their own key;
+ * they reuse the layout currently being rendered.
  */
 @Injectable({providedIn: 'root'})
 export class ToolbarConfigService implements OnDestroy {
   private userService = inject(UserService);
-  private uiPrefs = inject(UiPreferencesService);
-  private layoutModeSub: Subscription;
+  private mobileUx = inject(MobileUxService);
+  private breakpointSub: Subscription;
   items: ToolbarItem[] = this.getDefaultItems();
   /** Bumped whenever items are replaced so OnPush consumers can refresh. */
   revision = 0;
+  private lastLoadedLayoutKey: ToolbarLayoutKey | null = null;
+  private activeBreakpoint: DeviceBreakpoint = 'desktop';
 
   constructor() {
-    this.layoutModeSub = this.uiPrefs.layoutMode$.subscribe(() => {
-      this.load(this.userService.getCurrentUser());
+    // breakpoint$ already reacts to layoutMode + viewport size/orientation.
+    this.breakpointSub = this.mobileUx.breakpoint$.subscribe(bp => {
+      this.activeBreakpoint = bp;
+      const key = this.breakpointToLayoutKey(bp);
+      if (key !== this.lastLoadedLayoutKey) {
+        this.load(this.userService.getCurrentUser());
+      }
     });
   }
 
   ngOnDestroy(): void {
-    this.layoutModeSub.unsubscribe();
+    this.breakpointSub.unsubscribe();
+  }
+
+  /** Effective phone/tablet/desktop key for the currently rendered layout. */
+  resolveLayoutKey(): ToolbarLayoutKey {
+    return this.breakpointToLayoutKey(this.activeBreakpoint);
   }
 
   load(user: User | null | undefined = this.userService.getCurrentUser()): void {
-    const mode = this.uiPrefs.layoutMode;
+    const key = this.resolveLayoutKey();
+    this.lastLoadedLayoutKey = key;
     const byMode = this.readByModeMap();
-    const modeItems = byMode[mode];
+    const modeItems = byMode[key];
 
     if (Array.isArray(modeItems)) {
       this.setActiveItems(this.mergeWithDefaults(modeItems));
       return;
     }
 
-    // One-time migrate legacy single-key config into the current mode only.
+    // One-time migrate legacy single-key config into the current effective layout only.
     const legacyItems = this.readLegacyLocalStorage();
     if (legacyItems) {
       const migrated = this.mergeWithDefaults(legacyItems);
       this.setActiveItems(migrated);
-      this.writeModeItems(mode, migrated);
+      this.writeModeItems(key, migrated);
       this.clearLegacyLocalStorage();
       return;
     }
 
-    // One-time seed from any previously synced server config into the current mode.
+    // One-time seed from any previously synced server config into the current layout.
     const serverItems = user?.userSettings?.toolbarConfig;
     if (Array.isArray(serverItems)) {
       const seeded = this.mergeWithDefaults(serverItems);
       this.setActiveItems(seeded);
-      this.writeModeItems(mode, seeded);
+      this.writeModeItems(key, seeded);
       return;
     }
 
@@ -99,12 +120,12 @@ export class ToolbarConfigService implements OnDestroy {
   }
 
   save(): void {
-    this.writeModeItems(this.uiPrefs.layoutMode, this.items);
+    this.writeModeItems(this.resolveLayoutKey(), this.items);
   }
 
   reset(): void {
     this.setActiveItems(this.getDefaultItems());
-    this.writeModeItems(this.uiPrefs.layoutMode, this.items);
+    this.writeModeItems(this.resolveLayoutKey(), this.items);
   }
 
   getDefaultItems(): ToolbarItem[] {
@@ -133,6 +154,12 @@ export class ToolbarConfigService implements OnDestroy {
 
   isVisible(id: string): boolean {
     return this.items.find(i => i.id === id)?.visible ?? true;
+  }
+
+  private breakpointToLayoutKey(bp: DeviceBreakpoint): ToolbarLayoutKey {
+    if (bp === 'mobile') return 'phone';
+    if (bp === 'mobile-tablet') return 'tablet';
+    return 'desktop';
   }
 
   private setActiveItems(items: ToolbarItem[]): void {
@@ -208,7 +235,7 @@ export class ToolbarConfigService implements OnDestroy {
     }
   }
 
-  private writeModeItems(mode: LayoutMode, items: ToolbarItem[]): void {
+  private writeModeItems(mode: ToolbarLayoutKey, items: ToolbarItem[]): void {
     const byMode = this.readByModeMap();
     byMode[mode] = items;
     localStorage.setItem(STORAGE_KEY_BY_MODE, JSON.stringify(byMode));

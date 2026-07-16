@@ -69,7 +69,8 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.handle, 'position', 'fixed');
     this.renderer.setStyle(this.handle, 'width', '6px');
     this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
-    this.renderer.setStyle(this.handle, 'z-index', '9999');
+    // Below topbar (997) and PrimeNG overlays/popovers (~1000+), above page content.
+    this.renderer.setStyle(this.handle, 'z-index', '990');
     this.renderer.setStyle(this.handle, 'background', 'transparent');
     this.renderer.setStyle(this.handle, 'transition', 'background 0.15s ease');
     this.renderer.setStyle(this.handle, 'touch-action', 'none');
@@ -364,7 +365,9 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     if (document.body.classList.contains('p-overflow-hidden') || document.documentElement.classList.contains('cdk-global-scrollblock')) {
       return true;
     }
-    const overlay = document.querySelector('.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane');
+    const overlay = document.querySelector(
+      '.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane, .p-popover'
+    );
     if (overlay && (overlay.contains(this.handle) || overlay === this.handle)) {
       return false;
     }
