@@ -1,6 +1,18 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+/** Forced layout override, or auto (responsive from viewport width). */
+export type LayoutMode = 'auto' | 'phone' | 'tablet' | 'desktop';
+
+const LAYOUT_MODES: ReadonlySet<LayoutMode> = new Set(['auto', 'phone', 'tablet', 'desktop']);
+
+function parseLayoutMode(raw: string | null): LayoutMode {
+  if (raw && LAYOUT_MODES.has(raw as LayoutMode)) {
+    return raw as LayoutMode;
+  }
+  return 'auto';
+}
+
 @Injectable({ providedIn: 'root' })
 export class UiPreferencesService {
   private readonly COVER_PREVIEW_KEY = 'bl-show-cover-preview';
@@ -19,12 +31,12 @@ export class UiPreferencesService {
     this._showCoverPreview$.next(value);
   }
 
-  private _layoutMode$ = new BehaviorSubject<'auto' | 'phone' | 'tablet'>(
-    (localStorage.getItem(this.LAYOUT_MODE_KEY) as 'auto' | 'phone' | 'tablet') || 'auto'
+  private _layoutMode$ = new BehaviorSubject<LayoutMode>(
+    parseLayoutMode(localStorage.getItem(this.LAYOUT_MODE_KEY))
   );
   readonly layoutMode$ = this._layoutMode$.asObservable();
-  get layoutMode(): 'auto' | 'phone' | 'tablet' { return this._layoutMode$.value; }
-  setLayoutMode(value: 'auto' | 'phone' | 'tablet'): void {
+  get layoutMode(): LayoutMode { return this._layoutMode$.value; }
+  setLayoutMode(value: LayoutMode): void {
     localStorage.setItem(this.LAYOUT_MODE_KEY, value);
     this._layoutMode$.next(value);
   }

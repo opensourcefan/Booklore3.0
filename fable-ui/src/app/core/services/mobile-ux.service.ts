@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
-import { UiPreferencesService } from '../../shared/service/ui-preferences.service';
+import { LayoutMode, UiPreferencesService } from '../../shared/service/ui-preferences.service';
 import { detectHasTouchInput } from '../../shared/util/search-overlay-focus.util';
 
 export type DeviceBreakpoint = 'mobile' | 'mobile-tablet' | 'desktop';
@@ -60,6 +60,7 @@ export class MobileUxService implements OnDestroy {
     map(([width, mode, phoneBreakpoint, tabletBreakpoint]) => {
       if (mode === 'phone') return 'mobile';
       if (mode === 'tablet') return 'mobile-tablet';
+      if (mode === 'desktop') return 'desktop';
       if (width <= phoneBreakpoint) {
         return 'mobile';
       } else if (width <= tabletBreakpoint) {
@@ -84,7 +85,7 @@ export class MobileUxService implements OnDestroy {
   ]).pipe(
     map(([width, height, mode, phoneBreakpoint]) => {
       if (mode === 'phone') return true;
-      if (mode === 'tablet') return false;
+      if (mode === 'tablet' || mode === 'desktop') return false;
       const shortEdge = Math.min(width, height);
       const longEdge = Math.max(width, height);
       return shortEdge <= phoneBreakpoint && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
@@ -96,7 +97,7 @@ export class MobileUxService implements OnDestroy {
   get isMobileInteractionMode(): boolean {
     const mode = this.uiPrefs.layoutMode;
     if (mode === 'phone') return true;
-    if (mode === 'tablet') return false;
+    if (mode === 'tablet' || mode === 'desktop') return false;
     const width = this.screenWidthSubject.value;
     const height = this.screenHeightSubject.value;
     const shortEdge = Math.min(width, height);
@@ -104,25 +105,25 @@ export class MobileUxService implements OnDestroy {
     return shortEdge <= this.uiPrefs.phoneBreakpoint && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
   }
 
-  get layoutMode(): 'auto' | 'phone' | 'tablet' {
+  get layoutMode(): LayoutMode {
     return this.uiPrefs.layoutMode;
   }
 
-  setLayoutMode(value: 'auto' | 'phone' | 'tablet'): void {
+  setLayoutMode(value: LayoutMode): void {
     this.uiPrefs.setLayoutMode(value);
   }
 
   get isPhone(): boolean {
     const mode = this.uiPrefs.layoutMode;
     if (mode === 'phone') return true;
-    if (mode === 'tablet') return false;
+    if (mode === 'tablet' || mode === 'desktop') return false;
     return this.screenWidthSubject.value <= this.uiPrefs.phoneBreakpoint;
   }
 
   get isTablet(): boolean {
     const mode = this.uiPrefs.layoutMode;
     if (mode === 'tablet') return true;
-    if (mode === 'phone') return false;
+    if (mode === 'phone' || mode === 'desktop') return false;
     const width = this.screenWidthSubject.value;
     return width > this.uiPrefs.phoneBreakpoint && width <= this.uiPrefs.tabletBreakpoint;
   }

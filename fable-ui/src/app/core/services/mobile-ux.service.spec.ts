@@ -1,28 +1,33 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
+import {firstValueFrom} from 'rxjs';
 import {MobileUxService} from './mobile-ux.service';
-import {UiPreferencesService} from '../../shared/service/ui-preferences.service';
+import {LayoutMode, UiPreferencesService} from '../../shared/service/ui-preferences.service';
 import {BehaviorSubject} from 'rxjs';
 
 describe('MobileUxService hasTouchInput', () => {
   let service: MobileUxService;
+  let layoutMode$: BehaviorSubject<LayoutMode>;
 
   beforeEach(() => {
+    layoutMode$ = new BehaviorSubject<LayoutMode>('auto');
     TestBed.configureTestingModule({
       providers: [
         MobileUxService,
         {
           provide: UiPreferencesService,
           useValue: {
-            layoutMode: 'auto',
-            layoutMode$: new BehaviorSubject<'auto' | 'phone' | 'tablet'>('auto'),
+            get layoutMode() {
+              return layoutMode$.value;
+            },
+            layoutMode$,
             phoneBreakpoint: 767,
             phoneBreakpoint$: new BehaviorSubject(767),
             tabletBreakpoint: 1024,
             tabletBreakpoint$: new BehaviorSubject(1024),
             headerPosition: 'top',
             headerPosition$: new BehaviorSubject('top'),
-            setLayoutMode: vi.fn()
+            setLayoutMode: vi.fn((value: LayoutMode) => layoutMode$.next(value))
           }
         }
       ]
@@ -40,12 +45,25 @@ describe('MobileUxService hasTouchInput', () => {
   });
 
   it('keeps layout-phone independent of touch capability', () => {
-    const prefs = TestBed.inject(UiPreferencesService) as unknown as {
-      layoutMode: string;
-    };
-    prefs.layoutMode = 'phone';
+    layoutMode$.next('phone');
     expect(service.isPhone).toBe(true);
     // Touch flag must remain a separate signal from layout mode.
     expect(service.hasTouchInput === true || service.hasTouchInput === false).toBe(true);
+  });
+
+  it('forces desktop breakpoint and getters when layoutMode is desktop', async () => {
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 375});
+    Object.defineProperty(window, 'innerHeight', {configurable: true, value: 667});
+    window.dispatchEvent(new Event('resize'));
+
+    layoutMode$.next('desktop');
+    service.setLayoutMode('desktop');
+
+    expect(service.layoutMode).toBe('desktop');
+    expect(service.isPhone).toBe(false);
+    expect(service.isTablet).toBe(false);
+    expect(service.isDesktop).toBe(true);
+    expect(service.isMobileInteractionMode).toBe(false);
+    expect(await firstValueFrom(service.breakpoint$)).toBe('desktop');
   });
 });

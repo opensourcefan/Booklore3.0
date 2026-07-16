@@ -8,7 +8,7 @@ import {MetaCenterViewModeComponent} from './meta-center-view-mode/meta-center-v
 import {FilterPreferencesComponent} from './filter-preferences/filter-preferences.component';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {MessageService} from 'primeng/api';
-import {UiPreferencesService} from '../../../shared/service/ui-preferences.service';
+import {UiPreferencesService, LayoutMode} from '../../../shared/service/ui-preferences.service';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Select} from 'primeng/select';
 import {InputText} from 'primeng/inputtext';
@@ -40,7 +40,8 @@ export class ViewPreferencesParentComponent implements OnInit {
   layoutModeOptions = [
     { label: 'Automatic (Responsive)', value: 'auto' },
     { label: 'Phone Layout', value: 'phone' },
-    { label: 'Tablet Layout', value: 'tablet' }
+    { label: 'Tablet Layout', value: 'tablet' },
+    { label: 'Desktop Layout', value: 'desktop' }
   ];
 
   headerPositionOptions = [
@@ -48,7 +49,7 @@ export class ViewPreferencesParentComponent implements OnInit {
     { label: 'Bottom (Easier thumb reach)', value: 'bottom' }
   ];
 
-  selectedLayoutMode: 'auto' | 'phone' | 'tablet' = 'auto';
+  selectedLayoutMode: LayoutMode = 'auto';
   selectedHeaderPosition: 'top' | 'bottom' = 'top';
   phoneBreakpoint = 767;
   tabletBreakpoint = 1024;
@@ -75,7 +76,7 @@ export class ViewPreferencesParentComponent implements OnInit {
       detail: value === 'bottom' ? 'Header moved to bottom (phone mode only)' : 'Header restored to top' });
   }
 
-  onLayoutModeChange(mode: 'auto' | 'phone' | 'tablet'): void {
+  onLayoutModeChange(mode: LayoutMode): void {
     this.selectedLayoutMode = mode;
     this.uiPrefs.setLayoutMode(mode);
     this.messageService.add({ severity: 'success', summary: 'Saved', detail: `Layout mode set to ${mode}` });

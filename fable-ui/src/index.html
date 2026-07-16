@@ -19,7 +19,7 @@
       if (headerPos === 'bottom') {
         var layoutMode = localStorage.getItem('bl-layout-mode') || 'auto';
         var phoneBreakpoint = parseInt(localStorage.getItem('bl-phone-breakpoint') || '767', 10);
-        var isPhone = layoutMode === 'phone' || (layoutMode !== 'tablet' && window.innerWidth <= phoneBreakpoint);
+        var isPhone = layoutMode === 'phone' || (layoutMode !== 'tablet' && layoutMode !== 'desktop' && window.innerWidth <= phoneBreakpoint);
         if (isPhone) {
           document.body.classList.add('header-bottom');
         }
