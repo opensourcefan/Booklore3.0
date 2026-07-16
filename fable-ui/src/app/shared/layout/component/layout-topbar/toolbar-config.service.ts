@@ -32,42 +32,27 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'logout', type: 'button', visible: true, label: 'Logout', icon: 'pi pi-sign-out'},
 ];
 
+/**
+ * Toolbar layout is stored per-browser in localStorage so desktop and tablet
+ * clients can keep independent button layouts for the same account.
+ */
 @Injectable({providedIn: 'root'})
 export class ToolbarConfigService {
   private userService = inject(UserService);
   items: ToolbarItem[] = this.getDefaultItems();
 
   load(user: User | null | undefined = this.userService.getCurrentUser()): void {
-    const legacyItems = this.readLegacyLocalStorage();
-
-    if (!user) {
-      this.items = legacyItems ? this.mergeWithDefaults(legacyItems) : this.getDefaultItems();
+    const localItems = this.readLocalStorage();
+    if (localItems) {
+      this.items = this.mergeWithDefaults(localItems);
       return;
     }
 
-    const savedItems = user.userSettings?.toolbarConfig;
-    if (Array.isArray(savedItems)) {
-      const normalizedSaved = this.mergeWithDefaults(savedItems);
-      const normalizedLegacy = legacyItems ? this.mergeWithDefaults(legacyItems) : null;
-
-      if (normalizedLegacy && this.shouldMigrateLegacyConfig(normalizedSaved, normalizedLegacy)) {
-        this.items = normalizedLegacy;
-        this.userService.updateUserSetting(user.id, 'toolbarConfig', normalizedLegacy);
-        this.clearLegacyLocalStorage();
-        return;
-      }
-
-      this.items = normalizedSaved;
-      if (normalizedLegacy && this.isSameConfig(normalizedSaved, normalizedLegacy)) {
-        this.clearLegacyLocalStorage();
-      }
-      return;
-    }
-
-    if (legacyItems) {
-      this.items = this.mergeWithDefaults(legacyItems);
-      this.userService.updateUserSetting(user.id, 'toolbarConfig', this.items);
-      this.clearLegacyLocalStorage();
+    // One-time seed from any previously synced server config, then stay local.
+    const serverItems = user?.userSettings?.toolbarConfig;
+    if (Array.isArray(serverItems)) {
+      this.items = this.mergeWithDefaults(serverItems);
+      this.writeLocalStorage(this.items);
       return;
     }
 
@@ -79,22 +64,12 @@ export class ToolbarConfigService {
   }
 
   save(): void {
-    const user = this.userService.getCurrentUser();
-    if (!user) {
-      return;
-    }
-
-    this.userService.updateUserSetting(user.id, 'toolbarConfig', this.items);
-    this.clearLegacyLocalStorage();
+    this.writeLocalStorage(this.items);
   }
 
   reset(): void {
     this.items = this.getDefaultItems();
-    const user = this.userService.getCurrentUser();
-    if (user) {
-      this.userService.updateUserSetting(user.id, 'toolbarConfig', this.items);
-    }
-    this.clearLegacyLocalStorage();
+    this.writeLocalStorage(this.items);
   }
 
   getDefaultItems(): ToolbarItem[] {
@@ -178,6 +153,13 @@ export class ToolbarConfigService {
       }
     }
 
+    // Settings must remain available as an escape hatch from a bad toolbar layout.
+    for (const item of normalized) {
+      if (item.id === 'settings') {
+        item.visible = true;
+      }
+    }
+
     return normalized;
   }
 
@@ -185,7 +167,7 @@ export class ToolbarConfigService {
     return this.normalizeItems(saved);
   }
 
-  private readLegacyLocalStorage(): ToolbarItem[] | null {
+  private readLocalStorage(): ToolbarItem[] | null {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) as ToolbarItem[] : null;
@@ -194,19 +176,7 @@ export class ToolbarConfigService {
     }
   }
 
-  private clearLegacyLocalStorage(): void {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-
-  private shouldMigrateLegacyConfig(serverItems: ToolbarItem[], legacyItems: ToolbarItem[]): boolean {
-    return this.isDefaultConfig(serverItems) && !this.isDefaultConfig(legacyItems) && !this.isSameConfig(serverItems, legacyItems);
-  }
-
-  private isDefaultConfig(items: ToolbarItem[]): boolean {
-    return this.isSameConfig(items, this.getDefaultItems());
-  }
-
-  private isSameConfig(a: ToolbarItem[], b: ToolbarItem[]): boolean {
-    return JSON.stringify(a) === JSON.stringify(b);
+  private writeLocalStorage(items: ToolbarItem[]): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }
 }

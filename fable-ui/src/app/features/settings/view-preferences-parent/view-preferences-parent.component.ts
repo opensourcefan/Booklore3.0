@@ -35,6 +35,7 @@ import {InputText} from 'primeng/inputtext';
 export class ViewPreferencesParentComponent implements OnInit {
   private uiPrefs = inject(UiPreferencesService);
   showCoverPreview = false;
+  showResizeHandles = false;
   private messageService = inject(MessageService);
 
   layoutModeOptions = [
@@ -57,6 +58,7 @@ export class ViewPreferencesParentComponent implements OnInit {
 
   ngOnInit(): void {
     this.showCoverPreview = this.uiPrefs.showCoverPreview;
+    this.showResizeHandles = this.uiPrefs.showResizeHandles;
     this.selectedLayoutMode = this.uiPrefs.layoutMode;
     this.selectedHeaderPosition = this.uiPrefs.headerPosition;
     this.phoneBreakpoint = this.uiPrefs.phoneBreakpoint;
@@ -68,6 +70,13 @@ export class ViewPreferencesParentComponent implements OnInit {
     this.uiPrefs.setShowCoverPreview(checked);
     this.messageService.add({ severity: 'success', summary: 'Saved',
       detail: checked ? 'Cover preview enabled' : 'Cover preview disabled' });
+  }
+
+  onResizeHandlesToggle(checked: boolean): void {
+    this.showResizeHandles = checked;
+    this.uiPrefs.setShowResizeHandles(checked);
+    this.messageService.add({ severity: 'success', summary: 'Saved',
+      detail: checked ? 'Resize handles enabled' : 'Resize handles hidden until hover' });
   }
 
   onHeaderPositionChange(value: 'top' | 'bottom'): void {

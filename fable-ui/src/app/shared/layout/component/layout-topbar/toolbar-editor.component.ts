@@ -9,6 +9,7 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
     <div class="toolbar-editor">
       <div class="toolbar-editor-header">
         <span>Customize Toolbar</span>
+        <span class="toolbar-editor-hint">Saved on this browser only</span>
       </div>
       <ul class="toolbar-editor-list">
         @for (item of draftItems; track item.id; let i = $index) {
@@ -29,6 +30,10 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
               <button class="remove-btn" (click)="removeSeparator(i)" title="Remove Separator">
                 <i class="pi pi-trash"></i>
               </button>
+            } @else if (item.id === 'settings') {
+              <span class="locked-hint" title="Settings is always visible">
+                <i class="pi pi-lock"></i>
+              </span>
             } @else {
               <button class="toggle-btn" (click)="toggleVisible(item)">
                 <i [class]="item.visible ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
@@ -50,7 +55,8 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
   `,
   styles: [`
     .toolbar-editor { min-width: 220px; padding: 0.5rem; }
-    .toolbar-editor-header { font-weight: 700; font-size: 0.85rem; padding: 0.25rem 0 0.5rem; border-bottom: 1px solid var(--p-content-border-color); margin-bottom: 0.5rem; }
+    .toolbar-editor-header { font-weight: 700; font-size: 0.85rem; padding: 0.25rem 0 0.5rem; border-bottom: 1px solid var(--p-content-border-color); margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.15rem; }
+    .toolbar-editor-hint { font-weight: 500; font-size: 0.7rem; color: var(--p-surface-400); }
     .toolbar-editor-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
     .toolbar-editor-item {
       display: flex;
@@ -77,6 +83,7 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
     .drag-icon { font-size: 0.65rem; color: var(--p-surface-500); }
     .item-label { flex: 1; font-size: 0.8rem; }
     .toggle-btn { background: none; border: none; cursor: pointer; color: var(--p-surface-400); padding: 0; &:hover { color: var(--p-primary-color); } }
+    .locked-hint { color: var(--p-surface-500); font-size: 0.85rem; display: inline-flex; align-items: center; }
     .remove-btn { background: none; border: none; cursor: pointer; color: var(--p-surface-400); padding: 0; transition: color 0.15s ease; &:hover { color: #ef4444; } }
     
     .toolbar-editor-add-actions { display: flex; margin-top: 0.5rem; padding-top: 0.25rem; }
@@ -175,11 +182,19 @@ export class ToolbarEditorComponent implements OnInit {
   }
 
   toggleVisible(item: ToolbarItem) {
+    if (item.id === 'settings') {
+      item.visible = true;
+      return;
+    }
     item.visible = !item.visible;
   }
 
   save() {
-    this.config.setItems(this.draftItems.map(item => ({...item})));
+    const items = this.draftItems.map(item => ({
+      ...item,
+      visible: item.id === 'settings' ? true : item.visible
+    }));
+    this.config.setItems(items);
     this.config.save();
     this.saved.emit();
   }

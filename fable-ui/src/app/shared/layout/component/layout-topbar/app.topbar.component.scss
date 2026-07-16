@@ -821,12 +821,9 @@
     color: var(--text-color);
   }
 
-  @media (max-width: 991px) {
-    display: none;
-  }
-
-  :host-context(body.layout-phone) &,
-  :host-context(body.layout-tablet) & {
+  // Escape hatch for toolbar layout — always available on desktop/tablet.
+  // Phone keeps the overflow menu only (space is too tight for this control).
+  :host-context(body.layout-phone) & {
     display: none;
   }
 }

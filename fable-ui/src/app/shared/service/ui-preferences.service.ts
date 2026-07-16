@@ -16,6 +16,7 @@ function parseLayoutMode(raw: string | null): LayoutMode {
 @Injectable({ providedIn: 'root' })
 export class UiPreferencesService {
   private readonly COVER_PREVIEW_KEY = 'bl-show-cover-preview';
+  private readonly RESIZE_HANDLES_KEY = 'bl-show-resize-handles';
   private readonly LAYOUT_MODE_KEY = 'bl-layout-mode';
   private readonly PHONE_BREAKPOINT_KEY = 'bl-phone-breakpoint';
   private readonly TABLET_BREAKPOINT_KEY = 'bl-tablet-breakpoint';
@@ -29,6 +30,17 @@ export class UiPreferencesService {
   setShowCoverPreview(value: boolean): void {
     localStorage.setItem(this.COVER_PREVIEW_KEY, String(value));
     this._showCoverPreview$.next(value);
+  }
+
+  /** Always-visible thumb-friendly resize grips for side panels and cover preview. */
+  private _showResizeHandles$ = new BehaviorSubject<boolean>(
+    localStorage.getItem(this.RESIZE_HANDLES_KEY) === 'true'
+  );
+  readonly showResizeHandles$ = this._showResizeHandles$.asObservable();
+  get showResizeHandles(): boolean { return this._showResizeHandles$.value; }
+  setShowResizeHandles(value: boolean): void {
+    localStorage.setItem(this.RESIZE_HANDLES_KEY, String(value));
+    this._showResizeHandles$.next(value);
   }
 
   private _layoutMode$ = new BehaviorSubject<LayoutMode>(

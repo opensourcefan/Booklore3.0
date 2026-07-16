@@ -50,6 +50,34 @@
     <div class="preferences-section">
       <div class="section-header">
         <h3 class="section-title">
+          <i class="pi pi-arrows-h"></i>
+          Resize Handles
+        </h3>
+      </div>
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <span class="setting-label">Show drag handles</span>
+              <p-toggleswitch
+                [(ngModel)]="showResizeHandles"
+                (onChange)="onResizeHandlesToggle($event.checked)">
+              </p-toggleswitch>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              Always show small thumb-friendly drag grips on resizable side panels and the cover preview. Useful on tablets and touch screens. Stored per browser.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"><hr></div>
+
+    <div class="preferences-section">
+      <div class="section-header">
+        <h3 class="section-title">
           <i class="pi pi-arrow-down"></i>
           Header Position (Phone Mode)
         </h3>

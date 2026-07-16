@@ -1,9 +1,12 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { MobileUxService } from '../../core/services/mobile-ux.service';
+import { UiPreferencesService } from '../service/ui-preferences.service';
 
 /**
- * Adds a drag handle to a panel so users can resize it by hover + click + drag.
- * The handle is absolutely positioned relative to the target element.
+ * Adds a drag handle to a panel so users can resize it.
+ * - Mouse desktop: thin hover-to-reveal edge handle
+ * - Touch / tablet / enabled preference: always-visible thumb-friendly grip
  * Width is persisted to localStorage via storageKey.
  */
 // eslint-disable-next-line @angular-eslint/directive-selector
@@ -32,11 +35,12 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private updateScheduled = false;
   private isTransitioning = false;
   private animationLoopId: number | null = null;
-  private animationLoopStart = 0;
+  private prefsSub: Subscription | null = null;
 
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
   private mobileUx = inject(MobileUxService);
+  private uiPrefs = inject(UiPreferencesService);
 
   ngOnInit(): void {
     this.target = this.el.nativeElement as HTMLElement;
@@ -143,14 +147,20 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       () => this.target.removeEventListener('transitioncancel', onTransitionEnd)
     );
 
-    // Hover styles
+    // Re-apply presentation when the user toggles always-visible handles
+    this.prefsSub = this.uiPrefs.showResizeHandles$.subscribe(() => {
+      this.scheduleUpdateHandlePosition();
+    });
+
+    // Hover styles (desktop mouse only)
     this.handle.addEventListener('mouseenter', () => {
-      if (this.isTouchHandleMode()) {
+      if (this.isThumbHandleMode()) {
         return;
       }
       this.renderer.setStyle(this.handle, 'background', 'var(--p-primary-color, #818cf8)');
       this.renderer.setStyle(this.handle, 'opacity', '0.5');
       this.renderer.setStyle(this.handle, 'border-radius', '3px');
+      this.renderer.setStyle(this.grip, 'opacity', '1');
     });
     this.handle.addEventListener('mouseleave', () => {
       if (!this.dragging) {
@@ -222,8 +232,16 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     );
   }
 
-  private isTouchHandleMode(): boolean {
-    return this.mobileUx.isMobileOrTablet;
+  /**
+   * Thumb-friendly always-visible grips when:
+   * - user enabled "Show drag handles", OR
+   * - device reports touch input (covers tablet desktop mode), OR
+   * - layout is phone/tablet
+   */
+  private isThumbHandleMode(): boolean {
+    return this.uiPrefs.showResizeHandles
+      || this.mobileUx.hasTouchInput
+      || this.mobileUx.isMobileOrTablet;
   }
 
   private applyHandlePresentation(): void {
@@ -231,25 +249,24 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isTouchHandleMode()) {
-      this.renderer.setStyle(this.handle, 'width', '30px');
-      this.renderer.setStyle(this.handle, 'height', '47px');
+    if (this.isThumbHandleMode()) {
+      this.renderer.setStyle(this.handle, 'width', '28px');
+      this.renderer.setStyle(this.handle, 'height', '56px');
       this.renderer.setStyle(this.handle, 'cursor', 'grab');
       this.renderer.setStyle(this.handle, 'background', 'transparent');
       this.renderer.setStyle(this.handle, 'opacity', '1');
       this.renderer.removeStyle(this.handle, 'border-radius');
       this.renderer.removeStyle(this.handle, 'box-shadow');
-      
+
       this.renderer.setStyle(this.grip, 'opacity', '1');
-      this.renderer.setStyle(this.grip, 'width', '2px');
-      this.renderer.setStyle(this.grip, 'height', '31px');
-      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, white 78%, var(--primary-color) 22%)');
-      this.renderer.setStyle(this.grip, 'border-radius', '1px');
-      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--primary-color) 82%, white 18%), 0 3px 8px rgba(0, 0, 0, 0.15)');
-      
-      this.renderer.removeStyle(this.grip, 'transform');
-      this.renderer.setStyle(this.grip, 'top', '8px');
-      this.renderer.setStyle(this.grip, 'left', this.blResizable === 'right' ? '24px' : '14px');
+      this.renderer.setStyle(this.grip, 'width', '6px');
+      this.renderer.setStyle(this.grip, 'height', '40px');
+      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 70%, white 30%)');
+      this.renderer.setStyle(this.grip, 'border-radius', '999px');
+      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--primary-color) 45%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25)');
+      this.renderer.setStyle(this.grip, 'top', '50%');
+      this.renderer.setStyle(this.grip, 'left', '50%');
+      this.renderer.setStyle(this.grip, 'transform', 'translate(-50%, -50%)');
     } else {
       this.renderer.setStyle(this.handle, 'width', '6px');
       this.renderer.setStyle(this.handle, 'height', '100%');
@@ -258,7 +275,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       this.renderer.setStyle(this.handle, 'opacity', '1');
       this.renderer.removeStyle(this.handle, 'border-radius');
       this.renderer.removeStyle(this.handle, 'box-shadow');
-      
+
       this.renderer.setStyle(this.grip, 'opacity', '0');
       this.renderer.setStyle(this.grip, 'width', '4px');
       this.renderer.setStyle(this.grip, 'height', '44px');
@@ -320,8 +337,9 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     this.renderer.removeStyle(this.handle, 'display');
     this.applyHandlePresentation();
-    if (this.isTouchHandleMode()) {
-      const touchHandleHeight = 47;
+    if (this.isThumbHandleMode()) {
+      // Place grip mid-edge so thumbs can reach it without covering panel chrome
+      const touchHandleHeight = 56;
       const top = rect.top + Math.max(12, (rect.height - touchHandleHeight) / 2);
       this.renderer.setStyle(this.handle, 'top', top + 'px');
       this.renderer.setStyle(this.handle, 'height', touchHandleHeight + 'px');
@@ -331,10 +349,10 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     if (this.blResizable === 'right') {
-      const offset = this.isTouchHandleMode() ? 30 : 3;
+      const offset = this.isThumbHandleMode() ? 14 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.right - offset) + 'px');
     } else {
-      const offset = this.isTouchHandleMode() ? 15 : 3;
+      const offset = this.isThumbHandleMode() ? 14 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
   }
@@ -353,6 +371,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.animationLoopId) cancelAnimationFrame(this.animationLoopId);
+    this.prefsSub?.unsubscribe();
     this.resizeObserver?.disconnect();
     this.mutationObserver?.disconnect();
     this.unlisten.forEach(fn => fn());

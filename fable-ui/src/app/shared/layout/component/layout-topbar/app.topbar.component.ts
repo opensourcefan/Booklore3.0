@@ -1179,6 +1179,11 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   private isToolbarItemVisible(item: ToolbarItem): boolean {
+    // Settings is always shown so users can recover from a bad toolbar layout.
+    if (item.id === 'settings') {
+      return this.toolbarConfig.isAllowed(item.id);
+    }
+
     if (!item.visible) {
       return false;
     }
