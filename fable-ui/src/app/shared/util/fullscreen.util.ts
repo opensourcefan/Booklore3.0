@@ -9,9 +9,16 @@ type FullscreenElement = HTMLElement & {
   webkitRequestFullscreen?: () => Promise<void> | void;
 };
 
+/** Events that browsers fire when Fullscreen API state changes. */
+export const FULLSCREEN_CHANGE_EVENTS = ['fullscreenchange', 'webkitfullscreenchange'] as const;
+
 export function getFullscreenElement(doc: Document = document): Element | null {
   const d = doc as FullscreenDocument;
   return doc.fullscreenElement ?? d.webkitFullscreenElement ?? null;
+}
+
+export function isAppFullscreen(doc: Document = document): boolean {
+  return !!getFullscreenElement(doc);
 }
 
 export function requestAppFullscreen(target: HTMLElement = document.documentElement): Promise<void> {
@@ -36,9 +43,41 @@ export function exitAppFullscreen(doc: Document = document): Promise<void> {
   return Promise.resolve();
 }
 
+/**
+ * Toggle based on the live browser Fullscreen API state (not a cached UI flag).
+ * This keeps the app button correct when fullscreen was entered/exited outside Fable.
+ */
 export function toggleAppFullscreen(target: HTMLElement = document.documentElement): Promise<void> {
-  if (getFullscreenElement()) {
+  if (isAppFullscreen()) {
     return exitAppFullscreen();
   }
   return requestAppFullscreen(target);
+}
+
+/**
+ * Subscribe to Fullscreen API changes (standard + webkit) and resync when the
+ * document becomes visible again in case an event was missed.
+ * Returns an unsubscribe function.
+ */
+export function addFullscreenChangeListener(
+  handler: () => void,
+  doc: Document = document
+): () => void {
+  for (const eventName of FULLSCREEN_CHANGE_EVENTS) {
+    doc.addEventListener(eventName, handler);
+  }
+
+  const onVisibilityChange = (): void => {
+    if (doc.visibilityState === 'visible') {
+      handler();
+    }
+  };
+  doc.addEventListener('visibilitychange', onVisibilityChange);
+
+  return () => {
+    for (const eventName of FULLSCREEN_CHANGE_EVENTS) {
+      doc.removeEventListener(eventName, handler);
+    }
+    doc.removeEventListener('visibilitychange', onVisibilityChange);
+  };
 }

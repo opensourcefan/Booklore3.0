@@ -45,7 +45,7 @@ import {ResizableDividerDirective} from '../../../directives/resizable-divider.d
 import {AiSearchDialogComponent, AiSearchDialogService} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
 import {AppSettingsService} from '../../../service/app-settings.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
-import {getFullscreenElement, toggleAppFullscreen} from '../../../util/fullscreen.util';
+import {toggleAppFullscreen, addFullscreenChangeListener, isAppFullscreen} from '../../../util/fullscreen.util';
 
 @Component({
   selector: 'app-topbar',
@@ -126,6 +126,7 @@ export class AppTopBarComponent implements OnDestroy {
   writeProgress: WriteProgressPayload | null = null;
   isSidecarBackupRunning = false;
   isFullscreen = false;
+  private removeFullscreenChangeListener: (() => void) | null = null;
 
   searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isSearchActive = false;
@@ -394,10 +395,13 @@ export class AppTopBarComponent implements OnDestroy {
         this.updateMobileBookFilterTriggerVisibility((event as NavigationStart).url);
       });
 
-    document.addEventListener('fullscreenchange', this.onFullscreenChange);
+    this.removeFullscreenChangeListener = addFullscreenChangeListener(this.onFullscreenChange);
+    this.syncFullscreenState();
   }
 
   ngOnDestroy(): void {
+    this.removeFullscreenChangeListener?.();
+    this.removeFullscreenChangeListener = null;
     this.mobileSidebarBackHandle?.release(false);
     this.mobileSidebarBackHandle = null;
     this.mobileDirectoryBackHandle?.release(false);
@@ -416,7 +420,6 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.directoryTagDismissTimer);
     clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
-    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
 
     this.searchActiveSub?.unsubscribe();
     this.searchErrorSub?.unsubscribe();
@@ -485,7 +488,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   toggleFullscreen(): void {
-    void toggleAppFullscreen();
+    void toggleAppFullscreen().finally(() => this.syncFullscreenState());
   }
 
   toggleMobileBookFilter(event: MouseEvent): void {
@@ -1219,7 +1222,7 @@ export class AppTopBarComponent implements OnDestroy {
   };
 
   private syncFullscreenState(): void {
-    this.isFullscreen = !!getFullscreenElement();
+    this.isFullscreen = isAppFullscreen();
   }
 
   private get isMetadataFetchPaused(): boolean {

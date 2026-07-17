@@ -36,6 +36,12 @@ import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
 import {MobileUxService} from '../../../core/services/mobile-ux.service';
+import {
+  addFullscreenChangeListener,
+  exitAppFullscreen,
+  isAppFullscreen,
+  toggleAppFullscreen
+} from '../../../shared/util/fullscreen.util';
 
 interface CbxPanelRegion {
   x: number;
@@ -250,6 +256,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private joystickPointerId: number | null = null;
   private joystickAnimationFrame: number | null = null;
   private joystickLastTickMs = 0;
+  private removeFullscreenChangeListener: (() => void) | null = null;
 
   // Double page detection
   private pageDimensionsCache = new Map<number, {width: number, height: number}>();
@@ -301,6 +308,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   ngOnInit() {
     this.writeProgressService.clear();
     this.loadJoystickDevicePreferences();
+    this.removeFullscreenChangeListener = addFullscreenChangeListener(() => this.syncFullscreenFromBrowser());
+    this.syncFullscreenFromBrowser();
     this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
       this.screenWidth = width;
     });
@@ -709,7 +718,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       joystickIndicatorOpacity: this.joystickIndicatorOpacity
     });
 
-    this.isFullscreen = !!document.fullscreenElement;
+    this.isFullscreen = isAppFullscreen();
     this.headerService.updateState({
       isFullscreen: this.isFullscreen,
       isSlideshowActive: this.isSlideshowActive,
@@ -1638,10 +1647,20 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     return Math.min(Math.max(value, min), max);
   }
 
-  @HostListener('document:fullscreenchange')
-  onFullscreenChange(): void {
-    this.isFullscreen = !!document.fullscreenElement;
-    this.headerService.updateState({isFullscreen: this.isFullscreen, isSlideshowActive: this.isSlideshowActive});
+  private syncFullscreenFromBrowser(): void {
+    this.isFullscreen = isAppFullscreen();
+    this.headerService.updateState({
+      isFullscreen: this.isFullscreen,
+      isSlideshowActive: this.isSlideshowActive
+    });
+  }
+
+  toggleFullscreen(): void {
+    void toggleAppFullscreen().finally(() => this.syncFullscreenFromBrowser());
+  }
+
+  private exitFullscreen(): void {
+    void exitAppFullscreen().finally(() => this.syncFullscreenFromBrowser());
   }
 
   @HostListener('touchstart', ['$event'])
@@ -2715,28 +2734,6 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     return parts.join(' - ');
   }
 
-  // Fullscreen methods
-  toggleFullscreen(): void {
-    if (this.isFullscreen) {
-      this.exitFullscreen();
-    } else {
-      this.enterFullscreen();
-    }
-  }
-
-  private enterFullscreen(): void {
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen().catch(() => { /* browser blocked fullscreen — safe to ignore */ });
-    }
-  }
-
-  private exitFullscreen(): void {
-    if (document.exitFullscreen) {
-      document.exitFullscreen().catch(() => { /* already not fullscreen — safe to ignore */ });
-    }
-  }
-
   // Reading direction methods
   toggleReadingDirection(): void {
     const newDirection = this.readingDirection === CbxReadingDirection.LTR
@@ -2938,6 +2935,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
+    this.removeFullscreenChangeListener?.();
+    this.removeFullscreenChangeListener = null;
     this.resizeSub?.unsubscribe();
     this.releaseAllMobileBackRegistrations(false);
     this.releaseJoystickInteraction();

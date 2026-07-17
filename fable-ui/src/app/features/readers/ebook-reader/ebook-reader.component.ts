@@ -35,6 +35,12 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
+import {
+  addFullscreenChangeListener,
+  exitAppFullscreen,
+  isAppFullscreen,
+  toggleAppFullscreen
+} from '../../../shared/util/fullscreen.util';
 
 type EbookMobileSurface =
   | 'sidebar'
@@ -113,6 +119,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   private relocateTimeout: ReturnType<typeof setTimeout> | null = null;
   private sectionFractionsTimeout: ReturnType<typeof setTimeout> | null = null;
   private mobileBackHandles: Partial<Record<EbookMobileSurface, MobileBackHandle>> = {};
+  private removeFullscreenChangeListener: (() => void) | null = null;
 
   isLoading = true;
   showQuickSettings = false;
@@ -141,6 +148,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   ngOnInit() {
     this.writeProgressService.clear();
+    this.removeFullscreenChangeListener = addFullscreenChangeListener(() => this.syncFullscreenFromBrowser());
+    this.syncFullscreenFromBrowser();
     this.visibilityManager = new ReaderHeaderFooterVisibilityManager(window.innerHeight);
     this.visibilityManager.onStateChange((state) => {
       this.headerVisible = state.headerVisible;
@@ -197,8 +206,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
       switchMap(() => this.loadBookFromAPI()),
       tap(() => {
         this.isLoading = false;
-        this.isFullscreen = !!document.fullscreenElement;
-        this.headerService.setFullscreen(this.isFullscreen);
+        this.syncFullscreenFromBrowser();
       }),
       catchError(() => {
         this.isLoading = false;
@@ -213,6 +221,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
+    this.removeFullscreenChangeListener?.();
+    this.removeFullscreenChangeListener = null;
     this.releaseAllMobileBackRegistrations(false);
     this.destroy$.next();
     this.destroy$.complete();
@@ -485,26 +495,17 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
-  @HostListener('document:fullscreenchange')
-  onFullscreenChange(): void {
-    this.isFullscreen = !!document.fullscreenElement;
+  private syncFullscreenFromBrowser(): void {
+    this.isFullscreen = isAppFullscreen();
     this.headerService.setFullscreen(this.isFullscreen);
   }
 
   toggleFullscreen(): void {
-    if (document.fullscreenElement) {
-      this.exitFullscreen();
-    } else {
-      this.enterFullscreen();
-    }
-  }
-
-  private enterFullscreen(): void {
-    document.documentElement.requestFullscreen?.();
+    void toggleAppFullscreen().finally(() => this.syncFullscreenFromBrowser());
   }
 
   private exitFullscreen(): void {
-    document.exitFullscreen?.();
+    void exitAppFullscreen().finally(() => this.syncFullscreenFromBrowser());
   }
 
   onProgressChange(fraction: number): void {
