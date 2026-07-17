@@ -9,6 +9,7 @@ import {ToastModule} from 'primeng/toast';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
 import {DirectoryPanelComponent} from '../../../../features/book/components/directory-panel/directory-panel.component';
 import {TabletNavigationGesturesService} from '../../../../core/services/tablet-navigation-gestures.service';
+import {exitAppFullscreen} from '../../../util/fullscreen.util';
 
 @Component({
   selector: 'app-layout',
@@ -68,6 +69,11 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     const width = saved ? parseInt(saved, 10) : 225;
     document.documentElement.style.setProperty('--sidebar-width', width + 'px');
     this.tabletNavGestures.start();
+  }
+
+  /** Tablet/desktop immersive exit control (hidden in Phone Mode via CSS). */
+  exitImmersiveFullscreen(): void {
+    void exitAppFullscreen();
   }
 
   onRouteAttach(component: unknown): void {

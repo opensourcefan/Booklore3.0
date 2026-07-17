@@ -97,6 +97,8 @@ export class KioskActionsSheetComponent implements OnInit, OnDestroy {
   }
 
   onToggleFullscreen(): void {
+    // Keep the user-activation gesture; close after the Fullscreen API settles
+    // so Chromium (esp. Wayland/kiosk) does not drop the request.
     void toggleAppFullscreen().finally(() => {
       this.syncFullscreenFromBrowser();
       this.close();

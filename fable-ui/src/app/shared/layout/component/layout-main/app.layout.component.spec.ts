@@ -78,6 +78,15 @@ describe('AppLayoutComponent route reattach', () => {
     expect(onRouteReattached).toHaveBeenCalledTimes(1);
   });
 
+  it('exitImmersiveFullscreen calls exitAppFullscreen', async () => {
+    const fullscreenUtil = await import('../../../util/fullscreen.util');
+    const exitSpy = vi.spyOn(fullscreenUtil, 'exitAppFullscreen').mockResolvedValue(undefined);
+
+    component.exitImmersiveFullscreen();
+
+    expect(exitSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('should ignore attached components without a reattach hook', async () => {
     expect(() => component.onRouteAttach({})).not.toThrow();
     await Promise.resolve();
