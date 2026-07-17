@@ -6,6 +6,8 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
 
 **Core Principle:** Every dialog, panel, form, and routed page MUST be fully operable on a 375×667 viewport (iPhone SE) without requiring fullscreen mode, zooming, or horizontal scrolling. On mobile, fullscreen dialogs and routed pages occupy nearly the same viewport and share the same density, safe-area, scroll, and touch-target constraints. Mobile changes MUST NEVER alter desktop behavior.
 
+**Phone Mode Lock:** Phone Mode is considered correct and frozen. Do NOT modify phone styling, phone layout gating, or shared code that would change Phone Mode while fixing tablet/desktop/auto-shape issues. If a change would affect Phone Mode, stop and get explicit user approval first.
+
 ---
 
 ## 1. Breakpoint & Scope Rules

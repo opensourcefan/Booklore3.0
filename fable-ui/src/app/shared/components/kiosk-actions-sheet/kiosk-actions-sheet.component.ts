@@ -1,7 +1,15 @@
-import {Component, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, inject} from '@angular/core';
 import {Button} from 'primeng/button';
-import {DynamicDialogRef} from 'primeng/dynamicdialog';
-import {getFullscreenElement, toggleAppFullscreen} from '../../util/fullscreen.util';
+import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {
+  addFullscreenChangeListener,
+  isAppFullscreen,
+  toggleAppFullscreen
+} from '../../util/fullscreen.util';
+
+export interface KioskActionsSheetData {
+  isFullscreen?: boolean;
+}
 
 @Component({
   selector: 'app-kiosk-actions-sheet',
@@ -12,10 +20,12 @@ import {getFullscreenElement, toggleAppFullscreen} from '../../util/fullscreen.u
       <p class="kiosk-actions-sheet__hint">Tablet / kiosk actions (not available in Phone Mode)</p>
       <div class="kiosk-actions-sheet__actions">
         <p-button
-          [label]="isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'"
-          [icon]="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'"
           styleClass="w-full"
           (onClick)="onToggleFullscreen()">
+          <span class="kiosk-actions-sheet__btn-face">
+            <i [class]="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'" aria-hidden="true"></i>
+            <span>{{ isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen' }}</span>
+          </span>
         </p-button>
         <p-button
           label="Reload app"
@@ -53,17 +63,44 @@ import {getFullscreenElement, toggleAppFullscreen} from '../../util/fullscreen.u
       flex-direction: column;
       gap: 0.5rem;
     }
+    .kiosk-actions-sheet__btn-face {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
   `]
 })
-export class KioskActionsSheetComponent {
+export class KioskActionsSheetComponent implements OnInit, OnDestroy {
   private readonly dialogRef = inject(DynamicDialogRef);
+  private readonly dialogConfig = inject(DynamicDialogConfig);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private removeFullscreenListener: (() => void) | null = null;
 
-  get isFullscreen(): boolean {
-    return !!getFullscreenElement();
+  isFullscreen = false;
+
+  ngOnInit(): void {
+    const data = (this.dialogConfig.data ?? {}) as KioskActionsSheetData;
+    if (typeof data.isFullscreen === 'boolean') {
+      this.isFullscreen = data.isFullscreen;
+    }
+    this.syncFullscreenFromBrowser();
+    this.removeFullscreenListener = addFullscreenChangeListener(() => {
+      this.syncFullscreenFromBrowser();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.removeFullscreenListener?.();
+    this.removeFullscreenListener = null;
   }
 
   onToggleFullscreen(): void {
-    void toggleAppFullscreen().finally(() => this.close());
+    void toggleAppFullscreen().finally(() => {
+      this.syncFullscreenFromBrowser();
+      this.close();
+    });
   }
 
   onReload(): void {
@@ -73,5 +110,10 @@ export class KioskActionsSheetComponent {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  private syncFullscreenFromBrowser(): void {
+    this.isFullscreen = isAppFullscreen();
+    this.cdr.markForCheck();
   }
 }

@@ -7,6 +7,7 @@ import {UiPreferencesService} from '../../shared/service/ui-preferences.service'
 import {MobileBackNavigationService} from '../../shared/service/mobile-back-navigation.service';
 import {DialogLauncherService, DialogSize} from '../../shared/services/dialog-launcher.service';
 import {KioskActionsSheetComponent} from '../../shared/components/kiosk-actions-sheet/kiosk-actions-sheet.component';
+import {isAppFullscreen} from '../../shared/util/fullscreen.util';
 
 /**
  * Opt-in tablet/kiosk gestures. Hard-disabled in Phone Mode.
@@ -301,7 +302,10 @@ export class TabletNavigationGesturesService implements OnDestroy {
       modal: true,
       dismissableMask: true,
       styleClass: DialogSize.XS,
-      width: '20rem'
+      width: '20rem',
+      data: {
+        isFullscreen: isAppFullscreen()
+      }
     });
   }
 }

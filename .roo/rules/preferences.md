@@ -19,6 +19,14 @@ paths: ["**/*"]
 
 - do not attempt to use http://localhost:4200 for verification or anything else.
 
+## Phone Mode Lock (CRITICAL):
+
+- Phone Mode already works correctly on real phones. It is frozen unless the user explicitly opens it.
+- NEVER change Phone Mode behavior, layout, CSS, gating, or shared code paths in a way that affects Phone Mode while working on tablet, desktop, auto-shape, Duet, or other non-phone issues.
+- That includes: `layoutMode === 'phone'`, `layout-phone`, `@media (max-width: 768px)` phone styling, phone-only chrome, and any shared helper whose change would alter phone behavior.
+- If a bug or fix appears to require touching Phone Mode (or shared code that Phone Mode depends on), STOP. Inform the user what would change and why, and wait for explicit approval before editing anything.
+- Prefer tablet/desktop/auto-shape-scoped fixes that leave Phone Mode paths untouched.
+
 ## Reporting: Whenever a report is requested:
 - it should be placed on the ~/Desktop in HTML format.
 - it should be named <Date>-<Task_Name>.html
