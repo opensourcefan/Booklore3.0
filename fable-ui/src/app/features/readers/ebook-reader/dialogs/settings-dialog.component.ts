@@ -6,6 +6,7 @@ import {ReaderViewManagerService} from '../core/view-manager.service';
 import {BookService} from '../../../book/service/book.service';
 import {EbookViewerSetting} from '../../../book/model/book.model';
 import {EpubCustomFontService} from '../features/fonts/custom-font.service';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../shared/util/overlay-dismiss.util';
 
 interface AnnotationColor {
   name: string;
@@ -43,8 +44,10 @@ export class ReaderSettingsDialogComponent implements OnInit {
   private customFontService = inject(EpubCustomFontService);
   private renderer = inject(Renderer2);
   private document = inject(DOCUMENT);
+  private readonly dismissGuard = new GhostClickGuard();
 
   ngOnInit() {
+    this.dismissGuard.arm();
     this.customFontService.injectCustomFontsStylesheet(this.renderer, this.document);
     this.selectedAnnotationColor = this.getSelectedAnnotationColor();
   }
@@ -178,5 +181,12 @@ export class ReaderSettingsDialogComponent implements OnInit {
   getSelectedAnnotationColor(): string {
     const stored = localStorage.getItem('selectedAnnotationColor');
     return stored || this.selectedAnnotationColor;
+  }
+
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
+    this.dialogClose.emit();
   }
 }

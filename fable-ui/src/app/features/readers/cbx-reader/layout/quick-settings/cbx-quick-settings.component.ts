@@ -15,6 +15,7 @@ import {
   CbxMagnifierLensSize
 } from '../../../../settings/user-management/user.service';
 import {ReaderIconComponent, ReaderIconName} from '../../../ebook-reader/shared/icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 import {CbxJoystickSensitivity, CbxQuickSettingsService, CbxQuickSettingsState} from './cbx-quick-settings.service';
 
 @Component({
@@ -28,6 +29,7 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
   private quickSettingsService = inject(CbxQuickSettingsService);
   private readonly t = inject(TranslocoService);
   private destroy$ = new Subject<void>();
+  private readonly dismissGuard = new GhostClickGuard();
 
   state: CbxQuickSettingsState = {
     fitMode: CbxFitMode.FIT_PAGE,
@@ -113,6 +115,7 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.dismissGuard.arm();
     this.quickSettingsService.state$
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => this.state = state);
@@ -213,7 +216,10 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
     this.quickSettingsService.emitJoystickIndicatorOpacityChange(nextOpacity);
   }
 
-  onOverlayClick(): void {
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
     this.quickSettingsService.close();
   }
 }

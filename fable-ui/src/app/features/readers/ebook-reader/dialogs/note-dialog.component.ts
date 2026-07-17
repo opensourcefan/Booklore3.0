@@ -1,8 +1,9 @@
-import {Component, EventEmitter, Input, Output, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslocoDirective, TranslocoPipe} from '@jsverse/transloco';
 import {ReaderIconComponent} from '../shared/icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../shared/util/overlay-dismiss.util';
 
 export interface NoteDialogData {
   cfi: string;
@@ -25,16 +26,21 @@ export interface NoteDialogResult {
   templateUrl: './note-dialog.component.html',
   styleUrls: ['./note-dialog.component.scss']
 })
-export class ReaderNoteDialogComponent implements OnChanges {
+export class ReaderNoteDialogComponent implements OnInit, OnChanges {
   @Input() data: NoteDialogData | null = null;
   @Output() save = new EventEmitter<NoteDialogResult>();
   @Output() dialogCancel = new EventEmitter<void>();
 
   noteContent = '';
   selectedColor = '#FFC107';
+  private readonly dismissGuard = new GhostClickGuard();
 
   get isEditing(): boolean {
     return !!this.data?.noteId;
+  }
+
+  ngOnInit(): void {
+    this.dismissGuard.arm();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -70,9 +76,10 @@ export class ReaderNoteDialogComponent implements OnChanges {
     this.selectedColor = color;
   }
 
-  onOverlayClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('dialog-overlay')) {
-      this.onCancel();
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
     }
+    this.onCancel();
   }
 }

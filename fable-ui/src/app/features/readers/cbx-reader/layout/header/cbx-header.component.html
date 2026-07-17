@@ -1,4 +1,4 @@
-<div class="cbx-header" [class.visible]="isVisible" tabindex="0" (keydown.enter)="closeMenus()" (click)="closeMenus()">
+<div class="cbx-header" [class.visible]="isVisible" tabindex="0" (keydown.enter)="closeMenus()" (click)="onHeaderBackgroundClick()">
   <div class="header-left">
     <button class="icon-btn" (click)="onOpenSidebar()" [title]="'readerCbx.header.contents' | transloco">
       <app-reader-icon name="menu" [size]="20" />
@@ -12,7 +12,7 @@
         <span class="indicator-dot"></span>
       }
     </button>
-    <button class="icon-btn mobile-settings-btn" (click)="onOpenSettings()" [title]="'readerCbx.header.settings' | transloco">
+    <button class="icon-btn mobile-settings-btn" (click)="onOpenSettings(); $event.stopPropagation()" [title]="'readerCbx.header.settings' | transloco">
       <app-reader-icon name="settings" [size]="20" />
     </button>
     @if (aiEnabled) {
@@ -27,8 +27,8 @@
           <app-reader-icon name="chevron-down" [size]="14" />
         </button>
         @if (aiMenuOpen) {
-          <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeMenus()" (click)="closeMenus()"></div>
-          <div class="ai-dropdown" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+          <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeMenus()" (pointerdown)="onMenuBackdropDismiss($event)" (click)="onMenuBackdropDismiss($event)"></div>
+          <div class="ai-dropdown" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
             <button class="overflow-item" (click)="onAiPanelDetection(); closeMenus()" [disabled]="aiWorking">
               <app-reader-icon name="play" [size]="16" />
               <span>{{ 'readerCbx.header.aiScanNowLabel' | transloco }}</span>
@@ -75,7 +75,7 @@
         </button>
       }
       @if (panelAdjustOpen && panelTravelControlsVisible) {
-        <div class="panel-adjust-popover" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+        <div class="panel-adjust-popover" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
           <div class="panel-adjust-title">Panel travel</div>
           <div class="panel-adjust-row">
             <button class="adjust-btn" (click)="onPanelTravelDelta(-0.1)">-</button>
@@ -103,8 +103,8 @@
         <app-reader-icon name="dots-vertical" [size]="20" />
       </button>
       @if (overflowOpen) {
-        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="overflowOpen = false" (click)="overflowOpen = false"></div>
-        <div class="overflow-dropdown">
+        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeOverflowMenu()" (pointerdown)="onOverflowBackdropDismiss($event)" (click)="onOverflowBackdropDismiss($event)"></div>
+        <div class="overflow-dropdown" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
           <button class="overflow-item" (click)="onTogglePin(); overflowOpen = false" [class.active]="isPinned">
             <app-reader-icon name="pin" [size]="18" />
             <span>{{ isPinned ? ('readerCbx.header.unpinBarsLabel' | transloco) : ('readerCbx.header.pinBarsLabel' | transloco) }}</span>
@@ -139,8 +139,8 @@
         <i class="pi pi-bullseye joystick-bullseye-icon" aria-hidden="true"></i>
       </button>
       @if (joystickMenuOpen) {
-        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeJoystickMenu()" (click)="closeJoystickMenu()"></div>
-        <div #joystickDropdown class="joystick-dropdown" [ngStyle]="joystickMenuStyle" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeJoystickMenu()" (pointerdown)="onJoystickBackdropDismiss($event)" (click)="onJoystickBackdropDismiss($event)"></div>
+        <div #joystickDropdown class="joystick-dropdown" [ngStyle]="joystickMenuStyle" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
           <div class="joystick-row">
             <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystick' | transloco }}</span>
             <div class="joystick-chip-group">
@@ -201,7 +201,7 @@
         </div>
       }
     </div>
-    <button class="icon-btn desktop-only" (click)="onOpenSettings()" [title]="'readerCbx.header.settings' | transloco">
+    <button class="icon-btn desktop-only" (click)="onOpenSettings(); $event.stopPropagation()" [title]="'readerCbx.header.settings' | transloco">
       <app-reader-icon name="settings" [size]="20" />
     </button>
     <button class="icon-btn pin-btn" (click)="onTogglePin()" [title]="isPinned ? ('readerCbx.header.unpinBars' | transloco) : ('readerCbx.header.pinBars' | transloco)" [class.active]="isPinned">

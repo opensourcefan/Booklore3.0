@@ -1,9 +1,10 @@
-import {Component, EventEmitter, inject, Input, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {TranslocoService} from '@jsverse/transloco';
 import {Book} from '../../../book/model/book.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-reader-book-metadata-dialog',
@@ -12,12 +13,17 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
   templateUrl: './metadata-dialog.component.html',
   styleUrls: ['./metadata-dialog.component.scss']
 })
-export class ReaderBookMetadataDialogComponent {
+export class ReaderBookMetadataDialogComponent implements OnInit {
   @Input() book: Book | null = null;
   @Output() dialogClose = new EventEmitter<void>();
 
   private urlHelperService = inject(UrlHelperService);
   private readonly t = inject(TranslocoService);
+  private readonly dismissGuard = new GhostClickGuard();
+
+  ngOnInit(): void {
+    this.dismissGuard.arm();
+  }
 
   get metadata() {
     return this.book?.metadata;
@@ -51,5 +57,12 @@ export class ReaderBookMetadataDialogComponent {
     if (!sizeKb) return this.t.translate('readerEbook.metadataDialog.na');
     if (sizeKb < 1024) return `${sizeKb.toFixed(1)} KB`;
     return `${(sizeKb / 1024).toFixed(2)} MB`;
+  }
+
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
+    this.dialogClose.emit();
   }
 }

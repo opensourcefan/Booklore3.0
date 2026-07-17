@@ -2,6 +2,7 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {ReaderIconComponent} from './icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../shared/util/overlay-dismiss.util';
 
 export type AnnotationStyle = 'highlight' | 'underline' | 'strikethrough' | 'squiggly';
 
@@ -26,12 +27,14 @@ export class TextSelectionPopupComponent {
     if (value) {
       this.showAnnotationOptions = false;
       this.hasPreview = false;
+      this.dismissGuard.arm();
     }
   }
   get visible(): boolean {
     return this._visible;
   }
   private _visible = false;
+  private readonly dismissGuard = new GhostClickGuard();
 
   @Input() position = {x: 0, y: 0};
   @Input() showBelow = false;
@@ -131,6 +134,10 @@ export class TextSelectionPopupComponent {
   onDismiss(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
+
+    if (event.type !== 'keydown' && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
 
     if (this.hasPreview) {
       this.action.emit({

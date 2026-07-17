@@ -6,6 +6,7 @@ import {ReaderHeaderService} from './header.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
 import {Router} from '@angular/router';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-reader-header',
@@ -20,6 +21,7 @@ export class ReaderHeaderComponent implements OnInit, OnDestroy, DoCheck {
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private destroy$ = new Subject<void>();
   private overflowBackHandle: MobileBackHandle | null = null;
+  private readonly menuDismissGuard = new GhostClickGuard();
 
   isVisible = false;
   isCurrentCfiBookmarked = false;
@@ -95,6 +97,24 @@ export class ReaderHeaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onShowHelp(): void {
     this.headerService.showShortcutsHelp();
+  }
+
+  onToggleOverflowMenu(event: Event): void {
+    event.stopPropagation();
+    if (this.menuDismissGuard.shouldIgnore()) {
+      return;
+    }
+    this.overflowOpen = !this.overflowOpen;
+    if (this.overflowOpen) {
+      this.menuDismissGuard.arm();
+    }
+  }
+
+  onOverflowBackdropDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.menuDismissGuard)) {
+      return;
+    }
+    this.overflowOpen = false;
   }
 
   onClose(): void {

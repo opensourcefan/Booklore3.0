@@ -1,5 +1,5 @@
-<div class="dialog-overlay" tabindex="0" (keydown.enter)="onOverlayClick($event)" (click)="onOverlayClick($event)">
-  <div class="dialog">
+<div class="dialog-overlay" tabindex="0" (keydown.enter)="onOverlayDismiss()" (pointerdown)="onOverlayDismiss($event)" (click)="onOverlayDismiss($event)">
+  <div class="dialog" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
     <div class="dialog-header">
       <h2>{{ isEditing ? ('readerCbx.noteDialog.editNote' | transloco) : ('readerCbx.noteDialog.addNote' | transloco) }}</h2>
       <button class="close-btn" (click)="onCancel()">

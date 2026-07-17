@@ -6,6 +6,7 @@ import {CbxHeaderService, CbxHeaderState} from './cbx-header.service';
 import {ReaderIconComponent} from '../../../ebook-reader';
 import {CommonModule} from '@angular/common';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 import {CbxJoystickSensitivity} from '../quick-settings/cbx-quick-settings.service';
 
 type CbxHeaderMobileSurface = 'overflow' | 'aiMenu' | 'panelAdjust' | 'joystickMenu';
@@ -29,6 +30,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   private destroy$ = new Subject<void>();
   private mobileBackHandles: Partial<Record<CbxHeaderMobileSurface, MobileBackHandle>> = {};
   private joystickMenuAnchorRect: DOMRect | null = null;
+  private readonly menuDismissGuard = new GhostClickGuard();
 
   @ViewChild('joystickDropdown') joystickDropdownRef?: ElementRef<HTMLDivElement>;
 
@@ -173,10 +175,14 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onToggleAiMenu(event: MouseEvent): void {
     event.stopPropagation();
+    if (this.menuDismissGuard.shouldIgnore()) {
+      return;
+    }
     this.aiMenuOpen = !this.aiMenuOpen;
     if (this.aiMenuOpen) {
       this.overflowOpen = false;
       this.closeJoystickMenu();
+      this.menuDismissGuard.arm();
     }
   }
 
@@ -187,10 +193,42 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     this.closeJoystickMenu();
   }
 
+  closeOverflowMenu(): void {
+    this.overflowOpen = false;
+  }
+
   closeJoystickMenu(): void {
     this.joystickMenuOpen = false;
     this.joystickMenuStyle = {};
     this.joystickMenuAnchorRect = null;
+  }
+
+  onHeaderBackgroundClick(): void {
+    if (this.menuDismissGuard.shouldIgnore()) {
+      return;
+    }
+    this.closeMenus();
+  }
+
+  onMenuBackdropDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.menuDismissGuard)) {
+      return;
+    }
+    this.closeMenus();
+  }
+
+  onOverflowBackdropDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.menuDismissGuard)) {
+      return;
+    }
+    this.overflowOpen = false;
+  }
+
+  onJoystickBackdropDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.menuDismissGuard)) {
+      return;
+    }
+    this.closeJoystickMenu();
   }
 
   private syncMobileBackSurface(surface: CbxHeaderMobileSurface, isOpen: boolean, close: () => void): void {
@@ -217,15 +255,22 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onTogglePanelAdjust(event: MouseEvent): void {
     event.stopPropagation();
+    if (this.menuDismissGuard.shouldIgnore()) {
+      return;
+    }
     this.panelAdjustOpen = !this.panelAdjustOpen;
     if (this.panelAdjustOpen) {
       this.closeJoystickMenu();
       this.overflowOpen = false;
+      this.menuDismissGuard.arm();
     }
   }
 
   onToggleJoystickMenu(event: MouseEvent): void {
     event.stopPropagation();
+    if (this.menuDismissGuard.shouldIgnore()) {
+      return;
+    }
     const trigger = event.currentTarget as HTMLElement | null;
     this.joystickMenuOpen = !this.joystickMenuOpen;
 
@@ -234,6 +279,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
       this.aiMenuOpen = false;
       this.panelAdjustOpen = false;
       this.joystickMenuAnchorRect = trigger?.getBoundingClientRect() ?? this.joystickMenuAnchorRect;
+      this.menuDismissGuard.arm();
       this.scheduleJoystickMenuPositioning();
     } else {
       this.closeJoystickMenu();
@@ -242,11 +288,15 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onToggleOverflowMenu(event: MouseEvent): void {
     event.stopPropagation();
+    if (this.menuDismissGuard.shouldIgnore()) {
+      return;
+    }
     this.overflowOpen = !this.overflowOpen;
     if (this.overflowOpen) {
       this.closeJoystickMenu();
       this.aiMenuOpen = false;
       this.panelAdjustOpen = false;
+      this.menuDismissGuard.arm();
     }
   }
 

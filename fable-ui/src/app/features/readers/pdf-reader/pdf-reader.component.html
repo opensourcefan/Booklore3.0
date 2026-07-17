@@ -100,8 +100,8 @@
   </ng-template>
 
   @if (showBookmarkDialog) {
-    <div class="bookmark-dialog-overlay" (click)="onCancelBookmark()" (keydown.escape)="onCancelBookmark()" tabindex="0" role="dialog" aria-modal="true" aria-label="Bookmark dialog">
-      <div class="bookmark-dialog" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
+    <div class="bookmark-dialog-overlay" (pointerdown)="onBookmarkOverlayDismiss($event)" (click)="onBookmarkOverlayDismiss($event)" (keydown.escape)="onCancelBookmark()" tabindex="0" role="dialog" aria-modal="true" aria-label="Bookmark dialog">
+      <div class="bookmark-dialog" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
         <div class="bookmark-dialog-header">
           <span>{{ 'readerPdf.bookmark.saveBookmark' | transloco }}</span>
           <button class="bookmark-dialog-close" (click)="onCancelBookmark()">&times;</button>

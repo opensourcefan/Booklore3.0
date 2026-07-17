@@ -1,7 +1,7 @@
 <ng-container *transloco="let t; prefix: 'readerEbook.sidebar'">
 @if (isOpen) {
-  <div class="sidebar-overlay" tabindex="0" (keydown.enter)="onOverlayClick()" (click)="onOverlayClick()" [class.closing]="closing">
-    <aside class="sidebar" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()" [class.closing]="closing">
+  <div class="sidebar-overlay" tabindex="0" (keydown.enter)="onOverlayDismiss()" (pointerdown)="onOverlayDismiss($event)" (click)="onOverlayDismiss($event)" [class.closing]="closing">
+    <aside class="sidebar" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()" [class.closing]="closing">
       <!-- Header with book info -->
       <header class="sidebar-header">
         @if (bookInfo.coverUrl) {

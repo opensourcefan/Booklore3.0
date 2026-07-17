@@ -1,10 +1,11 @@
-import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, inject} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {ReaderStateService} from '../../state/reader-state.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
 import {BookService} from '../../../../book/service/book.service';
 import {EbookViewerSetting} from '../../../../book/model/book.model';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-reader-quick-settings',
@@ -13,13 +14,18 @@ import {EbookViewerSetting} from '../../../../book/model/book.model';
   templateUrl: './quick-settings.component.html',
   styleUrls: ['./quick-settings.component.scss']
 })
-export class ReaderQuickSettingsComponent {
+export class ReaderQuickSettingsComponent implements OnInit {
   @Input() stateService!: ReaderStateService;
   @Input() bookId!: number;
   @Output() dialogClose = new EventEmitter<void>();
   @Output() openFullSettings = new EventEmitter<void>();
 
   private bookService = inject(BookService);
+  private readonly dismissGuard = new GhostClickGuard();
+
+  ngOnInit(): void {
+    this.dismissGuard.arm();
+  }
 
   get state() {
     return this.stateService.currentState;
@@ -77,7 +83,10 @@ export class ReaderQuickSettingsComponent {
     this.openFullSettings.emit();
   }
 
-  onOverlayClick(): void {
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
     this.dialogClose.emit();
   }
 }

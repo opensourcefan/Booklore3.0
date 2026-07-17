@@ -9,6 +9,7 @@ import {TocItem} from 'epubjs';
 import {BookMark} from '../../../../../shared/service/book-mark.service';
 import {Annotation} from '../../../../../shared/service/annotation.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-reader-sidebar',
@@ -20,6 +21,7 @@ import {ReaderIconComponent} from '../../shared/icon.component';
 export class ReaderSidebarComponent implements OnInit, OnDestroy {
   private sidebarService = inject(ReaderSidebarService);
   private destroy$ = new Subject<void>();
+  private readonly dismissGuard = new GhostClickGuard();
 
   isOpen = false;
   closing = false;
@@ -36,6 +38,7 @@ export class ReaderSidebarComponent implements OnInit, OnDestroy {
         if (isOpen) {
           this.isOpen = true;
           this.closing = false;
+          this.dismissGuard.arm();
         } else if (this.isOpen) {
           this.closeWithAnimation();
         }
@@ -75,7 +78,10 @@ export class ReaderSidebarComponent implements OnInit, OnDestroy {
     }, 250);
   }
 
-  onOverlayClick(): void {
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
     this.sidebarService.close();
   }
 

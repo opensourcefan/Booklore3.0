@@ -8,6 +8,7 @@ import {ReaderLeftSidebarService, LeftSidebarTab} from './panel.service';
 import {BookNoteV2} from '../../../../../shared/service/book-note-v2.service';
 import {SearchState} from '../sidebar/sidebar.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-reader-left-sidebar',
@@ -19,6 +20,7 @@ import {ReaderIconComponent} from '../../shared/icon.component';
 export class ReaderLeftSidebarComponent implements OnInit, OnDestroy {
   private leftSidebarService = inject(ReaderLeftSidebarService);
   private destroy$ = new Subject<void>();
+  private readonly dismissGuard = new GhostClickGuard();
 
   isOpen = false;
   closing = false;
@@ -36,6 +38,7 @@ export class ReaderLeftSidebarComponent implements OnInit, OnDestroy {
         if (isOpen) {
           this.isOpen = true;
           this.closing = false;
+          this.dismissGuard.arm();
         } else if (this.isOpen) {
           this.closeWithAnimation();
         }
@@ -81,7 +84,10 @@ export class ReaderLeftSidebarComponent implements OnInit, OnDestroy {
     }, 250);
   }
 
-  onOverlayClick(): void {
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
     this.leftSidebarService.close();
   }
 

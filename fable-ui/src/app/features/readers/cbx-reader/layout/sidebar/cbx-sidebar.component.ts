@@ -9,6 +9,7 @@ import {CbxPageInfo} from '../../../../book/service/cbx-reader.service';
 import {BookMark} from '../../../../../shared/service/book-mark.service';
 import {BookNoteV2} from '../../../../../shared/service/book-note-v2.service';
 import {ReaderIconComponent} from '../../../ebook-reader';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-cbx-sidebar',
@@ -20,6 +21,7 @@ import {ReaderIconComponent} from '../../../ebook-reader';
 export class CbxSidebarComponent implements OnInit, OnDestroy {
   private sidebarService = inject(CbxSidebarService);
   private destroy$ = new Subject<void>();
+  private readonly dismissGuard = new GhostClickGuard();
 
   isOpen = false;
   closing = false;
@@ -38,6 +40,7 @@ export class CbxSidebarComponent implements OnInit, OnDestroy {
         if (isOpen) {
           this.isOpen = true;
           this.closing = false;
+          this.dismissGuard.arm();
         } else if (this.isOpen) {
           this.closeWithAnimation();
         }
@@ -81,7 +84,10 @@ export class CbxSidebarComponent implements OnInit, OnDestroy {
     }, 250);
   }
 
-  onOverlayClick(): void {
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
+    }
     this.sidebarService.close();
   }
 

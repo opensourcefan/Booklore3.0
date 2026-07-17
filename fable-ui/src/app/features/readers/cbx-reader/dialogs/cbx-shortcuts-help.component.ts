@@ -1,7 +1,8 @@
-import {Component, EventEmitter, inject, Output} from '@angular/core';
+import {Component, EventEmitter, inject, OnInit, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {ReaderIconComponent} from '../../ebook-reader/shared/icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../shared/util/overlay-dismiss.util';
 
 interface ShortcutItem {
   keys: string[];
@@ -21,10 +22,15 @@ interface ShortcutGroup {
   templateUrl: './cbx-shortcuts-help.component.html',
   styleUrls: ['./cbx-shortcuts-help.component.scss']
 })
-export class CbxShortcutsHelpComponent {
+export class CbxShortcutsHelpComponent implements OnInit {
   private readonly t = inject(TranslocoService);
+  private readonly dismissGuard = new GhostClickGuard();
 
   @Output() dialogClose = new EventEmitter<void>();
+
+  ngOnInit(): void {
+    this.dismissGuard.arm();
+  }
 
   get shortcutGroups(): ShortcutGroup[] {
     return [
@@ -75,9 +81,10 @@ export class CbxShortcutsHelpComponent {
     this.dialogClose.emit();
   }
 
-  onOverlayClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('dialog-overlay')) {
-      this.onClose();
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
     }
+    this.onClose();
   }
 }

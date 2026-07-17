@@ -1,8 +1,9 @@
-import {Component, EventEmitter, inject, Input, Output, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {ReaderIconComponent} from '../../ebook-reader/shared/icon.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../../shared/util/overlay-dismiss.util';
 
 export interface CbxNoteDialogData {
   pageNumber: number;
@@ -23,8 +24,9 @@ export interface CbxNoteDialogResult {
   templateUrl: './cbx-note-dialog.component.html',
   styleUrls: ['./cbx-note-dialog.component.scss']
 })
-export class CbxNoteDialogComponent implements OnChanges {
+export class CbxNoteDialogComponent implements OnInit, OnChanges {
   private readonly t = inject(TranslocoService);
+  private readonly dismissGuard = new GhostClickGuard();
 
   @Input() data: CbxNoteDialogData | null = null;
   @Output() save = new EventEmitter<CbxNoteDialogResult>();
@@ -35,6 +37,10 @@ export class CbxNoteDialogComponent implements OnChanges {
 
   get isEditing(): boolean {
     return !!this.data?.noteId;
+  }
+
+  ngOnInit(): void {
+    this.dismissGuard.arm();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -72,9 +78,10 @@ export class CbxNoteDialogComponent implements OnChanges {
     this.selectedColor = color;
   }
 
-  onOverlayClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('dialog-overlay')) {
-      this.onCancel();
+  onOverlayDismiss(event?: Event): void {
+    if (event && !shouldDismissOverlay(event, this.dismissGuard)) {
+      return;
     }
+    this.onCancel();
   }
 }

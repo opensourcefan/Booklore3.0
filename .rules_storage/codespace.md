@@ -280,6 +280,10 @@ The app has a dedicated mobile UX system built around three services:
 - Sidebar reorder mode uses handle-only CDK drag (`cdkDragHandle` on `.sidebar-drag-handle`) plus up/down buttons so mobile vertical scroll remains usable; section/row order and media-type row order persist in device-browser localStorage (`sidebarSectionOrder`, `sidebarNestedOrder_*`, `sidebarBookTypeOrder`)
 - `.mobile-right-dir-trigger` in `_menu.scss` for mobile directory panel
 
+**Desktop-touch overlay dismiss** (`shared/util/overlay-dismiss.util.ts`)
+- `GhostClickGuard` + `shouldDismissOverlay()` ignore synthetic follow-up pointer/click events for ~400ms after a reader overlay opens
+- Used by CBX/ebook quick settings, header menus, sidebars, note/shortcuts/settings dialogs, PDF bookmark dialog, and selection popup — prevents flash-closed menus on Linux/Chromium tablets that emulate a mouse under touch
+
 ### Key DTOs
 
 **AppBookSummary** (`app/dto/AppBookSummary.java`) — lightweight book summary DTO for list/grid views, mapped by `AppBookMapper.toSummary()`. Contains 29 core fields plus 28 extended metadata fields:

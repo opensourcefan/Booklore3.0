@@ -20,6 +20,7 @@ import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {ReadingSessionService} from '../../../shared/service/reading-session.service';
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {Location} from '@angular/common';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-pdf-reader',
@@ -61,6 +62,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   showBookmarkDialog = false;
   bookmarkTitle = '';
   private bookmarks: BookMark[] = [];
+  private readonly bookmarkDismissGuard = new GhostClickGuard();
   @ViewChild('bookmarkTitleInput') bookmarkTitleInput!: ElementRef<HTMLInputElement>;
 
   private bookService = inject(BookService);
@@ -237,6 +239,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     } else {
       this.showBookmarkDialog = true;
       this.bookmarkTitle = '';
+      this.bookmarkDismissGuard.arm();
       setTimeout(() => this.bookmarkTitleInput?.nativeElement?.focus(), 0);
     }
   }
@@ -264,6 +267,13 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   onCancelBookmark(): void {
     this.showBookmarkDialog = false;
     this.bookmarkTitle = '';
+  }
+
+  onBookmarkOverlayDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.bookmarkDismissGuard)) {
+      return;
+    }
+    this.onCancelBookmark();
   }
 
   private removeBookmark(): void {
