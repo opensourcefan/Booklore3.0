@@ -20,7 +20,9 @@ public interface StoryArcRepository extends JpaRepository<StoryArcEntity, Long> 
     /**
      * Story arc summaries scoped to accessible libraries (working-catalog lane).
      * Counts, read progress, and cover pick only consider mapped books in
-     * {@code libraryIds}. Arcs with zero accessible books are omitted.
+     * {@code libraryIds}. Empty arcs (no mappings yet) remain visible so drafts
+     * created by name alone show up in the catalog immediately.
+     * Arcs that only contain inaccessible-library books stay omitted.
      */
     @Query("SELECT a, COUNT(b.id), " +
            "SUM(CASE WHEN p.readStatus = org.fable.model.enums.ReadStatus.READ THEN 1 ELSE 0 END), " +
@@ -31,7 +33,7 @@ public interface StoryArcRepository extends JpaRepository<StoryArcEntity, Long> 
            "LEFT JOIN BookEntity coverBook ON coverBook.id = a.coverBookId " +
            "LEFT JOIN UserBookProgressEntity p ON b.id = p.book.id AND p.user.id = :userId " +
            "GROUP BY a.id, a.name, a.externalUrl, a.description, a.coverBookId " +
-           "HAVING COUNT(b.id) > 0 " +
+           "HAVING COUNT(b.id) > 0 OR COUNT(m.id) = 0 " +
            "ORDER BY a.name")
     List<Object[]> findStoryArcSummariesWithUserProgress(
             @Param("userId") Long userId,

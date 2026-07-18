@@ -54,11 +54,22 @@ export class StoryArcService {
     );
   }
 
-  saveLayout(name: string, request: StoryArcLayoutUpdateRequest): Observable<void> {
+  /**
+   * Persist layout. Pass `{ refreshCatalog: false }` for quiet mid-edit saves
+   * (e.g. chapter title blur) so sidebar/catalog rebuilds do not steal OSK focus.
+   */
+  saveLayout(
+    name: string,
+    request: StoryArcLayoutUpdateRequest,
+    options?: { refreshCatalog?: boolean }
+  ): Observable<void> {
+    const refreshCatalog = options?.refreshCatalog !== false;
     return this.http.put<void>(`${this.url}/${encodeURIComponent(name)}/layout`, request).pipe(
       tap(() => {
-        this.reloadStoryArcs();
-        this.sidebarBadgeRefresh.requestRefresh();
+        if (refreshCatalog) {
+          this.reloadStoryArcs();
+          this.sidebarBadgeRefresh.requestRefresh();
+        }
       })
     );
   }

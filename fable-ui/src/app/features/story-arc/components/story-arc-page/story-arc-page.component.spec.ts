@@ -239,4 +239,31 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(fixture.componentInstance.rows[0].items).toEqual([]);
     expect(window.history.state?.startInEditMode).toBeUndefined();
   });
+
+  it('saves chapter title edits quietly without reloading the layout', () => {
+    const fixture = createFixture();
+    fixture.componentInstance.toggleEditMode();
+    fixture.detectChanges();
+
+    storyArcServiceMock.saveLayout.mockClear();
+    storyArcServiceMock.getStoryArc.mockClear();
+
+    const titleInput = fixture.nativeElement.querySelector('.row-title-input') as HTMLInputElement;
+    expect(titleInput).not.toBeNull();
+    titleInput.value = 'Renamed Chapter';
+    titleInput.dispatchEvent(new Event('input'));
+    fixture.componentInstance.rows[0].title = 'Renamed Chapter';
+    titleInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(storyArcServiceMock.saveLayout).toHaveBeenCalledWith(
+      'Test Arc',
+      expect.objectContaining({
+        storyArcName: 'Test Arc',
+        rowTitles: ['Renamed Chapter']
+      }),
+      {refreshCatalog: false}
+    );
+    expect(storyArcServiceMock.getStoryArc).not.toHaveBeenCalled();
+  });
 });

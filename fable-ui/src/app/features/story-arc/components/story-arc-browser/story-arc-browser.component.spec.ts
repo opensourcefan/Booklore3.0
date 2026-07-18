@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
-import {BehaviorSubject, of} from 'rxjs';
+import {BehaviorSubject, of, throwError} from 'rxjs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {MessageService} from 'primeng/api';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
@@ -29,22 +29,24 @@ describe('StoryArcBrowserComponent create flow', () => {
     add: vi.fn()
   };
 
+  const storyArcServiceMock = {
+    storyArcs$: arcs$.asObservable(),
+    loadStoryArcs: vi.fn(),
+    getStoryArc: vi.fn(() => of([])),
+    saveLayout: vi.fn(() => of(void 0))
+  };
+
   beforeEach(async () => {
     routerMock.navigate.mockClear();
     messageServiceMock.add.mockClear();
+    storyArcServiceMock.saveLayout.mockClear();
+    storyArcServiceMock.saveLayout.mockReturnValue(of(void 0));
 
     await TestBed.configureTestingModule({
       imports: [StoryArcBrowserComponent],
       providers: [
         provideNoopAnimations(),
-        {
-          provide: StoryArcService,
-          useValue: {
-            storyArcs$: arcs$.asObservable(),
-            loadStoryArcs: vi.fn(),
-            getStoryArc: vi.fn(() => of([]))
-          }
-        },
+        {provide: StoryArcService, useValue: storyArcServiceMock},
         {provide: UrlHelperService, useValue: {getDirectThumbnailUrl: vi.fn(() => 'thumb.jpg')}},
         {provide: PageTitleService, useValue: {setPageTitle: vi.fn()}},
         {provide: Router, useValue: routerMock},
@@ -69,7 +71,7 @@ describe('StoryArcBrowserComponent create flow', () => {
     expect(fixture.nativeElement.querySelector('#new-story-arc-name')).not.toBeNull();
   });
 
-  it('navigates to a blank reading path in edit mode after create', () => {
+  it('persists a named draft then navigates to the blank reading path in edit mode', () => {
     const fixture = TestBed.createComponent(StoryArcBrowserComponent);
     fixture.detectChanges();
 
@@ -77,6 +79,14 @@ describe('StoryArcBrowserComponent create flow', () => {
     fixture.componentInstance.newArcName = '  Infinite Crisis  ';
     fixture.componentInstance.confirmCreateArc();
 
+    expect(storyArcServiceMock.saveLayout).toHaveBeenCalledWith(
+      'Infinite Crisis',
+      {
+        storyArcName: 'Infinite Crisis',
+        items: [],
+        rowTitles: ['Chapter 1']
+      }
+    );
     expect(routerMock.navigate).toHaveBeenCalledWith(
       ['/story-arc', 'Infinite Crisis'],
       {state: {startInEditMode: true}}
@@ -91,11 +101,28 @@ describe('StoryArcBrowserComponent create flow', () => {
     fixture.componentInstance.openCreateDialog();
     fixture.componentInstance.newArcName = '   ';
     fixture.componentInstance.confirmCreateArc();
+    expect(storyArcServiceMock.saveLayout).not.toHaveBeenCalled();
     expect(routerMock.navigate).not.toHaveBeenCalled();
 
     fixture.componentInstance.newArcName = 'Existing Arc';
     fixture.componentInstance.confirmCreateArc();
+    expect(storyArcServiceMock.saveLayout).not.toHaveBeenCalled();
     expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect(messageServiceMock.add).toHaveBeenCalled();
+  });
+
+  it('keeps the dialog open when create persistence fails', () => {
+    storyArcServiceMock.saveLayout.mockReturnValueOnce(throwError(() => new Error('fail')));
+    const fixture = TestBed.createComponent(StoryArcBrowserComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.openCreateDialog();
+    fixture.componentInstance.newArcName = 'Broken Arc';
+    fixture.componentInstance.confirmCreateArc();
+
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.createDialogVisible).toBe(true);
+    expect(fixture.componentInstance.creatingArc).toBe(false);
     expect(messageServiceMock.add).toHaveBeenCalled();
   });
 });

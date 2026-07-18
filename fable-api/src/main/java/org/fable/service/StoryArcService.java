@@ -83,9 +83,9 @@ public class StoryArcService {
         }
 
         List<StoryArcBookMappingEntity> mappings = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(name);
-        // Empty / guide-only arcs have no library-scoped books → stay out of the catalog.
+        // Empty drafts (name-only arcs) return chapter/metadata sentinels so the editor can open.
         if (mappings.isEmpty()) {
-            return Collections.emptyList();
+            return buildEmptyArcSentinels(arc);
         }
 
         Set<Long> bookIds = mappings.stream()
@@ -121,6 +121,39 @@ public class StoryArcService {
                         .book(bookMap.get(mapping.getBookId()))
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private List<StoryArcBookMappingDto> buildEmptyArcSentinels(StoryArcEntity arc) {
+        List<String> titles = new ArrayList<>();
+        if (arc.getRowTitles() != null && !arc.getRowTitles().isBlank()) {
+            for (String line : arc.getRowTitles().split("\n", -1)) {
+                titles.add(line);
+            }
+        }
+        if (titles.isEmpty()) {
+            titles.add("Chapter 1");
+        }
+
+        List<StoryArcBookMappingDto> sentinels = new ArrayList<>(titles.size());
+        for (int i = 0; i < titles.size(); i++) {
+            String title = titles.get(i);
+            if (title == null || title.isBlank()) {
+                title = "Chapter " + (i + 1);
+            }
+            sentinels.add(StoryArcBookMappingDto.builder()
+                    .storyArcName(arc.getName())
+                    .bookId(null)
+                    .rowIndex(i)
+                    .colIndex(0)
+                    .sequenceOrder(0)
+                    .isCore(true)
+                    .rowTitle(title)
+                    .externalUrl(arc.getExternalUrl())
+                    .description(arc.getDescription())
+                    .coverBookId(null)
+                    .build());
+        }
+        return sentinels;
     }
 
     @Transactional

@@ -39,6 +39,7 @@ export class StoryArcBrowserComponent implements OnInit {
   filteredArcs$!: Observable<StoryArcSummary[]>;
 
   createDialogVisible = false;
+  creatingArc = false;
   newArcName = '';
 
   ngOnInit(): void {
@@ -76,15 +77,23 @@ export class StoryArcBrowserComponent implements OnInit {
 
   openCreateDialog(): void {
     this.newArcName = '';
+    this.creatingArc = false;
     this.createDialogVisible = true;
   }
 
   closeCreateDialog(): void {
+    if (this.creatingArc) {
+      return;
+    }
     this.createDialogVisible = false;
     this.newArcName = '';
   }
 
   confirmCreateArc(): void {
+    if (this.creatingArc) {
+      return;
+    }
+
     const name = this.newArcName.trim();
     if (!name) {
       this.messageService.add({
@@ -106,10 +115,29 @@ export class StoryArcBrowserComponent implements OnInit {
         return;
       }
 
-      this.createDialogVisible = false;
-      this.newArcName = '';
-      void this.router.navigate(['/story-arc', name], {
-        state: {startInEditMode: true}
+      this.creatingArc = true;
+      // Persist the named draft immediately so it appears in sidebar/browser before books are added.
+      this.storyArcService.saveLayout(name, {
+        storyArcName: name,
+        items: [],
+        rowTitles: ['Chapter 1']
+      }).subscribe({
+        next: () => {
+          this.creatingArc = false;
+          this.createDialogVisible = false;
+          this.newArcName = '';
+          void this.router.navigate(['/story-arc', name], {
+            state: {startInEditMode: true}
+          });
+        },
+        error: () => {
+          this.creatingArc = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Create failed',
+            detail: 'Could not create the story arc. Try again.'
+          });
+        }
       });
     });
   }

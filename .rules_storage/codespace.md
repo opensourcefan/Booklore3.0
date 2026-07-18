@@ -219,8 +219,8 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend version: `4.15.68` (in both `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest git tag: `v4.15.68`
+- Backend version: `4.15.69` (in both `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest git tag: `v4.15.69`
 
 ## Code Conventions
 

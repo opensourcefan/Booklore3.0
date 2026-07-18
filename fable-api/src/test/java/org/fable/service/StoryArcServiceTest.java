@@ -87,10 +87,11 @@ class StoryArcServiceTest {
     }
 
     @Test
-    void getStoryArc_shouldHideEmptyGuideOnlyArcs() {
+    void getStoryArc_shouldReturnRowTitleSentinelsForEmptyDraftArcs() {
         StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Lonely Arc")
                 .externalUrl("https://guide.example.com")
                 .description("A reading guide")
+                .rowTitles("Prologue\nFinale")
                 .build();
 
         when(storyArcRepository.findByName("Lonely Arc")).thenReturn(Optional.of(arc));
@@ -98,7 +99,14 @@ class StoryArcServiceTest {
 
         List<StoryArcBookMappingDto> result = storyArcService.getStoryArc("Lonely Arc");
 
-        assertTrue(result.isEmpty());
+        assertEquals(2, result.size());
+        assertNull(result.get(0).getBookId());
+        assertEquals("Prologue", result.get(0).getRowTitle());
+        assertEquals(0, result.get(0).getRowIndex());
+        assertEquals("https://guide.example.com", result.get(0).getExternalUrl());
+        assertEquals("A reading guide", result.get(0).getDescription());
+        assertEquals("Finale", result.get(1).getRowTitle());
+        assertEquals(1, result.get(1).getRowIndex());
     }
 
     @Test

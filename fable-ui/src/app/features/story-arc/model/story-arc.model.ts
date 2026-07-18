@@ -11,7 +11,7 @@ export interface StoryArcSummary {
 export interface StoryArcBookMapping {
   id?: number;
   storyArcName: string;
-  bookId: number;
+  bookId: number | null;
   rowIndex: number;
   colIndex: number;
   sequenceOrder: number;

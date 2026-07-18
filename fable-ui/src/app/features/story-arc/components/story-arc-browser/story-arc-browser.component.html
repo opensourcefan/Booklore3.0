@@ -106,6 +106,8 @@
       label="Create"
       icon="pi pi-check"
       styleClass="p-button-primary"
+      [disabled]="creatingArc"
+      [loading]="creatingArc"
       (onClick)="confirmCreateArc()"
     ></p-button>
   </div>

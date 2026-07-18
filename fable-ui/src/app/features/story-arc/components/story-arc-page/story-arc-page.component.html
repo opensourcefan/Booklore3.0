@@ -125,9 +125,9 @@
         }
       </div>
       <div class="url-input-row">
-        <input type="text" [(ngModel)]="externalUrl" placeholder="https://comicbookreadingorders.com/dc/characters/..." class="url-input" />
+        <input type="text" [(ngModel)]="externalUrl" (blur)="saveLayout(true)" placeholder="https://comicbookreadingorders.com/dc/characters/..." class="url-input" />
       </div>
-      <textarea rows="4" [(ngModel)]="summaryDescription" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
+      <textarea rows="4" [(ngModel)]="summaryDescription" (blur)="saveLayout(true)" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
     </div>
   }
 
@@ -186,7 +186,7 @@
                   <p-button icon="pi pi-chevron-up" styleClass="p-button-text p-button-secondary row-order-btn" (onClick)="moveRowOrder(rowIndex, 'up')" [disabled]="rowIndex === 0" pTooltip="Move Chapter Up"></p-button>
                   <p-button icon="pi pi-chevron-down" styleClass="p-button-text p-button-secondary row-order-btn" (onClick)="moveRowOrder(rowIndex, 'down')" [disabled]="rowIndex === rows.length - 1" pTooltip="Move Chapter Down"></p-button>
                 </div>
-                <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
+                <input type="text" [(ngModel)]="row.title" (blur)="saveLayout(true)" class="row-title-input" placeholder="Chapter title..." />
                 <p-button icon="pi pi-plus" styleClass="p-button-success p-button-text add-books-btn" (onClick)="openBookPicker(rowIndex)" pTooltip="Add books to this chapter"></p-button>
                 <p-button icon="pi pi-arrow-up" styleClass="p-button-outlined p-button-secondary p-button-sm add-chapter-btn" (onClick)="addRowAbove(rowIndex)" pTooltip="Add Chapter Above"></p-button>
                 <p-button icon="pi pi-arrow-down" styleClass="p-button-outlined p-button-secondary p-button-sm add-chapter-btn" (onClick)="addRowBelow(rowIndex)" pTooltip="Add Chapter Below"></p-button>

@@ -458,12 +458,19 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     this.saveLayout();
   }
 
+  /**
+   * Persist layout. When skipReload is true (quiet mid-edit save), also skip
+   * catalog/sidebar refresh so focus and on-screen keyboards are not dropped.
+   */
   saveLayout(skipReload = false): void {
     const items: StoryArcLayoutUpdateRequest['items'] = [];
     let sequence = 1;
 
     this.rows.forEach((row, rIndex) => {
       row.items.forEach((item, cIndex) => {
+        if (item.bookId == null) {
+          return;
+        }
         items.push({
           bookId: item.bookId,
           rowIndex: rIndex,
@@ -486,7 +493,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
       description: this.summaryDescription,
       items,
       rowTitles
-    }).subscribe({
+    }, { refreshCatalog: !skipReload }).subscribe({
       next: () => {
         if (!skipReload) {
           this.loadLayout(true);
@@ -527,6 +534,11 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
 
   removeBook(rowIndex: number, colIndex: number): void {
     const item = this.rows[rowIndex].items[colIndex];
+    if (item.bookId == null) {
+      this.rows[rowIndex].items.splice(colIndex, 1);
+      this.saveLayout(true);
+      return;
+    }
     this.storyArcService.removeBooksFromStoryArc(this.arcName, [item.bookId]).subscribe({
       next: () => {
         this.rows[rowIndex].items.splice(colIndex, 1);
@@ -570,7 +582,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   getNextUpBookId(): number | null {
     for (const row of this.rows) {
       for (const item of row.items) {
-        if (item.book && item.book.readStatus !== 'READ') {
+        if (item.bookId != null && item.book && item.book.readStatus !== 'READ') {
           return item.bookId;
         }
       }
@@ -598,7 +610,10 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  getThumbnail(bookId: number): string {
+  getThumbnail(bookId: number | null | undefined): string {
+    if (bookId == null) {
+      return 'assets/images/missing-cover.jpg';
+    }
     return this.urlHelper.getDirectThumbnailUrl(bookId);
   }
 
@@ -693,7 +708,10 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     return this.selectedMoveCard?.rowIndex === rowIndex && this.selectedMoveCard?.colIndex === colIndex;
   }
 
-  setCoverBook(bookId: number): void {
+  setCoverBook(bookId: number | null | undefined): void {
+    if (bookId == null) {
+      return;
+    }
     this.coverBookId = bookId;
     this.storyArcService.setCoverBook(this.arcName, bookId).subscribe({
       next: () => {
