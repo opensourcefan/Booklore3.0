@@ -33,25 +33,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  // Large enough touch target so taps hit the destination link, not the
+  // surrounding expand/collapse header (especially on touch tablets).
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  margin: -0.35rem 0;
+  box-sizing: border-box;
   color: var(--p-primary-color);
   text-decoration: none;
   font-size: 0.8rem;
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
+  border-radius: 0.35rem;
 
   &:hover {
     color: var(--p-primary-400);
   }
 
   .pi {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
-}
-
-:host-context(.mobile-sidebar-popover) .sidebar-heading-nav {
-  min-width: 32px;
-  min-height: 32px;
 }
 
 .reorder-control-disabled {

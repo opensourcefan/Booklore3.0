@@ -88,6 +88,8 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   summaryDialogVisible = false;
   private hasPushedHistoryState = false;
   private mobileSub?: Subscription;
+  /** One-shot flag from Story Arcs "New Story Arc" create navigation. */
+  private pendingStartInEditMode = false;
 
   /** Book drop-list axis: vertical on mobile card timeline, horizontal on desktop rows. */
   get bookDropListOrientation(): 'horizontal' | 'vertical' {
@@ -120,6 +122,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isMobile = this.mobileUx.isMobileInteractionMode;
+    this.pendingStartInEditMode = this.consumeStartInEditModeFlag();
 
     this.route.paramMap.subscribe(params => {
       const name = params.get('arcName');
@@ -132,7 +135,9 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
           this.arcName = name;
         }
         this.pageTitle.setPageTitle(this.arcName);
-        this.loadLayout();
+        const startInEditMode = this.pendingStartInEditMode;
+        this.pendingStartInEditMode = false;
+        this.loadLayout(false, startInEditMode);
       }
     });
 
@@ -167,7 +172,22 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   };
 
 
-  loadLayout(silent = false): void {
+  /** Reads one-shot navigation state from create flow without leaving it on history. */
+  private consumeStartInEditModeFlag(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    const state = window.history.state as {startInEditMode?: boolean} | null;
+    const startInEditMode = state?.startInEditMode === true;
+    if (startInEditMode) {
+      const rest = {...(state ?? {})};
+      delete rest.startInEditMode;
+      window.history.replaceState(rest, '');
+    }
+    return startInEditMode;
+  }
+
+  loadLayout(silent = false, startInEditMode = false): void {
     if (!silent) {
       this.loading = true;
       this.cdr.markForCheck();
@@ -176,6 +196,13 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     this.storyArcService.getStoryArc(this.arcName).subscribe({
       next: (mappings) => {
         this.buildRowsFromMappings(mappings);
+        if (startInEditMode) {
+          this.backupRows = JSON.parse(JSON.stringify(this.rows));
+          this.backupExternalUrl = this.externalUrl;
+          this.backupSummaryDescription = this.summaryDescription;
+          this.isEditMode = true;
+          this.isChapterSortMode = false;
+        }
         this.loading = false;
         this.cdr.markForCheck();
       },

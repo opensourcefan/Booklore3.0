@@ -226,4 +226,17 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(summary.classList.contains('collapsed')).toBe(false);
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
   });
+
+  it('opens a blank new arc in edit mode when create navigation state is present', () => {
+    window.history.replaceState({startInEditMode: true}, '');
+    storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([]));
+
+    const fixture = createFixture();
+
+    expect(fixture.componentInstance.isEditMode).toBe(true);
+    expect(fixture.componentInstance.rows.length).toBe(1);
+    expect(fixture.componentInstance.rows[0].title).toBe('Chapter 1');
+    expect(fixture.componentInstance.rows[0].items).toEqual([]);
+    expect(window.history.state?.startInEditMode).toBeUndefined();
+  });
 });

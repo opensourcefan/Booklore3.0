@@ -5,6 +5,13 @@
       <p class="subtitle">Custom crossover events and reading order timelines</p>
     </div>
     <div class="header-actions">
+      <p-button
+        icon="pi pi-plus"
+        label="New Story Arc"
+        styleClass="p-button-primary new-arc-btn"
+        (onClick)="openCreateDialog()"
+        ariaLabel="Create new story arc"
+      ></p-button>
       <span class="p-input-icon-left search-input-wrapper">
         <i class="pi pi-search search-icon"></i>
         <input
@@ -55,7 +62,7 @@
       <div class="empty-state">
         <i class="pi pi-compass empty-icon"></i>
         <h2>No story arcs found</h2>
-        <p>Try searching for a different keyword or create a story arc from your library books.</p>
+        <p>Try a different search, or create a new story arc to start a blank reading path.</p>
       </div>
     }
   } @else {
@@ -65,3 +72,41 @@
     </div>
   }
 </div>
+
+<p-dialog
+  header="New Story Arc"
+  [(visible)]="createDialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: 'min(420px, 92vw)'}"
+  styleClass="story-arc-create-dialog"
+  (onHide)="closeCreateDialog()"
+>
+  <div class="create-dialog-body">
+    <label class="create-dialog-label" for="new-story-arc-name">Story arc name</label>
+    <input
+      id="new-story-arc-name"
+      pInputText
+      type="text"
+      class="create-dialog-input"
+      [(ngModel)]="newArcName"
+      (keydown.enter)="confirmCreateArc()"
+      placeholder="e.g. Infinite Crisis"
+      autocomplete="off"
+    />
+  </div>
+  <div class="create-dialog-footer">
+    <p-button
+      label="Cancel"
+      styleClass="p-button-text"
+      (onClick)="closeCreateDialog()"
+    ></p-button>
+    <p-button
+      label="Create"
+      icon="pi pi-check"
+      styleClass="p-button-primary"
+      (onClick)="confirmCreateArc()"
+    ></p-button>
+  </div>
+</p-dialog>

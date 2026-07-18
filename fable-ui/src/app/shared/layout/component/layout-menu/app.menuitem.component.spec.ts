@@ -412,6 +412,43 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     expect(component.isExpanded(component.key)).toBe(true);
   });
 
+  it('gives the Story Arcs section destination control a large touch target', async () => {
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+
+    fixture.componentRef.setInput('item', {
+      label: 'Story Arcs',
+      type: 'storyArc',
+      hasDropDown: true,
+      routerLink: ['/story-arcs'],
+      items: [
+        {
+          label: 'The Rocketeer',
+          type: 'StoryArc',
+          routerLink: ['/story-arc/The Rocketeer'],
+        },
+      ],
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', true);
+    fixture.componentRef.setInput('parentKey', 'storyArc');
+    fixture.componentRef.setInput('menuKey', 'storyArc');
+    fixture.componentRef.setInput('reorderMode', false);
+    fixture.detectChanges();
+
+    const nav = fixture.nativeElement.querySelector('.sidebar-heading-nav') as HTMLAnchorElement;
+    expect(nav).not.toBeNull();
+    expect(nav.querySelector('.pi-arrow-right')).not.toBeNull();
+
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const scss = readFileSync(
+      join(process.cwd(), 'src/app/shared/layout/component/layout-menu/app.menuitem.component.scss'),
+      'utf8'
+    );
+    expect(scss).toContain('min-width: 2.75rem');
+    expect(scss).toContain('min-height: 2.75rem');
+  });
+
   it('does not toggle expand when the create (+) control is clicked', () => {
     const fixture = TestBed.createComponent(AppMenuitemComponent);
     const onCreate = vi.fn();
