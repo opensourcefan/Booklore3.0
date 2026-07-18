@@ -126,16 +126,20 @@ describe('search-overlay-focus.util', () => {
         configurable: true,
         value: {show, hide: vi.fn()}
       });
-      vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
-        matches: query.includes('pointer: fine'),
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn()
-      }));
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: (query: string) => ({
+          matches: query.includes('pointer: fine'),
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn()
+        })
+      });
 
       const handle = focusSearchOverlayInput(() => input);
       expect(show).not.toHaveBeenCalled();
@@ -162,16 +166,20 @@ describe('search-overlay-focus.util', () => {
         configurable: true,
         value: {show: vi.fn(), hide}
       });
-      vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
-        matches: query.includes('pointer: fine'),
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn()
-      }));
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: (query: string) => ({
+          matches: query.includes('pointer: fine'),
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn()
+        })
+      });
 
       const input = document.createElement('input');
       document.body.appendChild(input);
