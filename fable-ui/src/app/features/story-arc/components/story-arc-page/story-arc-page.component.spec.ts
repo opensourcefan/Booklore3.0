@@ -227,6 +227,17 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
   });
 
+  it('allows the About This Arc body to scroll long summaries', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const scss = readFileSync(
+      join(process.cwd(), 'src/app/features/story-arc/components/story-arc-page/story-arc-page.component.scss'),
+      'utf8'
+    );
+    expect(scss).toMatch(/\.summary-body\s*\{[^}]*overflow-y:\s*auto/s);
+    expect(scss).not.toMatch(/\.summary-body\s*\{[^}]*overflow:\s*hidden/s);
+  });
+
   it('opens a blank new arc in edit mode when create navigation state is present', () => {
     window.history.replaceState({startInEditMode: true}, '');
     storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([]));
