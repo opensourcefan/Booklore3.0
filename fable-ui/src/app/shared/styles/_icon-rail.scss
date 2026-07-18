@@ -5,6 +5,9 @@
 // Phone Mode: do NOT blanket-apply. Only use on phone for documented issue corrections
 // (see Desktop report 2026-07-18-Tablet_Header_Icon_Side_Scrolling.html §10–§11).
 // Never replace phone overflow menus (topbar, ebook, CBX) with this rail.
+//
+// Scroll affordance: pair with [appIconRailHint] so edge fades/chevrons appear only
+// when content actually overflows in that direction.
 
 @mixin icon-rail($scroll-padding: 12px, $with-fade: false) {
   min-width: 0;
@@ -42,4 +45,43 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+}
+
+// Directional scroll hints (driven by IconRailScrollHintDirective classes).
+// Backgrounds stay on the scrollport so icons are not permanently masked.
+@mixin icon-rail-hint-surfaces(
+  $fade-color: var(--card-background, var(--p-surface-900, #1c1c1c)),
+  $fade-width: 28px
+) {
+  &.icon-rail-hint {
+    position: relative;
+    background-repeat: no-repeat;
+    background-origin: padding-box;
+  }
+
+  &.icon-rail--can-scroll-end {
+    background-image:
+      linear-gradient(to right, transparent, #{$fade-color}),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M6 3l5 5-5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right center, right 6px center;
+    background-size: #{$fade-width} 100%, 14px 14px;
+  }
+
+  &.icon-rail--can-scroll-start {
+    background-image:
+      linear-gradient(to left, transparent, #{$fade-color}),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M10 3L5 8l5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: left center, left 6px center;
+    background-size: #{$fade-width} 100%, 14px 14px;
+  }
+
+  &.icon-rail--can-scroll-start.icon-rail--can-scroll-end {
+    background-image:
+      linear-gradient(to left, transparent, #{$fade-color}),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M10 3L5 8l5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+      linear-gradient(to right, transparent, #{$fade-color}),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M6 3l5 5-5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: left center, left 6px center, right center, right 6px center;
+    background-size: #{$fade-width} 100%, 14px 14px, #{$fade-width} 100%, 14px 14px;
+  }
 }

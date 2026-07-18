@@ -30,6 +30,7 @@ import {FailureNotificationService} from '../../../../shared/service/failure-not
 import {AuthorService} from '../../service/author.service';
 import {AuthorSummary, EnrichedAuthor, AuthorFilters, NameQuality, DEFAULT_AUTHOR_FILTERS} from '../../model/author.model';
 import {AuthorCardComponent} from '../author-card/author-card.component';
+import {IconRailScrollHintDirective} from '../../../../shared/directives/icon-rail-scroll-hint.directive';
 import {AuthorScalePreferenceService} from '../../service/author-scale-preference.service';
 import {AuthorSelectionService, AuthorCheckboxClickEvent} from '../../service/author-selection.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -82,6 +83,7 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
     Tooltip,
     TranslocoDirective,
     AuthorCardComponent,
+    IconRailScrollHintDirective,
   ]
 })
 export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy {

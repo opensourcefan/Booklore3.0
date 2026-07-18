@@ -77,6 +77,7 @@ import {PagedBookBrowserStateService} from '../../service/paged-book-browser-sta
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
+import {IconRailScrollHintDirective} from '../../../../shared/directives/icon-rail-scroll-hint.directive';
 import {CoverPreviewComponent} from '../../../../shared/components/cover-preview/cover-preview.component';
 import {LoadingIndicatorComponent} from '../../../../shared/components/loading-indicator/loading-indicator.component';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
@@ -121,6 +122,7 @@ export enum EntityType {
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, MultiSortPopoverComponent, TranslocoDirective,
     ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent, ProgressBar, DirectoryMobilePanelComponent,
+    IconRailScrollHintDirective,
   ],
   providers: [SeriesCollapseFilter],
   animations: [

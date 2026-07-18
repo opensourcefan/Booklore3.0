@@ -27,6 +27,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Tooltip} from "primeng/tooltip";
 import {Divider} from "primeng/divider";
 import {TagComponent} from "../../../../shared/components/tag/tag.component";
+import {IconRailScrollHintDirective} from "../../../../shared/directives/icon-rail-scroll-hint.directive";
 import {animate, style, transition, trigger} from "@angular/animations";
 import {AfterViewChecked, Component, ElementRef, inject, OnDestroy, ViewChild} from '@angular/core';
 import {BookCardOverlayPreferenceService} from '../book-browser/book-card-overlay-preference.service';
@@ -87,7 +88,8 @@ interface SeriesStats {
     Tooltip,
     Divider,
     TranslocoDirective,
-    TagComponent
+    TagComponent,
+    IconRailScrollHintDirective
   ],
   animations: [
     trigger('slideInOut', [

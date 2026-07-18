@@ -1,3 +1,5 @@
+@use '../../../../shared/styles/icon-rail' as icon-rail;
+
 .loading-state {
   display: flex;
   align-items: center;
@@ -250,24 +252,15 @@
 
 .selection-panel-center {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
   min-width: 0;
   gap: 0.5rem;
-  overflow-x: auto;
-  padding: 0.25rem 0;
-
-  &::-webkit-scrollbar {
-    height: 3px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-  }
+  flex: 1;
+  @include icon-rail.icon-rail($scroll-padding: 16px, $with-fade: false);
+  padding-inline: 16px;
+  @include icon-rail.icon-rail-hint-surfaces;
 }
 
 .selection-panel-right {

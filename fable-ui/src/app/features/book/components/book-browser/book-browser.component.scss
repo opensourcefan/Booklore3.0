@@ -728,6 +728,7 @@
   // so they looked cut off even when scrolled into the rail.
   @include icon-rail.icon-rail($scroll-padding: 20px, $with-fade: false);
   padding-inline: 20px;
+  @include icon-rail.icon-rail-hint-surfaces;
 }
 
 .selection-panel-right {
