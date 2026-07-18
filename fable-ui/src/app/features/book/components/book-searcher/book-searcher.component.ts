@@ -22,6 +22,7 @@ import {
   focusSearchOverlayInput,
   SearchOverlayFocusHandle
 } from '../../../../shared/util/search-overlay-focus.util';
+import {GhostClickGuard} from '../../../../shared/util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-book-searcher',
@@ -52,6 +53,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   #subscription!: Subscription;
   isSearchFocused = false;
   private focusHandle: SearchOverlayFocusHandle | null = null;
+  private readonly focusGhostGuard = new GhostClickGuard();
 
   private bookService = inject(BookService);
   private router = inject(Router);
@@ -197,6 +199,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
    */
   focusInput(): void {
     this.focusHandle?.clear();
+    this.focusGhostGuard.arm();
     this.focusHandle = focusSearchOverlayInput(() => this.resolveSearchInput(), {
       onFocused: () => {
         this.isSearchFocused = true;
@@ -232,6 +235,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
+    // Desktop-touch ghost clicks after focus must not clear search / fight the OSK.
+    if (this.focusGhostGuard.shouldIgnore()) {
+      return;
+    }
     if (!this.elRef.nativeElement.contains(event.target)) {
       this.clearSearch();
       this.isSearchFocused = false;

@@ -46,6 +46,7 @@ import {AiSearchDialogComponent, AiSearchDialogService} from '../../../../featur
 import {AppSettingsService} from '../../../service/app-settings.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
 import {toggleAppFullscreen, addFullscreenChangeListener, isAppFullscreen} from '../../../util/fullscreen.util';
+import {GhostClickGuard, OVERLAY_GHOST_CLICK_MS} from '../../../util/overlay-dismiss.util';
 
 @Component({
   selector: 'app-topbar',
@@ -98,6 +99,10 @@ export class AppTopBarComponent implements OnDestroy {
 
   isMenuVisible = true;
   mobileSearchVisible = false;
+  /** Delayed so a desktop-touch ghost click cannot slam the search dialog shut (and drop the OSK). */
+  mobileSearchDismissableMask = false;
+  private readonly mobileSearchGhostGuard = new GhostClickGuard();
+  private mobileSearchMaskTimer: ReturnType<typeof setTimeout> | null = null;
   progressHighlight = false;
   completedTaskCount = 0;
   unreadFailureCount = 0;
@@ -410,6 +415,7 @@ export class AppTopBarComponent implements OnDestroy {
     this.mobileOverflowBackHandle = null;
     this.mobileSearchBackHandle?.release(false);
     this.mobileSearchBackHandle = null;
+    this.clearMobileSearchMaskTimer();
     this.metadataFetchLogBackHandle?.release(false);
     this.metadataFetchLogBackHandle = null;
 
@@ -460,6 +466,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   openMobileSearch(): void {
+    this.armMobileSearchGhostGuard();
     this.mobileSearchVisible = true;
     if (!this.mobileSearchBackHandle) {
       this.mobileSearchBackHandle = this.mobileBackNavigation.register(() => {
@@ -472,6 +479,8 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   closeMobileSearch(): void {
+    this.clearMobileSearchMaskTimer();
+    this.mobileSearchDismissableMask = false;
     this.mobileBookSearcher?.blurInput();
     this.mobileSearchVisible = false;
     this.mobileSearchBackHandle?.release();
@@ -479,7 +488,30 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileSearchHide(): void {
+    // Ghost click after open: PrimeNG already flipped visible=false — restore it.
+    if (this.mobileSearchGhostGuard.shouldIgnore()) {
+      this.mobileSearchVisible = true;
+      queueMicrotask(() => this.mobileBookSearcher?.focusInput());
+      return;
+    }
     this.closeMobileSearch();
+  }
+
+  private armMobileSearchGhostGuard(): void {
+    this.mobileSearchGhostGuard.arm();
+    this.mobileSearchDismissableMask = false;
+    this.clearMobileSearchMaskTimer();
+    this.mobileSearchMaskTimer = setTimeout(() => {
+      this.mobileSearchDismissableMask = true;
+      this.mobileSearchMaskTimer = null;
+    }, OVERLAY_GHOST_CLICK_MS);
+  }
+
+  private clearMobileSearchMaskTimer(): void {
+    if (this.mobileSearchMaskTimer) {
+      clearTimeout(this.mobileSearchMaskTimer);
+      this.mobileSearchMaskTimer = null;
+    }
   }
 
   onMobileSearchShow(): void {

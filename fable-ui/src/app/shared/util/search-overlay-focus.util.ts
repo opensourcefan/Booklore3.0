@@ -33,12 +33,49 @@ export function detectHasTouchInput(
   return 'ontouchstart' in win;
 }
 
+/**
+ * Chromium Virtual Keyboard API helps phone/coarse-pointer browsers.
+ * On fine-pointer desktop-touch (Duet / Linux Chromium), show()/hide() fights
+ * GNOME OSK extensions — leave the OS keyboard alone there.
+ * Real phones typically report (pointer: coarse), so Phone Mode stays unchanged.
+ */
+export function shouldUseChromiumVirtualKeyboard(
+  win: Window & typeof globalThis = window
+): boolean {
+  if (typeof win === 'undefined' || typeof win.matchMedia !== 'function') {
+    return true;
+  }
+  try {
+    if (win.matchMedia('(pointer: fine)').matches) {
+      return false;
+    }
+  } catch {
+    // ignore
+  }
+  return true;
+}
+
 function tryShowVirtualKeyboard(win: Window & typeof globalThis = window): void {
+  if (!shouldUseChromiumVirtualKeyboard(win)) {
+    return;
+  }
   try {
     const nav = win.navigator as NavigatorWithVirtualKeyboard;
     nav.virtualKeyboard?.show?.();
   } catch {
     // Virtual Keyboard API is Chromium-only and may throw if unsupported.
+  }
+}
+
+function tryHideVirtualKeyboard(win: Window & typeof globalThis = window): void {
+  if (!shouldUseChromiumVirtualKeyboard(win)) {
+    return;
+  }
+  try {
+    const nav = win.navigator as NavigatorWithVirtualKeyboard;
+    nav.virtualKeyboard?.hide?.();
+  } catch {
+    // ignore
   }
 }
 
@@ -55,7 +92,8 @@ export function focusSearchOverlayInput(
 ): SearchOverlayFocusHandle {
   const timeouts: ReturnType<typeof setTimeout>[] = [];
   let cancelled = false;
-  const requestVirtualKeyboard = options?.requestVirtualKeyboard !== false;
+  const requestVirtualKeyboard =
+    options?.requestVirtualKeyboard ?? shouldUseChromiumVirtualKeyboard();
 
   const clear = (): void => {
     cancelled = true;
@@ -108,10 +146,5 @@ export function focusSearchOverlayInput(
 export function blurSearchOverlayInput(resolve: SearchInputResolver): void {
   const input = resolve() ?? null;
   input?.blur();
-  try {
-    const nav = navigator as NavigatorWithVirtualKeyboard;
-    nav.virtualKeyboard?.hide?.();
-  } catch {
-    // ignore
-  }
+  tryHideVirtualKeyboard();
 }
