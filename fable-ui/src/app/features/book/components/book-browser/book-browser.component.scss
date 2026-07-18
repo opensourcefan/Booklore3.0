@@ -725,20 +725,6 @@
   padding-inline: 20px;
 }
 
-.selection-panel-right {
-  // Empty visual spacer; hide when squeezed so the icon rail gets the width.
-  flex-shrink: 0;
-  width: 120px;
-
-  @media (max-width: 1200px) {
-    display: none;
-  }
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-}
-
 .selected-count-badge {
   display: inline-flex;
   align-items: center;
@@ -1130,10 +1116,6 @@
     scroll-padding-inline: 20px !important;
     mask-image: none !important;
     -webkit-mask-image: none !important;
-  }
-
-  .selection-panel-right {
-    display: none !important;
   }
 }
 
