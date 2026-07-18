@@ -211,8 +211,8 @@
   visibility: visible;
 }
 
-/* Tablet/desktop touch digitizer: do not require sticky :hover to activate cards. */
-.book-card--touch-chrome {
+/* Touch digitizer: reveal controls only on the focused/touched card, not the whole grid. */
+.book-card--touch-chrome:focus-within {
   .info-btn,
   .read-btn {
     opacity: 1;

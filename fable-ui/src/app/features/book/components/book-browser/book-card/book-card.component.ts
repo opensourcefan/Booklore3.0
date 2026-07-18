@@ -62,6 +62,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private inlineMobilePreviewBackHandle: MobileBackHandle | null = null;
   private readonly mobileBackNavigation = inject(MobileBackNavigationService);
   private readonly mobileUx = inject(MobileUxService);
+  private readonly hostEl = inject(ElementRef<HTMLElement>);
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -370,9 +371,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /**
-   * Tablet/desktop with a touch digitizer: show hover-gated controls without
-   * requiring :hover, and refresh cover preview on touch. Phone Mode geometry
-   * uses its own inline preview path and is excluded.
+   * Tablet/desktop with a touch digitizer: enable per-card focus-within chrome
+   * and touch-driven cover preview. Phone Mode geometry is excluded.
    */
   get isTouchDigitizerChrome(): boolean {
     if (this.isMobileInteractionMode || this.mobileUx.isPhone) {
@@ -1466,11 +1466,13 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.lastMouseEvent = event;
   }
 
-  /** Touch digitizer on tablet/desktop: drive cover preview without mouseenter. */
+  /** Touch digitizer on tablet/desktop: focus this card (reveal controls) + preview. */
   onCardPointerDown(event: PointerEvent): void {
     if (!this.isTouchDigitizerChrome || event.pointerType !== 'touch') {
       return;
     }
+    const card = this.hostEl.nativeElement.querySelector('.book-card') as HTMLElement | null;
+    card?.focus({preventScroll: true});
     this.bookClicked.emit(this.book);
   }
 

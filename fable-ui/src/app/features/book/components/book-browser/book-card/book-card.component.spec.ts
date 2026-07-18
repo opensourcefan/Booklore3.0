@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {SimpleChange} from '@angular/core';
+import {ElementRef, SimpleChange} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -805,20 +805,30 @@ describe('BookCardComponent', () => {
     vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
     vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(true);
 
+    const card = document.createElement('div');
+    card.className = 'book-card';
+    const focusSpy = vi.spyOn(card, 'focus');
+    const host = (component as unknown as {hostEl: ElementRef<HTMLElement>}).hostEl.nativeElement;
+    vi.spyOn(host, 'querySelector').mockReturnValue(card);
+
     const emitSpy = vi.spyOn(component.bookClicked, 'emit');
     component.onCardPointerDown({pointerType: 'touch'} as PointerEvent);
+    expect(focusSpy).toHaveBeenCalledWith({preventScroll: true});
     expect(emitSpy).toHaveBeenCalledWith(component.book);
 
     emitSpy.mockClear();
+    focusSpy.mockClear();
     component.onCardPointerDown({pointerType: 'mouse'} as PointerEvent);
     expect(emitSpy).not.toHaveBeenCalled();
+    expect(focusSpy).not.toHaveBeenCalled();
   });
 
-  it('scopes touch-chrome styles to book-card--touch-chrome without phone media overrides', () => {
+  it('scopes touch-chrome styles to focus-within without phone media overrides', () => {
     const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
     const scss = readFileSync(scssPath, 'utf8');
-    expect(scss).toContain('.book-card--touch-chrome');
-    expect(scss).toMatch(/\.book-card--touch-chrome\s*\{[\s\S]*\.info-btn/);
+    expect(scss).toContain('.book-card--touch-chrome:focus-within');
+    expect(scss).toMatch(/\.book-card--touch-chrome:focus-within\s*\{[\s\S]*\.info-btn/);
+    expect(scss).not.toMatch(/\.book-card--touch-chrome\s*\{\s*\.info-btn/);
     expect(scss).not.toMatch(/body\.layout-phone[^{]*\{[^}]*book-card--touch-chrome/);
   });
 
