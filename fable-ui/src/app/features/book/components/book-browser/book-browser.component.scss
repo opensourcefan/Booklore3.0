@@ -1021,7 +1021,10 @@
   }
 
   .selection-panel-center {
-    padding: 0 0.15rem;
+    // Phone issue correction: keep dense chrome (no fade mask) but restore modest
+    // edge padding so end icons remain hittable when the rail scrolls.
+    padding: 0 8px;
+    scroll-padding-inline: 8px;
     mask-image: none;
     -webkit-mask-image: none;
   }
@@ -1105,10 +1108,11 @@
   }
 }
 
-// Phone: keep dense edge (mask/padding stripped). Unchanged from prior shared override.
+// Phone issue correction: modest edge padding (no fade mask) so scrolled end icons stay hittable.
 ::ng-deep .layout-phone {
   .selection-panel-center {
-    padding: 0 0.15rem !important;
+    padding: 0 8px !important;
+    scroll-padding-inline: 8px !important;
     mask-image: none !important;
     -webkit-mask-image: none !important;
   }

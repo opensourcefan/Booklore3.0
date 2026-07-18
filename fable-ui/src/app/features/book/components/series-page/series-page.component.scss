@@ -1,3 +1,5 @@
+@use '../../../../shared/styles/icon-rail' as icon-rail;
+
 .tabpanels-responsive {
   height: calc(100dvh - 9.7rem);
   overflow: auto;
@@ -855,20 +857,26 @@
   align-items: center;
   padding-left: 0.5rem;
   width: 25%;
+  flex-shrink: 0;
 }
 
 .footer-center {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   width: 50%;
+  // Phone issue correction (§10.2): many selection icons in 50% rail were clipped
+  // under overflow:hidden ancestors. Side-scroll keeps every icon reachable.
+  @include icon-rail.icon-rail($scroll-padding: 8px);
 }
 
 .footer-right {
   width: 25%;
+  flex-shrink: 0;
 }
 
 .footer-action-group {
   display: flex;
+  flex-wrap: nowrap;
   gap: 0.5rem;
 
   @media (min-width: 768px) {
