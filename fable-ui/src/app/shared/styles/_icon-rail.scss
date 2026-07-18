@@ -6,20 +6,17 @@
 // (see Desktop report 2026-07-18-Tablet_Header_Icon_Side_Scrolling.html §10–§11).
 // Never replace phone overflow menus (topbar, ebook, CBX) with this rail.
 //
-// Scroll affordance: pair with [appIconRailHint] so edge fades/chevrons appear only
-// when content actually overflows in that direction.
+// Scroll affordance: a thin bottom scrollbar (visible only when content overflows).
 
 @mixin icon-rail($scroll-padding: 12px, $with-fade: false) {
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
   scroll-padding-inline: $scroll-padding;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  // Room for the thin track without crowding icon hit targets.
+  padding-bottom: 2px;
+  @include icon-rail-thin-scrollbar;
 
   @if $with-fade {
     padding-inline: $scroll-padding;
@@ -47,41 +44,25 @@
   align-items: center;
 }
 
-// Directional scroll hints (driven by IconRailScrollHintDirective classes).
-// Backgrounds stay on the scrollport so icons are not permanently masked.
-@mixin icon-rail-hint-surfaces(
-  $fade-color: var(--card-background, var(--p-surface-900, #1c1c1c)),
-  $fade-width: 28px
-) {
-  &.icon-rail-hint {
-    position: relative;
-    background-repeat: no-repeat;
-    background-origin: padding-box;
+// Thin but visible horizontal scrollbar — appears when the rail overflows.
+@mixin icon-rail-thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--p-surface-100, #e8eaef) 35%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    height: 3px;
   }
 
-  &.icon-rail--can-scroll-end {
-    background-image:
-      linear-gradient(to right, transparent, #{$fade-color}),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M6 3l5 5-5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-position: right center, right 6px center;
-    background-size: #{$fade-width} 100%, 14px 14px;
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  &.icon-rail--can-scroll-start {
-    background-image:
-      linear-gradient(to left, transparent, #{$fade-color}),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M10 3L5 8l5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-position: left center, left 6px center;
-    background-size: #{$fade-width} 100%, 14px 14px;
+  &::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--p-surface-100, #e8eaef) 35%, transparent);
+    border-radius: 999px;
   }
 
-  &.icon-rail--can-scroll-start.icon-rail--can-scroll-end {
-    background-image:
-      linear-gradient(to left, transparent, #{$fade-color}),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M10 3L5 8l5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
-      linear-gradient(to right, transparent, #{$fade-color}),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M6 3l5 5-5 5' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-position: left center, left 6px center, right center, right 6px center;
-    background-size: #{$fade-width} 100%, 14px 14px, #{$fade-width} 100%, 14px 14px;
+  &::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--p-surface-100, #e8eaef) 55%, transparent);
   }
 }

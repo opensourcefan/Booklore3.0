@@ -70,12 +70,9 @@
     min-height: 2rem;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    padding-bottom: 2px;
+    @include icon-rail.icon-rail-thin-scrollbar;
   }
 }
 
@@ -728,7 +725,6 @@
   // so they looked cut off even when scrolled into the rail.
   @include icon-rail.icon-rail($scroll-padding: 20px, $with-fade: false);
   padding-inline: 20px;
-  @include icon-rail.icon-rail-hint-surfaces;
 }
 
 .selection-panel-right {

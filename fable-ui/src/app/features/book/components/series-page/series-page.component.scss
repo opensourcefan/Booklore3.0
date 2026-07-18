@@ -867,7 +867,6 @@
   // Phone issue correction (§10.2): many selection icons in 50% rail were clipped
   // under overflow:hidden ancestors. Side-scroll keeps every icon reachable.
   @include icon-rail.icon-rail($scroll-padding: 8px);
-  @include icon-rail.icon-rail-hint-surfaces;
 }
 
 .footer-right {

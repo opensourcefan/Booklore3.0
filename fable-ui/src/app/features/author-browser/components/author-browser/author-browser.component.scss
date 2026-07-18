@@ -260,7 +260,6 @@
   flex: 1;
   @include icon-rail.icon-rail($scroll-padding: 16px, $with-fade: false);
   padding-inline: 16px;
-  @include icon-rail.icon-rail-hint-surfaces;
 }
 
 .selection-panel-right {
