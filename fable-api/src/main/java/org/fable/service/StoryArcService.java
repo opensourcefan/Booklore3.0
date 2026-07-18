@@ -105,7 +105,7 @@ public class StoryArcService {
 
         Long visibleCoverId = resolveVisibleCoverBookId(arc.getCoverBookId(), bookMap, accessibleMappings);
 
-        return accessibleMappings.stream()
+        List<StoryArcBookMappingDto> result = accessibleMappings.stream()
                 .map(mapping -> StoryArcBookMappingDto.builder()
                         .id(mapping.getId())
                         .storyArcName(mapping.getStoryArcName())
@@ -114,32 +114,27 @@ public class StoryArcService {
                         .colIndex(mapping.getColIndex())
                         .sequenceOrder(mapping.getSequenceOrder())
                         .isCore(mapping.isCore())
-                        .rowTitle(mapping.getRowTitle())
+                        .rowTitle(resolveRowTitle(mapping.getRowTitle(), arc, mapping.getRowIndex()))
                         .externalUrl(mapping.getExternalUrl() != null ? mapping.getExternalUrl() : arc.getExternalUrl())
                         .description(mapping.getDescription() != null ? mapping.getDescription() : arc.getDescription())
                         .coverBookId(visibleCoverId)
                         .book(bookMap.get(mapping.getBookId()))
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new));
+
+        // Empty chapters live in arc.rowTitles with no book mappings. Merge placeholders
+        // so adding books to one chapter does not make the rest disappear.
+        return mergeEmptyChapterPlaceholders(arc, result, visibleCoverId);
     }
 
     private List<StoryArcBookMappingDto> buildEmptyArcSentinels(StoryArcEntity arc) {
-        List<String> titles = new ArrayList<>();
-        if (arc.getRowTitles() != null && !arc.getRowTitles().isBlank()) {
-            for (String line : arc.getRowTitles().split("\n", -1)) {
-                titles.add(line);
-            }
-        }
+        List<String> titles = parseRowTitles(arc);
         if (titles.isEmpty()) {
             titles.add("Chapter 1");
         }
 
         List<StoryArcBookMappingDto> sentinels = new ArrayList<>(titles.size());
         for (int i = 0; i < titles.size(); i++) {
-            String title = titles.get(i);
-            if (title == null || title.isBlank()) {
-                title = "Chapter " + (i + 1);
-            }
             sentinels.add(StoryArcBookMappingDto.builder()
                     .storyArcName(arc.getName())
                     .bookId(null)
@@ -147,13 +142,108 @@ public class StoryArcService {
                     .colIndex(0)
                     .sequenceOrder(0)
                     .isCore(true)
-                    .rowTitle(title)
+                    .rowTitle(titles.get(i))
                     .externalUrl(arc.getExternalUrl())
                     .description(arc.getDescription())
                     .coverBookId(null)
                     .build());
         }
         return sentinels;
+    }
+
+    /**
+     * Ensures every chapter listed in {@code arc.rowTitles} appears in the layout
+     * response, even when that chapter currently has zero books.
+     */
+    private List<StoryArcBookMappingDto> mergeEmptyChapterPlaceholders(
+            StoryArcEntity arc,
+            List<StoryArcBookMappingDto> mappings,
+            Long visibleCoverId) {
+        List<String> titles = parseRowTitles(arc);
+        if (titles.isEmpty()) {
+            return mappings;
+        }
+
+        Set<Integer> occupiedRows = mappings.stream()
+                .map(StoryArcBookMappingDto::getRowIndex)
+                .collect(Collectors.toCollection(HashSet::new));
+
+        List<StoryArcBookMappingDto> merged = new ArrayList<>(mappings);
+        for (int i = 0; i < titles.size(); i++) {
+            if (occupiedRows.contains(i)) {
+                continue;
+            }
+            merged.add(StoryArcBookMappingDto.builder()
+                    .storyArcName(arc.getName())
+                    .bookId(null)
+                    .rowIndex(i)
+                    .colIndex(0)
+                    .sequenceOrder(0)
+                    .isCore(true)
+                    .rowTitle(titles.get(i))
+                    .externalUrl(arc.getExternalUrl())
+                    .description(arc.getDescription())
+                    .coverBookId(visibleCoverId)
+                    .build());
+        }
+
+        merged.sort(Comparator
+                .comparingInt(StoryArcBookMappingDto::getRowIndex)
+                .thenComparingInt(StoryArcBookMappingDto::getColIndex));
+        return merged;
+    }
+
+    private List<String> parseRowTitles(StoryArcEntity arc) {
+        List<String> titles = new ArrayList<>();
+        if (arc.getRowTitles() == null || arc.getRowTitles().isBlank()) {
+            return titles;
+        }
+        String[] lines = arc.getRowTitles().split("\n", -1);
+        for (int i = 0; i < lines.length; i++) {
+            String title = lines[i];
+            if (title == null || title.isBlank()) {
+                title = "Chapter " + (i + 1);
+            }
+            titles.add(title);
+        }
+        return titles;
+    }
+
+    private String resolveRowTitle(String mappingTitle, StoryArcEntity arc, int rowIndex) {
+        if (mappingTitle != null && !mappingTitle.isBlank()) {
+            return mappingTitle;
+        }
+        List<String> titles = parseRowTitles(arc);
+        if (rowIndex >= 0 && rowIndex < titles.size()) {
+            return titles.get(rowIndex);
+        }
+        return "Chapter " + (rowIndex + 1);
+    }
+
+    private String resolveRowTitleFromArc(StoryArcEntity arc, int rowIndex) {
+        List<String> titles = parseRowTitles(arc);
+        if (rowIndex >= 0 && rowIndex < titles.size()) {
+            return titles.get(rowIndex);
+        }
+        return null;
+    }
+
+    /** Inserts/appends a chapter title into the persisted rowTitles list used for empty chapters. */
+    private void persistInsertedRowTitle(StoryArcEntity arc, int insertAt, String title) {
+        if (title == null || title.isBlank()) {
+            return;
+        }
+        List<String> titles = parseRowTitles(arc);
+        while (titles.size() < insertAt) {
+            titles.add("Chapter " + (titles.size() + 1));
+        }
+        if (insertAt >= titles.size()) {
+            titles.add(title);
+        } else {
+            titles.add(insertAt, title);
+        }
+        arc.setRowTitles(String.join("\n", titles));
+        storyArcRepository.save(arc);
     }
 
     @Transactional
@@ -246,11 +336,14 @@ public class StoryArcService {
 
             if (request.getTargetRowIndex() != null) {
                 if (request.getTargetRowIndex() == -1) {
-                    targetRowIndex = maxExistingRowIndex + 1;
+                    // Prefer appending after persisted empty chapters, not only book-backed rows.
+                    int titleCount = parseRowTitles(arc).size();
+                    targetRowIndex = Math.max(maxExistingRowIndex + 1, titleCount);
                     targetRowTitle = request.getRowTitle();
                     targetColIndex = 0;
                     targetSeq = existing.isEmpty() ? 0.0
                             : existing.get(existing.size() - 1).getSequenceOrder();
+                    persistInsertedRowTitle(arc, targetRowIndex, targetRowTitle);
                 } else if ("above".equals(request.getPosition()) || "below".equals(request.getPosition())) {
                     int insertAt = request.getTargetRowIndex();
                     if ("below".equals(request.getPosition())) {
@@ -272,9 +365,13 @@ public class StoryArcService {
                         }
                     }
                     targetSeq = existing.isEmpty() ? 0.0 : maxSeqBefore;
+                    persistInsertedRowTitle(arc, targetRowIndex, targetRowTitle);
                 } else {
                     targetRowIndex = request.getTargetRowIndex();
                     targetRowTitle = request.getRowTitle();
+                    if (targetRowTitle == null || targetRowTitle.isBlank()) {
+                        targetRowTitle = resolveRowTitleFromArc(arc, targetRowIndex);
+                    }
                     int maxCol = -1;
                     double maxSeq = 0.0;
                     for (StoryArcBookMappingEntity m : existing) {

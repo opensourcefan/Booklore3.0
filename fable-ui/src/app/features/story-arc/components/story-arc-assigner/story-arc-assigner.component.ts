@@ -49,6 +49,7 @@ export class StoryArcAssignerComponent implements OnInit {
 
   // Chapter options for the selected arc
   chapterOptions$: Observable<{ label: string; value: number }[]> = of([]);
+  private chapterOptions: { label: string; value: number }[] = [];
 
   ngOnInit(): void {
     this.storyArcService.loadStoryArcs();
@@ -59,6 +60,7 @@ export class StoryArcAssignerComponent implements OnInit {
     if (isNew) {
       this.selectedArcName = '';
       this.targetChapterIndex = null;
+      this.chapterOptions = [];
       this.chapterOptions$ = of([]);
     }
   }
@@ -84,6 +86,7 @@ export class StoryArcAssignerComponent implements OnInit {
           .map(([idx, title]) => ({ label: title, value: idx }));
         // Add "New Chapter" option
         options.push({ label: '+ New Chapter', value: -1 });
+        this.chapterOptions = options;
         return options;
       })
     );
@@ -131,6 +134,10 @@ export class StoryArcAssignerComponent implements OnInit {
       request.position = this.newChapterPosition;
     } else if (this.targetChapterIndex != null && this.targetChapterIndex >= 0) {
       request.targetRowIndex = this.targetChapterIndex;
+      const selected = this.chapterOptions.find(opt => opt.value === this.targetChapterIndex);
+      if (selected?.label) {
+        request.rowTitle = selected.label;
+      }
     }
 
     this.storyArcService.bulkAdd(request).subscribe({

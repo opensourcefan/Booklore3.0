@@ -110,6 +110,39 @@ class StoryArcServiceTest {
     }
 
     @Test
+    void getStoryArc_shouldKeepEmptyChaptersWhenOnlySomeRowsHaveBooks() {
+        StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Mixed Arc")
+                .rowTitles("Alpha\nBeta\nGamma")
+                .build();
+        when(storyArcRepository.findByName("Mixed Arc")).thenReturn(Optional.of(arc));
+        when(repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc("Mixed Arc")).thenReturn(List.of(
+                StoryArcBookMappingEntity.builder()
+                        .id(1L)
+                        .storyArcName("Mixed Arc")
+                        .bookId(10L)
+                        .rowIndex(1)
+                        .colIndex(0)
+                        .sequenceOrder(1.0)
+                        .isCore(true)
+                        .build()
+        ));
+        when(bookService.getBooksByIds(anySet(), eq(false))).thenReturn(List.of(Book.builder().id(10L).build()));
+
+        List<StoryArcBookMappingDto> result = storyArcService.getStoryArc("Mixed Arc");
+
+        assertEquals(3, result.size());
+        assertNull(result.get(0).getBookId());
+        assertEquals("Alpha", result.get(0).getRowTitle());
+        assertEquals(0, result.get(0).getRowIndex());
+        assertEquals(10L, result.get(1).getBookId());
+        assertEquals("Beta", result.get(1).getRowTitle());
+        assertEquals(1, result.get(1).getRowIndex());
+        assertNull(result.get(2).getBookId());
+        assertEquals("Gamma", result.get(2).getRowTitle());
+        assertEquals(2, result.get(2).getRowIndex());
+    }
+
+    @Test
     void getStoryArc_shouldOmitInaccessibleMappings() {
         StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Shared").build();
         when(storyArcRepository.findByName("Shared")).thenReturn(Optional.of(arc));

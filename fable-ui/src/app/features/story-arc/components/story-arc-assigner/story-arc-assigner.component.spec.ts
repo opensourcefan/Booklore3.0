@@ -67,4 +67,30 @@ describe('StoryArcAssignerComponent overlay scrolling', () => {
     expect(arcSelect).not.toBeNull();
     expect(arcSelect.componentInstance.appendTo()).toBe('body');
   });
+
+  it('passes the selected chapter title when assigning books to an existing chapter', () => {
+    storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([
+      {storyArcName: 'Cosmic Odyssey', bookId: null, rowIndex: 0, colIndex: 0, sequenceOrder: 0, isCore: true, rowTitle: 'Prologue'},
+      {storyArcName: 'Cosmic Odyssey', bookId: null, rowIndex: 1, colIndex: 0, sequenceOrder: 0, isCore: true, rowTitle: 'Finale'},
+      {storyArcName: 'Cosmic Odyssey', bookId: 42, rowIndex: 1, colIndex: 0, sequenceOrder: 1, isCore: true, rowTitle: 'Finale'}
+    ]));
+    storyArcServiceMock.bulkAdd.mockClear();
+
+    const fixture = TestBed.createComponent(StoryArcAssignerComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.onArcSelected('Cosmic Odyssey');
+    // Resolve the chapterOptions$ subscription synchronously via BehaviorSubject-like of()
+    component.chapterOptions$.subscribe();
+    component.onChapterSelected(0);
+    component.applyAssignment();
+
+    expect(storyArcServiceMock.bulkAdd).toHaveBeenCalledWith(expect.objectContaining({
+      storyArcName: 'Cosmic Odyssey',
+      targetRowIndex: 0,
+      rowTitle: 'Prologue',
+      bookIds: expect.arrayContaining([10, 11])
+    }));
+  });
 });

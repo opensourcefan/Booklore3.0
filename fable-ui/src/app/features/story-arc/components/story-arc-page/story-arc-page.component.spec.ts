@@ -251,6 +251,45 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(window.history.state?.startInEditMode).toBeUndefined();
   });
 
+  it('keeps empty chapters when building rows from mixed book and sentinel mappings', () => {
+    storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([
+      {
+        storyArcName: 'Test Arc',
+        bookId: null,
+        rowIndex: 0,
+        colIndex: 0,
+        sequenceOrder: 0,
+        isCore: true,
+        rowTitle: 'Alpha'
+      },
+      {
+        storyArcName: 'Test Arc',
+        bookId: 101,
+        rowIndex: 1,
+        colIndex: 0,
+        sequenceOrder: 1,
+        isCore: true,
+        rowTitle: 'Beta',
+        book: sampleMappings[0].book
+      },
+      {
+        storyArcName: 'Test Arc',
+        bookId: null,
+        rowIndex: 2,
+        colIndex: 0,
+        sequenceOrder: 0,
+        isCore: true,
+        rowTitle: 'Gamma'
+      }
+    ]));
+
+    const fixture = createFixture();
+    expect(fixture.componentInstance.rows.map(row => row.title)).toEqual(['Alpha', 'Beta', 'Gamma']);
+    expect(fixture.componentInstance.rows[0].items).toEqual([]);
+    expect(fixture.componentInstance.rows[1].items).toHaveLength(1);
+    expect(fixture.componentInstance.rows[2].items).toEqual([]);
+  });
+
   it('debounces quiet chapter title saves while typing (no layout reload)', async () => {
     vi.useFakeTimers();
     const fixture = createFixture();
