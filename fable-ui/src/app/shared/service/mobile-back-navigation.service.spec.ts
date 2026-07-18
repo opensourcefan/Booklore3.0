@@ -35,7 +35,9 @@ describe('MobileBackNavigationService layout-aware registration', () => {
             tabletBreakpoint: 1024,
             tabletBreakpoint$: new BehaviorSubject(1024),
             headerPosition: 'top',
-            headerPosition$: new BehaviorSubject<'top' | 'bottom'>('top')
+            headerPosition$: new BehaviorSubject<'top' | 'bottom'>('top'),
+            tabletHeaderPosition: 'top',
+            tabletHeaderPosition$: new BehaviorSubject<'top' | 'bottom'>('top')
           }
         }
       ]

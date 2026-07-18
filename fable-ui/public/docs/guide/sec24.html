@@ -688,7 +688,7 @@
 <table>
   <tr><th>Category</th><th>What You Can Configure</th></tr>
   <tr><td><i class="pi pi-book"></i> Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
-  <tr><td><i class="pi pi-desktop"></i> View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization, optional tablet/kiosk navigation gestures (never Phone Mode)</td></tr>
+  <tr><td><i class="pi pi-desktop"></i> View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization, optional tablet/kiosk navigation gestures (never Phone Mode), independent phone and tablet header position (bottom chrome)</td></tr>
   <tr><td><i class="pi pi-users"></i> User Management</td><td>Create/edit/delete users and their permissions</td></tr>
   <tr><td><i class="pi pi-envelope"></i> Email</td><td>SMTP server for sending books via email</td></tr>
   <tr><td><i class="pi pi-sitemap"></i> File Naming Patterns</td><td>How imported files are named and organized</td></tr>
@@ -722,6 +722,14 @@
   <li><strong>Optional, off by default</strong> &mdash; Enable <strong>Tablet / kiosk gestures</strong> for high-resolution tablets and desktop-touch browsers (for example a 1200&times;2000 Linux tablet)</li>
   <li><strong>Never applies in Phone Mode</strong> &mdash; Forced Phone Mode and real phone layouts stay unchanged</li>
   <li><strong>What it does</strong> &mdash; Suppresses the browser long-press menu (app long-press still works), adds edge-swipe history (left-edge swipe right = back, matching Chromium), and opens a three-finger action sheet for fullscreen / reload</li>
+</ul>
+
+<h4>Header Position (Phone &amp; Tablet)</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
+<ul>
+  <li><strong>Phone Header Position</strong> &mdash; Optionally move the app toolbar to the bottom for easier thumb reach on large phones. Only applies in phone layout mode. Stored per browser as <code>bl-header-position</code>.</li>
+  <li><strong>Tablet Header Position</strong> &mdash; Independent setting for tablet layout (forced tablet, auto tablet band, or Viewport Shape Aware portrait). Stored as <code>bl-tablet-header-position</code>. Does not follow the phone setting, and never applies in Phone Mode or desktop landscape.</li>
+  <li><strong>Shared chrome</strong> &mdash; Both modes use the same <code>header-bottom</code> body class so book browser nesting, popovers, and safe-area offsets stay consistent.</li>
 </ul>
 
 <h4>Theme Colors</h4>

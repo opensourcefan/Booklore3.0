@@ -139,6 +139,39 @@
     <div class="preferences-section">
       <div class="section-header">
         <h3 class="section-title">
+          <i class="pi pi-tablet"></i>
+          Header Position (Tablet Mode)
+        </h3>
+      </div>
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <span class="setting-label" style="min-width: 180px;">Header Position</span>
+              <p-select
+                size="small"
+                [options]="headerPositionOptions"
+                [(ngModel)]="selectedTabletHeaderPosition"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="onTabletHeaderPositionChange($event.value)"
+                appendTo="body">
+              </p-select>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              Move the top toolbar to the bottom for easier thumb reach on tablets. Independent of the phone setting. Applies in tablet layout (forced tablet, auto tablet band, or Viewport Shape Aware portrait). Never applies in Phone Mode or desktop landscape.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"><hr></div>
+
+    <div class="preferences-section">
+      <div class="section-header">
+        <h3 class="section-title">
           <i class="pi pi-mobile"></i>
           Device Layout Mode
         </h3>

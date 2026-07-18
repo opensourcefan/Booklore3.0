@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'org.fable'
-version = '4.15.84'
+version = '4.15.85'
 description = 'fable'
 
 java {

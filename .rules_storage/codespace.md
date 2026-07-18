@@ -259,8 +259,10 @@ The app has a dedicated mobile UX system built around three services:
 
 **MobileUxService** (`core/services/mobile-ux.service.ts`)
 - Tracks device breakpoint via `BehaviorSubject<DeviceBreakpoint>`: `'mobile' | 'mobile-tablet' | 'desktop'`
-- Breakpoints: mobile ≤ 767px, tablet 768-1024px, desktop ≥ 1025px
+- Breakpoints: mobile ≤ 767px, tablet 768-1024px, desktop ≥ 1025px (overridable via UiPreferences; `auto-shape` uses portrait→tablet / landscape→desktop above phone width)
 - Exposes `breakpoint$` observable for reactive component adjustments
+- Syncs `body.layout-phone` / `layout-tablet` / `layout-desktop` and optional `body.header-bottom`
+- Header bottom: phone uses `bl-header-position`; tablet uses independent `bl-tablet-header-position`; never on desktop
 - Has stub `registerBackNavigation()` for hardware back button support
 
 **MobileBackNavigationService** (`shared/service/mobile-back-navigation.service.ts`)

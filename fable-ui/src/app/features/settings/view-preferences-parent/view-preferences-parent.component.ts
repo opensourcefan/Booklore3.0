@@ -54,6 +54,7 @@ export class ViewPreferencesParentComponent implements OnInit {
 
   selectedLayoutMode: LayoutMode = 'auto';
   selectedHeaderPosition: 'top' | 'bottom' = 'top';
+  selectedTabletHeaderPosition: 'top' | 'bottom' = 'top';
   phoneBreakpoint = 767;
   tabletBreakpoint = 1024;
 
@@ -63,6 +64,7 @@ export class ViewPreferencesParentComponent implements OnInit {
     this.tabletNavGestures = this.uiPrefs.tabletNavGestures;
     this.selectedLayoutMode = this.uiPrefs.layoutMode;
     this.selectedHeaderPosition = this.uiPrefs.headerPosition;
+    this.selectedTabletHeaderPosition = this.uiPrefs.tabletHeaderPosition;
     this.phoneBreakpoint = this.uiPrefs.phoneBreakpoint;
     this.tabletBreakpoint = this.uiPrefs.tabletBreakpoint;
   }
@@ -98,6 +100,18 @@ export class ViewPreferencesParentComponent implements OnInit {
     this.uiPrefs.setHeaderPosition(value);
     this.messageService.add({ severity: 'success', summary: 'Saved',
       detail: value === 'bottom' ? 'Header moved to bottom (phone mode only)' : 'Header restored to top' });
+  }
+
+  onTabletHeaderPositionChange(value: 'top' | 'bottom'): void {
+    this.selectedTabletHeaderPosition = value;
+    this.uiPrefs.setTabletHeaderPosition(value);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Saved',
+      detail: value === 'bottom'
+        ? 'Header moved to bottom (tablet mode only; independent of phone)'
+        : 'Tablet header restored to top'
+    });
   }
 
   onLayoutModeChange(mode: LayoutMode): void {

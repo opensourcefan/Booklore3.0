@@ -15,14 +15,35 @@
 <script>
   (function() {
     try {
-      var headerPos = localStorage.getItem('bl-header-position');
-      if (headerPos === 'bottom') {
-        var layoutMode = localStorage.getItem('bl-layout-mode') || 'auto';
-        var phoneBreakpoint = parseInt(localStorage.getItem('bl-phone-breakpoint') || '767', 10);
-        var isPhone = layoutMode === 'phone' || (layoutMode !== 'tablet' && layoutMode !== 'desktop' && window.innerWidth <= phoneBreakpoint);
-        if (isPhone) {
-          document.body.classList.add('header-bottom');
+      // Keep detectors aligned with MobileUxService.getBreakpointForCurrentViewport().
+      var layoutMode = localStorage.getItem('bl-layout-mode') || 'auto';
+      var phoneBreakpoint = parseInt(localStorage.getItem('bl-phone-breakpoint') || '767', 10);
+      var tabletBreakpoint = parseInt(localStorage.getItem('bl-tablet-breakpoint') || '1024', 10);
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+
+      function isPhoneLayout() {
+        if (layoutMode === 'phone') return true;
+        if (layoutMode === 'tablet' || layoutMode === 'desktop') return false;
+        if (layoutMode === 'auto-shape') return width <= phoneBreakpoint;
+        return width <= phoneBreakpoint;
+      }
+
+      function isTabletLayout() {
+        if (layoutMode === 'tablet') return true;
+        if (layoutMode === 'phone' || layoutMode === 'desktop') return false;
+        if (layoutMode === 'auto-shape') {
+          if (width <= phoneBreakpoint) return false;
+          return height > width;
         }
+        return width > phoneBreakpoint && width <= tabletBreakpoint;
+      }
+
+      var phoneHeaderPos = localStorage.getItem('bl-header-position');
+      var tabletHeaderPos = localStorage.getItem('bl-tablet-header-position');
+      if ((phoneHeaderPos === 'bottom' && isPhoneLayout()) ||
+          (tabletHeaderPos === 'bottom' && isTabletLayout())) {
+        document.body.classList.add('header-bottom');
       }
     } catch(e) {}
   })();

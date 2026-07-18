@@ -21,6 +21,7 @@ export class UiPreferencesService {
   private readonly PHONE_BREAKPOINT_KEY = 'bl-phone-breakpoint';
   private readonly TABLET_BREAKPOINT_KEY = 'bl-tablet-breakpoint';
   private readonly HEADER_POSITION_KEY = 'bl-header-position';
+  private readonly TABLET_HEADER_POSITION_KEY = 'bl-tablet-header-position';
   private readonly TABLET_NAV_GESTURES_KEY = 'bl-tablet-nav-gestures';
 
   private _showCoverPreview$ = new BehaviorSubject<boolean>(
@@ -96,5 +97,19 @@ export class UiPreferencesService {
   setHeaderPosition(value: 'top' | 'bottom'): void {
     localStorage.setItem(this.HEADER_POSITION_KEY, value);
     this._headerPosition$.next(value);
+  }
+
+  /**
+   * Independent of phone header position. Opt-in bottom chrome for tablet layout only
+   * (forced tablet, auto tablet band, or auto-shape portrait). Never applies in Phone Mode.
+   */
+  private _tabletHeaderPosition$ = new BehaviorSubject<'top' | 'bottom'>(
+    (localStorage.getItem(this.TABLET_HEADER_POSITION_KEY) as 'top' | 'bottom') || 'top'
+  );
+  readonly tabletHeaderPosition$ = this._tabletHeaderPosition$.asObservable();
+  get tabletHeaderPosition(): 'top' | 'bottom' { return this._tabletHeaderPosition$.value; }
+  setTabletHeaderPosition(value: 'top' | 'bottom'): void {
+    localStorage.setItem(this.TABLET_HEADER_POSITION_KEY, value);
+    this._tabletHeaderPosition$.next(value);
   }
 }

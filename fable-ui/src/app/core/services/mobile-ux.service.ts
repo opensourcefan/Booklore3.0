@@ -165,18 +165,25 @@ export class MobileUxService implements OnDestroy {
       }
     });
 
-    this.headerPositionSubscription = this.uiPrefs.headerPosition$.subscribe(() => {
+    this.headerPositionSubscription = combineLatest([
+      this.uiPrefs.headerPosition$,
+      this.uiPrefs.tabletHeaderPosition$
+    ]).subscribe(() => {
       this.syncHeaderPositionClass();
     });
   }
 
-  /** Applies or removes the header-bottom class based on user preference and phone mode. */
+  /**
+   * Applies or removes header-bottom from independent phone and tablet prefs.
+   * Phone gate unchanged: isPhone && phone pref. Tablet: isTablet && tablet pref.
+   * Never applies in desktop (including auto-shape landscape).
+   */
   private syncHeaderPositionClass(): void {
     if (typeof document === 'undefined') return;
     const body = document.body;
-    const isPhone = this.isPhone;
-    const wantsBottom = this.uiPrefs.headerPosition === 'bottom';
-    if (isPhone && wantsBottom) {
+    const phoneWantsBottom = this.isPhone && this.uiPrefs.headerPosition === 'bottom';
+    const tabletWantsBottom = this.isTablet && this.uiPrefs.tabletHeaderPosition === 'bottom';
+    if (phoneWantsBottom || tabletWantsBottom) {
       body.classList.add('header-bottom');
     } else {
       body.classList.remove('header-bottom');
