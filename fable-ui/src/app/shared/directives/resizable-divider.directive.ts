@@ -43,6 +43,9 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private mobileUx = inject(MobileUxService);
   private uiPrefs = inject(UiPreferencesService);
 
+  /** Match panel borders — not theme primary. */
+  private static readonly GRIP_COLOR = 'var(--p-content-border-color, var(--border-color, #3f3f46))';
+
   ngOnInit(): void {
     this.target = this.el.nativeElement as HTMLElement;
 
@@ -86,7 +89,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.grip, 'width', '4px');
     this.renderer.setStyle(this.grip, 'height', '44px');
     this.renderer.setStyle(this.grip, 'border-radius', '999px');
-    this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 55%, transparent)');
+    this.renderer.setStyle(this.grip, 'background', ResizableDividerDirective.GRIP_COLOR);
     this.renderer.setStyle(this.grip, 'opacity', '0');
     this.renderer.setStyle(this.grip, 'transition', 'opacity 0.15s ease, background 0.15s ease');
     this.renderer.appendChild(this.handle, this.grip);
@@ -162,7 +165,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       if (this.isThumbHandleMode()) {
         return;
       }
-      this.renderer.setStyle(this.handle, 'background', 'var(--p-primary-color, #818cf8)');
+      this.renderer.setStyle(this.handle, 'background', ResizableDividerDirective.GRIP_COLOR);
       this.renderer.setStyle(this.handle, 'opacity', '0.5');
       this.renderer.setStyle(this.handle, 'border-radius', '3px');
       this.renderer.setStyle(this.grip, 'opacity', '1');
@@ -279,9 +282,9 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       this.renderer.setStyle(this.grip, 'opacity', '1');
       this.renderer.setStyle(this.grip, 'width', '6px');
       this.renderer.setStyle(this.grip, 'height', '40px');
-      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 70%, white 30%)');
+      this.renderer.setStyle(this.grip, 'background', ResizableDividerDirective.GRIP_COLOR);
       this.renderer.setStyle(this.grip, 'border-radius', '999px');
-      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--primary-color) 45%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25)');
+      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 1px color-mix(in srgb, var(--p-content-border-color, #3f3f46) 80%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25)');
       this.renderer.setStyle(this.grip, 'top', '50%');
       this.renderer.setStyle(this.grip, 'left', '50%');
       this.renderer.setStyle(this.grip, 'transform', 'translate(-50%, -50%)');
@@ -297,7 +300,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       this.renderer.setStyle(this.grip, 'opacity', '0');
       this.renderer.setStyle(this.grip, 'width', '4px');
       this.renderer.setStyle(this.grip, 'height', '44px');
-      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 55%, transparent)');
+      this.renderer.setStyle(this.grip, 'background', ResizableDividerDirective.GRIP_COLOR);
       this.renderer.removeStyle(this.grip, 'box-shadow');
       this.renderer.setStyle(this.grip, 'top', '50%');
       this.renderer.setStyle(this.grip, 'left', '50%');

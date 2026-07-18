@@ -337,8 +337,8 @@ p-progress-spinner svg,
 
   &:hover,
   &:active {
-    background: var(--p-primary-color, #818cf8);
-    opacity: 0.45;
+    background: var(--p-content-border-color, var(--border-color, #3f3f46));
+    opacity: 0.85;
     border-radius: 3px;
   }
 }

@@ -41,9 +41,9 @@ import { addFullscreenChangeListener } from '../../util/fullscreen.util';
     // Match side-panel handles: transparent hit target + small grip only (no border overlay).
     '.cover-preview-resize-handle { position: absolute; top: -6px; left: 0; right: 0; height: 12px; cursor: row-resize; z-index: 10; background: transparent; touch-action: none; }',
     '.cover-preview-resize-handle::after { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 36px; height: 4px; border-radius: 999px; background: transparent; pointer-events: none; }',
-    '.cover-preview-resize-handle:hover::after, .cover-preview-resize-handle:active::after { background: color-mix(in srgb, var(--primary-color) 55%, transparent); }',
+    '.cover-preview-resize-handle:hover::after, .cover-preview-resize-handle:active::after { background: var(--p-content-border-color, var(--border-color, #3f3f46)); }',
     '.cover-preview-resize-handle--visible { left: auto; right: 0; width: 72px; height: 28px; top: -11px; background: transparent; }',
-    '.cover-preview-resize-handle--visible::after { left: auto; right: 14px; transform: translateY(-50%); width: 40px; height: 5px; background: color-mix(in srgb, var(--primary-color) 70%, white 30%); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 45%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25); }',
+    '.cover-preview-resize-handle--visible::after { left: auto; right: 14px; transform: translateY(-50%); width: 40px; height: 5px; background: var(--p-content-border-color, var(--border-color, #3f3f46)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--p-content-border-color, #3f3f46) 80%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25); }',
     ':host { display: block; flex-shrink: 0; }',
     '.cover-preview-header { display: flex; flex-direction: column; padding: 5px 10px 4px; gap: 2px; border-bottom: 1px solid var(--p-content-border-color); flex-shrink: 0; }',
     '.cover-preview-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-color-secondary); }',
