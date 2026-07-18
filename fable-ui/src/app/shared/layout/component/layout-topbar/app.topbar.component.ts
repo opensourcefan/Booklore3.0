@@ -45,7 +45,12 @@ import {ResizableDividerDirective} from '../../../directives/resizable-divider.d
 import {AiSearchDialogComponent, AiSearchDialogService} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
 import {AppSettingsService} from '../../../service/app-settings.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
-import {toggleAppFullscreen, addFullscreenChangeListener, isAppFullscreen} from '../../../util/fullscreen.util';
+import {
+  toggleAppFullscreen,
+  addFullscreenChangeListener,
+  isAppFullscreen,
+  clearFullscreenTransientPointerUi
+} from '../../../util/fullscreen.util';
 import {GhostClickGuard, OVERLAY_GHOST_CLICK_MS} from '../../../util/overlay-dismiss.util';
 
 @Component({
@@ -1255,6 +1260,8 @@ export class AppTopBarComponent implements OnDestroy {
 
   private syncFullscreenState(): void {
     this.isFullscreen = isAppFullscreen();
+    // Fullscreen enter/exit can leave capture / bl-resizing* stuck on desktop-touch.
+    clearFullscreenTransientPointerUi();
   }
 
   private get isMetadataFetchPaused(): boolean {

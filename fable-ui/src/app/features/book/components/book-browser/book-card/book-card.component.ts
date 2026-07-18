@@ -369,6 +369,18 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return this.mobileUx.isTablet || this.mobileUx.isDesktop;
   }
 
+  /**
+   * Tablet/desktop with a touch digitizer: show hover-gated controls without
+   * requiring :hover, and refresh cover preview on touch. Phone Mode geometry
+   * uses its own inline preview path and is excluded.
+   */
+  get isTouchDigitizerChrome(): boolean {
+    if (this.isMobileInteractionMode || this.mobileUx.isPhone) {
+      return false;
+    }
+    return this.mobileUx.hasTouchInput && (this.mobileUx.isTablet || this.mobileUx.isDesktop);
+  }
+
   get shouldAutoMobileTitlePreview(): boolean {
     return this.isMobileInteractionMode;
   }
@@ -1452,6 +1464,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   captureMouseEvent(event: MouseEvent): void {
     this.lastMouseEvent = event;
+  }
+
+  /** Touch digitizer on tablet/desktop: drive cover preview without mouseenter. */
+  onCardPointerDown(event: PointerEvent): void {
+    if (!this.isTouchDigitizerChrome || event.pointerType !== 'touch') {
+      return;
+    }
+    this.bookClicked.emit(this.book);
   }
 
   onCardClick(event: MouseEvent | KeyboardEvent): void {

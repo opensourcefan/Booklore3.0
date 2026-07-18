@@ -211,6 +211,24 @@
   visibility: visible;
 }
 
+/* Tablet/desktop touch digitizer: do not require sticky :hover to activate cards. */
+.book-card--touch-chrome {
+  .info-btn,
+  .read-btn {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .select-checkbox {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .cover-container::after {
+    opacity: 1;
+  }
+}
+
 .cover-container.center-info-btn .info-btn {
   top: 50%;
   transform: translate(-50%, -50%);

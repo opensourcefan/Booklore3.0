@@ -55,6 +55,16 @@ export function toggleAppFullscreen(target: HTMLElement = document.documentEleme
 }
 
 /**
+ * Clear transient drag / pointer-capture UI left on body after a Fullscreen API
+ * transition. Chromium (esp. Wayland / desktop-touch) can drop pointerup while
+ * keeping setPointerCapture or body.bl-resizing* classes, which steals hits from
+ * library cards until reload.
+ */
+export function clearFullscreenTransientPointerUi(doc: Document = document): void {
+  doc.body.classList.remove('bl-resizing', 'bl-resizing-vertical');
+}
+
+/**
  * Subscribe to Fullscreen API changes (standard + webkit) and resync when the
  * document becomes visible again in case an event was missed.
  * Returns an unsubscribe function.

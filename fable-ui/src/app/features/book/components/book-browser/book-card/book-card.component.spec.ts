@@ -738,6 +738,8 @@ describe('BookCardComponent', () => {
     const template = readFileSync(templatePath, 'utf8');
     expect(template).toMatch(/\(touchstart\)="isTouchRangeSelectEnabled \? onTouchStart\(\$event\) : null"/);
     expect(template).toMatch(/\(contextmenu\)="isTouchRangeSelectEnabled \? onContextMenu\(\$event\) : null"/);
+    expect(template).toContain('(pointerdown)="onCardPointerDown($event)"');
+    expect(template).toContain('[class.book-card--touch-chrome]="isTouchDigitizerChrome"');
   });
 
   it('enables touch range select for tablet/desktop layout outside phone geometry', () => {
@@ -765,6 +767,59 @@ describe('BookCardComponent', () => {
     vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(false);
     expect(component.isMobileInteractionMode).toBe(true);
     expect(component.isTouchRangeSelectEnabled).toBe(true);
+  });
+
+  it('enables touch-digitizer chrome on tablet/desktop with touch, not Phone Mode', () => {
+    const component = createComponent();
+    component.screenWidth = 1156;
+    component.screenHeight = 840;
+    expect(component.isMobileInteractionMode).toBe(false);
+
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(true);
+    expect(component.isTouchDigitizerChrome).toBe(true);
+
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(false);
+    expect(component.isTouchDigitizerChrome).toBe(false);
+
+    component.screenWidth = 390;
+    component.screenHeight = 844;
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(true);
+    expect(component.isMobileInteractionMode).toBe(true);
+    expect(component.isTouchDigitizerChrome).toBe(false);
+  });
+
+  it('emits cover preview on touch pointerdown when touch-digitizer chrome is active', () => {
+    const component = createComponent();
+    component.screenWidth = 1156;
+    component.screenHeight = 840;
+    component.book = createBook({id: 77, title: 'Touch Preview'});
+
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(true);
+
+    const emitSpy = vi.spyOn(component.bookClicked, 'emit');
+    component.onCardPointerDown({pointerType: 'touch'} as PointerEvent);
+    expect(emitSpy).toHaveBeenCalledWith(component.book);
+
+    emitSpy.mockClear();
+    component.onCardPointerDown({pointerType: 'mouse'} as PointerEvent);
+    expect(emitSpy).not.toHaveBeenCalled();
+  });
+
+  it('scopes touch-chrome styles to book-card--touch-chrome without phone media overrides', () => {
+    const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toContain('.book-card--touch-chrome');
+    expect(scss).toMatch(/\.book-card--touch-chrome\s*\{[\s\S]*\.info-btn/);
+    expect(scss).not.toMatch(/body\.layout-phone[^{]*\{[^}]*book-card--touch-chrome/);
   });
 
   it('long-press emits range select (shiftKey) when a selection is already active', () => {

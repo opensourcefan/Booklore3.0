@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, View
 import { Subscription } from 'rxjs';
 import { MobileUxService } from '../../../core/services/mobile-ux.service';
 import { UiPreferencesService } from '../../service/ui-preferences.service';
+import { addFullscreenChangeListener } from '../../util/fullscreen.util';
 
 @Component({
   selector: 'app-cover-preview',
@@ -122,13 +123,18 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy, OnChange
       e.preventDefault();
     };
 
-    const onPointerUp = (e?: PointerEvent) => {
+    const endDrag = (e?: PointerEvent) => {
       if (!this.dragging) {
         return;
       }
       this.dragging = false;
-      if (e && this.activePointerId !== null && e.pointerId === this.activePointerId) {
-        handle.releasePointerCapture?.(e.pointerId);
+      const pointerId = e?.pointerId ?? this.activePointerId;
+      if (pointerId !== null) {
+        try {
+          handle.releasePointerCapture?.(pointerId);
+        } catch {
+          // Capture may already be gone after fullscreen / lostpointercapture.
+        }
       }
       this.activePointerId = null;
       this.renderer.removeClass(document.body, 'bl-resizing-vertical');
@@ -136,9 +142,11 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy, OnChange
 
     this.unlisten.push(
       this.renderer.listen(handle, 'pointerdown', onPointerDown),
+      this.renderer.listen(handle, 'lostpointercapture', () => endDrag()),
       this.renderer.listen(document, 'pointermove', onPointerMove),
-      this.renderer.listen(document, 'pointerup', onPointerUp),
-      this.renderer.listen(document, 'pointercancel', onPointerUp),
+      this.renderer.listen(document, 'pointerup', endDrag),
+      this.renderer.listen(document, 'pointercancel', endDrag),
+      addFullscreenChangeListener(() => endDrag()),
     );
   }
 
@@ -153,6 +161,11 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy, OnChange
   }
 
   ngOnDestroy(): void {
+    if (this.dragging) {
+      this.dragging = false;
+      this.activePointerId = null;
+      this.renderer.removeClass(document.body, 'bl-resizing-vertical');
+    }
     this.prefsSub?.unsubscribe();
     this.unlisten.forEach(fn => fn());
   }

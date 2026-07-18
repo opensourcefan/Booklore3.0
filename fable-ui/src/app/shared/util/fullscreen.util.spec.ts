@@ -1,7 +1,7 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   FULLSCREEN_CHANGE_EVENTS,
   addFullscreenChangeListener,
+  clearFullscreenTransientPointerUi,
   getFullscreenElement,
   isAppFullscreen,
   toggleAppFullscreen
@@ -10,6 +10,7 @@ import {
 describe('fullscreen.util', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    document.body.classList.remove('bl-resizing', 'bl-resizing-vertical');
   });
 
   it('isAppFullscreen reflects getFullscreenElement', () => {
@@ -20,6 +21,13 @@ describe('fullscreen.util', () => {
 
     expect(getFullscreenElement(doc)).toBe(doc.webkitFullscreenElement);
     expect(isAppFullscreen(doc)).toBe(true);
+  });
+
+  it('clearFullscreenTransientPointerUi removes stuck resize body classes', () => {
+    document.body.classList.add('bl-resizing', 'bl-resizing-vertical');
+    clearFullscreenTransientPointerUi();
+    expect(document.body.classList.contains('bl-resizing')).toBe(false);
+    expect(document.body.classList.contains('bl-resizing-vertical')).toBe(false);
   });
 
   it('toggleAppFullscreen exits when the browser is already fullscreen', async () => {

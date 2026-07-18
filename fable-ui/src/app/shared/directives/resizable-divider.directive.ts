@@ -2,6 +2,7 @@ import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } fr
 import { Subscription } from 'rxjs';
 import { MobileUxService } from '../../core/services/mobile-ux.service';
 import { UiPreferencesService } from '../service/ui-preferences.service';
+import { addFullscreenChangeListener } from '../util/fullscreen.util';
 
 /**
  * Adds a drag handle to a panel so users can resize it.
@@ -216,23 +217,36 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       e.preventDefault();
     };
 
-    const onPointerUp = (e?: PointerEvent) => {
-      if (this.dragging) {
-        this.dragging = false;
-        if (e && this.activePointerId !== null && e.pointerId === this.activePointerId) {
-          this.handle.releasePointerCapture?.(e.pointerId);
-        }
-        this.activePointerId = null;
-        this.renderer.removeClass(document.body, 'bl-resizing');
-        this.applyHandlePresentation();
+    const endDrag = (e?: PointerEvent) => {
+      if (!this.dragging) {
+        return;
       }
+      this.dragging = false;
+      const pointerId = e?.pointerId ?? this.activePointerId;
+      if (pointerId !== null) {
+        try {
+          this.handle.releasePointerCapture?.(pointerId);
+        } catch {
+          // Capture may already be gone after fullscreen / lostpointercapture.
+        }
+      }
+      this.activePointerId = null;
+      this.renderer.removeClass(document.body, 'bl-resizing');
+      this.applyHandlePresentation();
+    };
+
+    const onFullscreenChange = () => {
+      endDrag();
+      this.scheduleUpdateHandlePosition();
     };
 
     this.unlisten.push(
       this.renderer.listen(this.handle, 'pointerdown', onPointerDown),
+      this.renderer.listen(this.handle, 'lostpointercapture', () => endDrag()),
       this.renderer.listen(document, 'pointermove', onPointerMove),
-      this.renderer.listen(document, 'pointerup', onPointerUp),
-      this.renderer.listen(document, 'pointercancel', onPointerUp),
+      this.renderer.listen(document, 'pointerup', endDrag),
+      this.renderer.listen(document, 'pointercancel', endDrag),
+      addFullscreenChangeListener(onFullscreenChange),
     );
   }
 
@@ -380,6 +394,11 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.dragging) {
+      this.dragging = false;
+      this.activePointerId = null;
+      this.renderer.removeClass(document.body, 'bl-resizing');
+    }
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.animationLoopId) cancelAnimationFrame(this.animationLoopId);
     this.prefsSub?.unsubscribe();
