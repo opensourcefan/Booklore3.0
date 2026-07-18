@@ -672,31 +672,49 @@
   width: 100%;
   overflow: hidden;
   max-height: 8rem;
-  padding-top: 0.25rem;
+  // Separate the icon row from the book-browser toolbar above.
+  padding-top: 0.55rem;
   border-top: 1px solid color-mix(in srgb, var(--p-content-border-color) 78%, transparent);
   opacity: 1;
   transition: max-height 0.18s ease, opacity 0.18s ease, padding-top 0.18s ease, margin-top 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  &:not(.panel-hidden) {
+    // Stable row height so the icon-rail scrollbar sits on the panel floor,
+    // not flush under the icon glyphs.
+    min-height: 4.75rem;
+  }
 
   &.panel-hidden {
     max-height: 0;
+    min-height: 0;
     opacity: 0;
     padding-top: 0;
     margin-top: 0;
     border-top-color: transparent;
     pointer-events: none;
   }
+
+  @media (min-width: 768px) {
+    padding-top: 0.7rem;
+  }
 }
 
 .selection-panel-content {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  flex: 1 1 auto;
   min-width: 0;
-  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 .selection-panel-left {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: flex-start;
   gap: 0.25rem;
   padding-left: 0.5rem;
@@ -716,9 +734,12 @@
   // oversized row puts unreachable overflow on the leading edge (icons "missing").
   justify-content: flex-start;
   align-items: center;
+  align-self: stretch;
   flex: 1;
   flex-wrap: nowrap;
   gap: 0.5rem;
+  min-height: 100%;
+  box-sizing: border-box;
   // Padding only (no aggressive fade) — the old mask faded ~32px of end icons
   // so they looked cut off even when scrolled into the rail.
   @include icon-rail.icon-rail($scroll-padding: 20px, $with-fade: false);
@@ -997,6 +1018,10 @@
 @media (max-width: 768px) {
   .selection-action-panel {
     max-height: 6.5rem;
+
+    &:not(.panel-hidden) {
+      min-height: 3.85rem;
+    }
   }
 
   .selection-panel-content {
@@ -1051,6 +1076,7 @@
 ::ng-deep .layout-phone, ::ng-deep .layout-tablet {
   .selection-action-panel:not(.panel-hidden) {
     max-height: 6.5rem !important;
+    min-height: 3.85rem !important;
     opacity: 1 !important;
     pointer-events: auto !important;
   }
