@@ -1,3 +1,5 @@
+@use '../../../../shared/styles/icon-rail' as icon-rail;
+
 :host {
   display: block;
   height: calc(100dvh - 5rem);
@@ -35,12 +37,15 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
+      min-width: 0;
     }
 
     .header-left {
       display: flex;
       align-items: center;
       gap: 1.5rem;
+      min-width: 0;
+      flex: 1 1 auto;
 
       .back-btn {
         color: #9ca3af;
@@ -49,6 +54,7 @@
         height: 44px;
         background: rgba(255,255,255,0.03);
         border: 1px solid rgba(255,255,255,0.06);
+        flex-shrink: 0;
 
         &:hover {
           color: #fff;
@@ -57,6 +63,8 @@
       }
 
       .title-section {
+        min-width: 0;
+
         h1 {
           font-size: 2.25rem;
           font-weight: 800;
@@ -79,11 +87,22 @@
       display: flex;
       align-items: center;
       gap: 1rem;
+      flex-shrink: 0;
 
       .action-btn {
         border-radius: 9999px;
         padding: 0.5rem 1.25rem;
         font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      // Tablet/desktop: side-scroll action cluster under squeeze.
+      // Phone ≤768 keeps icon-only compaction in the mobile block below — untouched.
+      @media (min-width: 769px) {
+        flex: 0 1 auto;
+        flex-shrink: 1;
+        flex-wrap: nowrap;
+        @include icon-rail.icon-rail($scroll-padding: 8px);
       }
     }
   }

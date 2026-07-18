@@ -1,3 +1,5 @@
+@use '../../../../shared/styles/icon-rail' as icon-rail;
+
 // Layout containers
 .book-browser-container {
   position: relative;
@@ -190,6 +192,14 @@
 
   @media (min-width: 768px) {
     gap: 1rem;
+  }
+
+  // Tablet/desktop: allow the icon cluster to shrink and side-scroll under panel squeeze.
+  // Phone ≤768 keeps whole-toolbar scroll above — do not rewrite that block.
+  @media (min-width: 769px) {
+    flex: 0 1 auto;
+    flex-shrink: 1;
+    @include icon-rail.icon-rail($scroll-padding: 8px);
   }
 }
 
@@ -709,17 +719,7 @@
   display: flex;
   justify-content: center;
   flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  mask-image: linear-gradient(to right, transparent 0, black 12px, black calc(100% - 32px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 12px, black calc(100% - 32px), transparent 100%);
-  padding: 0 16px;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  @include icon-rail.icon-rail($scroll-padding: 16px, $with-fade: true);
 
   @media (max-width: 768px) {
     justify-content: flex-start;
@@ -1051,6 +1051,9 @@
   }
 }
 
+// Shared phone+tablet density for selection panel chrome (heights, gaps, button size).
+// Edge padding/mask for the center rail are split below so tablet can restore
+// hittable end icons without changing phone density (Phase 1 / Phone Mode Lock).
 ::ng-deep .layout-phone, ::ng-deep .layout-tablet {
   .selection-action-panel:not(.panel-hidden) {
     max-height: 6.5rem !important;
@@ -1075,9 +1078,6 @@
 
   .selection-panel-center {
     justify-content: flex-start !important;
-    padding: 0 0.15rem !important;
-    mask-image: none !important;
-    -webkit-mask-image: none !important;
   }
 
   .action-buttons-group {
@@ -1102,6 +1102,37 @@
 
   .selection-action-panel .p-divider-vertical {
     margin: 0 0.15rem !important;
+  }
+}
+
+// Phone: keep dense edge (mask/padding stripped). Unchanged from prior shared override.
+::ng-deep .layout-phone {
+  .selection-panel-center {
+    padding: 0 0.15rem !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+}
+
+// Tablet: restore edge scroll affordance so end icons stay hittable under panel squeeze.
+::ng-deep .layout-tablet {
+  .selection-panel-center {
+    padding: 0 12px !important;
+    scroll-padding-inline: 12px !important;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 12px,
+      black calc(100% - 32px),
+      transparent 100%
+    ) !important;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 12px,
+      black calc(100% - 32px),
+      transparent 100%
+    ) !important;
   }
 }
 

@@ -1,3 +1,5 @@
+@use '../../../styles/icon-rail' as icon-rail;
+
 .topbar-logo {
   padding-left: 1.25rem;
   padding-right: 6rem;
@@ -519,9 +521,14 @@
   gap: 0.75rem;
   margin-left: auto;
   padding-left: 1rem;
+  min-width: 0;
+  flex: 0 1 auto;
 
   @media (min-width: 768px) {
     display: flex;
+    // Side-scroll when status pills + icons exceed available topbar width.
+    // Hidden under layout-phone — never applies to Phone Mode chrome.
+    @include icon-rail.icon-rail($scroll-padding: 8px);
   }
 
   :host-context(body.layout-phone) & {

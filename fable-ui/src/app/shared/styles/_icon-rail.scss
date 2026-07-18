@@ -1,0 +1,44 @@
+// Shared horizontal icon/action rail for header and selection toolbars.
+// Prevents end icons from being unreachable when side panels squeeze layout.
+//
+// Default use: tablet / desktop / min-width ≥769 (or layout-tablet / layout-desktop).
+// Phone Mode: do NOT blanket-apply. Only use on phone for documented issue corrections
+// (see Desktop report 2026-07-18-Tablet_Header_Icon_Side_Scrolling.html §10–§11).
+// Never replace phone overflow menus (topbar, ebook, CBX) with this rail.
+
+@mixin icon-rail($scroll-padding: 12px, $with-fade: false) {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-padding-inline: $scroll-padding;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @if $with-fade {
+    padding-inline: $scroll-padding;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 12px,
+      black calc(100% - 32px),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 12px,
+      black calc(100% - 32px),
+      transparent 100%
+    );
+  }
+}
+
+@mixin icon-rail-cluster {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
