@@ -23,6 +23,8 @@ import {ReadStatusHelper} from '../../../book/helpers/read-status.helper';
 import {readStatusLabels} from '../../../book/components/book-browser/book-filter/book-filter.config';
 import {StoryArcBookPickerComponent} from '../story-arc-book-picker/story-arc-book-picker.component';
 import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
+import {detectHasTouchInput} from '../../../../shared/util/search-overlay-focus.util';
+import {GhostClickGuard, OVERLAY_GHOST_CLICK_MS} from '../../../../shared/util/overlay-dismiss.util';
 
 interface StoryArcRow {
   title: string;
@@ -91,6 +93,16 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   /** One-shot flag from Story Arcs "New Story Arc" create navigation. */
   private pendingStartInEditMode = false;
 
+  /**
+   * Desktop-touch (Duet) synthesizes a ghost click after focusing an input; OSK
+   * chrome/resize can also blur the field. Keep focus until a real page tap leaves.
+   */
+  private readonly editFieldGhostGuard = new GhostClickGuard();
+  private activeEditField: HTMLElement | null = null;
+  private editFieldSawOutsidePointer = false;
+  private editFieldBlurTimer: ReturnType<typeof setTimeout> | null = null;
+  private editFieldSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
   /** Book drop-list axis: vertical on mobile card timeline, horizontal on desktop rows. */
   get bookDropListOrientation(): 'horizontal' | 'vertical' {
     return this.isMobile ? 'vertical' : 'horizontal';
@@ -148,13 +160,16 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
 
     if (typeof window !== 'undefined') {
       window.addEventListener('popstate', this.onPopState);
+      document.addEventListener('pointerdown', this.onDocumentPointerDownCapture, true);
     }
   }
 
   ngOnDestroy(): void {
     this.mobileSub?.unsubscribe();
+    this.clearEditFieldTimers();
     if (typeof window !== 'undefined') {
       window.removeEventListener('popstate', this.onPopState);
+      document.removeEventListener('pointerdown', this.onDocumentPointerDownCapture, true);
       if (this.hasPushedHistoryState) {
         this.hasPushedHistoryState = false;
         window.history.back();
@@ -171,7 +186,112 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     }
   };
 
+  /**
+   * Capture-phase: swallow desktop-touch ghost taps that would hit sibling
+   * chapter buttons / page chrome and steal focus from the title field.
+   */
+  private onDocumentPointerDownCapture = (event: PointerEvent): void => {
+    if (!this.activeEditField) {
+      return;
+    }
+    const target = event.target as Node | null;
+    if (target && this.activeEditField.contains(target)) {
+      this.editFieldSawOutsidePointer = false;
+      return;
+    }
 
+    if (this.editFieldGhostGuard.shouldIgnore()) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    // Real outside tap — allow blur to complete and persist.
+    this.editFieldSawOutsidePointer = true;
+  };
+
+  /** Focus handler for chapter title / guide fields that need OSK stability. */
+  onEditFieldFocus(event: FocusEvent): void {
+    this.activeEditField = event.target as HTMLElement;
+    this.editFieldSawOutsidePointer = false;
+    if (detectHasTouchInput()) {
+      // Longer than default ghost window — OSK open + layout shift on Duet is slow.
+      this.editFieldGhostGuard.arm(Math.max(OVERLAY_GHOST_CLICK_MS, 900));
+    }
+  }
+
+  /**
+   * Blur handler: reclaim focus after ghost clicks / OSK chrome churn; only
+   * persist when the user intentionally leaves the field.
+   */
+  onEditFieldBlur(event: FocusEvent): void {
+    const field = event.target as HTMLElement;
+    if (this.editFieldBlurTimer != null) {
+      clearTimeout(this.editFieldBlurTimer);
+    }
+
+    this.editFieldBlurTimer = setTimeout(() => {
+      this.editFieldBlurTimer = null;
+      if (this.activeEditField !== field) {
+        return;
+      }
+      if (document.activeElement === field) {
+        return;
+      }
+
+      const touch = detectHasTouchInput();
+      if (touch && this.editFieldGhostGuard.shouldIgnore()) {
+        field.focus({preventScroll: true});
+        return;
+      }
+
+      const active = document.activeElement as HTMLElement | null;
+      const focusLostToChrome = !active
+        || active === document.body
+        || active === document.documentElement;
+
+      // OSK drag/resize often blurs to body without a page pointerdown.
+      if (touch && focusLostToChrome && !this.editFieldSawOutsidePointer) {
+        field.focus({preventScroll: true});
+        return;
+      }
+
+      this.activeEditField = null;
+      this.editFieldSawOutsidePointer = false;
+      this.flushEditFieldSave();
+    }, 50);
+  }
+
+  /** Debounced quiet save while typing so we do not depend on blur for persistence. */
+  onEditFieldChange(): void {
+    if (this.editFieldSaveTimer != null) {
+      clearTimeout(this.editFieldSaveTimer);
+    }
+    this.editFieldSaveTimer = setTimeout(() => {
+      this.editFieldSaveTimer = null;
+      this.saveLayout(true);
+    }, 600);
+  }
+
+  private flushEditFieldSave(): void {
+    if (this.editFieldSaveTimer != null) {
+      clearTimeout(this.editFieldSaveTimer);
+      this.editFieldSaveTimer = null;
+    }
+    this.saveLayout(true);
+  }
+
+  private clearEditFieldTimers(): void {
+    if (this.editFieldBlurTimer != null) {
+      clearTimeout(this.editFieldBlurTimer);
+      this.editFieldBlurTimer = null;
+    }
+    if (this.editFieldSaveTimer != null) {
+      clearTimeout(this.editFieldSaveTimer);
+      this.editFieldSaveTimer = null;
+    }
+    this.activeEditField = null;
+  }
   /** Reads one-shot navigation state from create flow without leaving it on history. */
   private consumeStartInEditModeFlag(): boolean {
     if (typeof window === 'undefined') {
@@ -362,6 +482,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
       this.isEditMode = true;
       this.isChapterSortMode = false;
     } else {
+      this.clearEditFieldTimers();
       this.saveLayout();
       this.isEditMode = false;
       this.isChapterSortMode = false;
@@ -375,6 +496,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   }
 
   cancelEdit(): void {
+    this.clearEditFieldTimers();
     if (this.backupRows && this.backupRows.length > 0) {
       this.rows = JSON.parse(JSON.stringify(this.backupRows));
     }

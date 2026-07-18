@@ -240,7 +240,8 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(window.history.state?.startInEditMode).toBeUndefined();
   });
 
-  it('saves chapter title edits quietly without reloading the layout', () => {
+  it('debounces quiet chapter title saves while typing (no layout reload)', async () => {
+    vi.useFakeTimers();
     const fixture = createFixture();
     fixture.componentInstance.toggleEditMode();
     fixture.detectChanges();
@@ -248,13 +249,11 @@ describe('StoryArcPageComponent drag affordances', () => {
     storyArcServiceMock.saveLayout.mockClear();
     storyArcServiceMock.getStoryArc.mockClear();
 
-    const titleInput = fixture.nativeElement.querySelector('.row-title-input') as HTMLInputElement;
-    expect(titleInput).not.toBeNull();
-    titleInput.value = 'Renamed Chapter';
-    titleInput.dispatchEvent(new Event('input'));
     fixture.componentInstance.rows[0].title = 'Renamed Chapter';
-    titleInput.dispatchEvent(new Event('blur'));
-    fixture.detectChanges();
+    fixture.componentInstance.onEditFieldChange();
+    expect(storyArcServiceMock.saveLayout).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(600);
 
     expect(storyArcServiceMock.saveLayout).toHaveBeenCalledWith(
       'Test Arc',
@@ -265,5 +264,48 @@ describe('StoryArcPageComponent drag affordances', () => {
       {refreshCatalog: false}
     );
     expect(storyArcServiceMock.getStoryArc).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('swallows outside pointerdowns while the chapter-title ghost guard is armed', () => {
+    Object.defineProperty(navigator, 'maxTouchPoints', {configurable: true, value: 10});
+    const fixture = createFixture();
+    fixture.componentInstance.toggleEditMode();
+    fixture.detectChanges();
+
+    const titleInput = fixture.nativeElement.querySelector('.row-title-input') as HTMLInputElement;
+    fixture.componentInstance.onEditFieldFocus({target: titleInput} as unknown as FocusEvent);
+
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    const ghost = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+    Object.defineProperty(ghost, 'target', {configurable: true, value: outside});
+
+    fixture.componentInstance['onDocumentPointerDownCapture'](ghost);
+
+    expect(ghost.defaultPrevented).toBe(true);
+    outside.remove();
+  });
+
+  it('refocuses the chapter title after a spurious blur to body without an outside tap', async () => {
+    vi.useFakeTimers();
+    Object.defineProperty(navigator, 'maxTouchPoints', {configurable: true, value: 10});
+    const fixture = createFixture();
+    fixture.componentInstance.toggleEditMode();
+    fixture.detectChanges();
+
+    const titleInput = fixture.nativeElement.querySelector('.row-title-input') as HTMLInputElement;
+    const focusSpy = vi.spyOn(titleInput, 'focus');
+    fixture.componentInstance.onEditFieldFocus({target: titleInput} as unknown as FocusEvent);
+
+    Object.defineProperty(document, 'activeElement', {
+      configurable: true,
+      get: () => document.body
+    });
+    fixture.componentInstance.onEditFieldBlur({target: titleInput} as unknown as FocusEvent);
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(focusSpy).toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });
