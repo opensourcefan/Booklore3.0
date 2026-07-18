@@ -717,18 +717,27 @@
 
 .selection-panel-center {
   display: flex;
-  justify-content: center;
+  // flex-start is required for overflow-x scrolling: justify center with an
+  // oversized row puts unreachable overflow on the leading edge (icons "missing").
+  justify-content: flex-start;
+  align-items: center;
   flex: 1;
-  @include icon-rail.icon-rail($scroll-padding: 16px, $with-fade: true);
-
-  @media (max-width: 768px) {
-    justify-content: flex-start;
-  }
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  // Padding only (no aggressive fade) — the old mask faded ~32px of end icons
+  // so they looked cut off even when scrolled into the rail.
+  @include icon-rail.icon-rail($scroll-padding: 20px, $with-fade: false);
+  padding-inline: 20px;
 }
 
 .selection-panel-right {
+  // Empty visual spacer; hide when squeezed so the icon rail gets the width.
   flex-shrink: 0;
   width: 120px;
+
+  @media (max-width: 1200px) {
+    display: none;
+  }
 
   @media (max-width: 768px) {
     display: none;
@@ -769,7 +778,9 @@
 
 .action-buttons-group {
   display: flex;
+  flex-wrap: nowrap;
   flex-shrink: 0;
+  align-items: center;
   gap: 0.5rem;
 
   @media (min-width: 768px) {
@@ -1021,10 +1032,9 @@
   }
 
   .selection-panel-center {
-    // Phone issue correction: keep dense chrome (no fade mask) but restore modest
-    // edge padding so end icons remain hittable when the rail scrolls.
-    padding: 0 8px;
-    scroll-padding-inline: 8px;
+    // Phone: no fade; keep edge padding so scrolled end icons stay hittable.
+    padding: 0 16px;
+    scroll-padding-inline: 16px;
     mask-image: none;
     -webkit-mask-image: none;
   }
@@ -1108,35 +1118,27 @@
   }
 }
 
-// Phone issue correction: modest edge padding (no fade mask) so scrolled end icons stay hittable.
+// Phone: edge padding only (no fade) so scrolled end icons stay hittable.
 ::ng-deep .layout-phone {
   .selection-panel-center {
-    padding: 0 8px !important;
-    scroll-padding-inline: 8px !important;
+    padding: 0 16px !important;
+    scroll-padding-inline: 16px !important;
     mask-image: none !important;
     -webkit-mask-image: none !important;
   }
 }
 
-// Tablet: restore edge scroll affordance so end icons stay hittable under panel squeeze.
+// Tablet: same as base — flex-start + padding, no fade that eats end icons.
 ::ng-deep .layout-tablet {
   .selection-panel-center {
-    padding: 0 12px !important;
-    scroll-padding-inline: 12px !important;
-    mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      black 12px,
-      black calc(100% - 32px),
-      transparent 100%
-    ) !important;
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      black 12px,
-      black calc(100% - 32px),
-      transparent 100%
-    ) !important;
+    padding: 0 20px !important;
+    scroll-padding-inline: 20px !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+
+  .selection-panel-right {
+    display: none !important;
   }
 }
 

@@ -20,18 +20,19 @@
 
   @if $with-fade {
     padding-inline: $scroll-padding;
+    // Keep fade short so a full icon is not eaten at each end.
     mask-image: linear-gradient(
       to right,
       transparent 0,
-      black 12px,
-      black calc(100% - 32px),
+      black 8px,
+      black calc(100% - 8px),
       transparent 100%
     );
     -webkit-mask-image: linear-gradient(
       to right,
       transparent 0,
-      black 12px,
-      black calc(100% - 32px),
+      black 8px,
+      black calc(100% - 8px),
       transparent 100%
     );
   }
