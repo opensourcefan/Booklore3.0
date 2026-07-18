@@ -290,6 +290,29 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(fixture.componentInstance.rows[2].items).toEqual([]);
   });
 
+  it('renders the comic issue number as a cover overlay on reading-path cards', () => {
+    storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([
+      {
+        ...sampleMappings[0],
+        book: {
+          id: 101,
+          metadata: {
+            title: 'Issue One',
+            seriesName: 'Test Series',
+            comicMetadata: {issueNumber: '12'}
+          },
+          readStatus: 'UNREAD'
+        } as StoryArcBookMapping['book']
+      }
+    ]));
+
+    const fixture = createFixture();
+    const overlay = fixture.nativeElement.querySelector('.series-number-overlay') as HTMLElement | null;
+    expect(overlay).not.toBeNull();
+    expect(overlay?.textContent?.trim()).toBe('#12');
+    expect(fixture.componentInstance.getDisplayIssueNumber(fixture.componentInstance.rows[0].items[0].book)).toBe('#12');
+  });
+
   it('debounces quiet chapter title saves while typing (no layout reload)', async () => {
     vi.useFakeTimers();
     const fixture = createFixture();

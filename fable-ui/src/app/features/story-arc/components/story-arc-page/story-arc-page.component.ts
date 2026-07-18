@@ -864,6 +864,25 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     return !!(book.primaryFile || book.fileType || book.filePath || !book.isPhysical);
   }
 
+  /** Cover badge + series line; mirrors book-card issue overlay sourcing. */
+  getDisplayIssueNumber(book: Book | undefined | null): string | null {
+    if (!book?.metadata) {
+      return null;
+    }
+    const comicIssueNumber = book.metadata.comicMetadata?.issueNumber?.trim();
+    if (comicIssueNumber) {
+      return comicIssueNumber.startsWith('#') ? comicIssueNumber : `#${comicIssueNumber}`;
+    }
+    if (!book.seriesCount && book.metadata.seriesNumber != null) {
+      return `#${book.metadata.seriesNumber}`;
+    }
+    const legacyIssue = (book.metadata as { issueNumber?: string }).issueNumber?.trim?.();
+    if (legacyIssue) {
+      return legacyIssue.startsWith('#') ? legacyIssue : `#${legacyIssue}`;
+    }
+    return null;
+  }
+
   readBook(event: MouseEvent, book: Book | undefined): void {
     event.stopPropagation();
     if (!book) return;

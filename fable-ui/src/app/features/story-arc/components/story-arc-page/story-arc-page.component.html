@@ -247,11 +247,18 @@
                             </div>
                           }
 
-                          @if (item.bookId === getNextUpBookId() && !isEditMode) {
-                            <div class="next-badge">
-                              <span>NEXT UP</span>
-                            </div>
-                          }
+                          <div class="top-left-overlay-stack">
+                            @if (item.bookId === getNextUpBookId() && !isEditMode) {
+                              <div class="next-badge">
+                                <span>NEXT UP</span>
+                              </div>
+                            }
+                            @if (getDisplayIssueNumber(item.book); as displayIssueNumber) {
+                              <div class="series-number-overlay">
+                                {{ displayIssueNumber }}
+                              </div>
+                            }
+                          </div>
 
                           @if (getProgressPercentage(item.book); as progress) {
                             <div class="cover-progress-bar-container" [pTooltip]="progress + '% read'" tooltipPosition="top">
@@ -332,9 +339,9 @@
                             {{ item.book?.metadata?.title || 'Unknown Title' }}
                           </h4>
                           <p class="book-series">
-                            {{ item.book?.metadata?.['series'] || 'No Series' }}
-                            @if (item.book?.metadata?.['issueNumber']) {
-                              #{{ item.book?.metadata?.['issueNumber'] }}
+                            {{ item.book?.metadata?.seriesName || item.book?.metadata?.['series'] || 'No Series' }}
+                            @if (getDisplayIssueNumber(item.book); as displayIssueNumber) {
+                              {{ displayIssueNumber }}
                             }
                           </p>
                         </div>

@@ -20,6 +20,9 @@ import {TaskHelperService} from '../../../../settings/task-management/task-helpe
 import {BookNavigationService} from '../../../service/book-navigation.service';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {ReadStatusHelper} from '../../../helpers/read-status.helper';
+import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
+import {BookSelectionService} from '../book-selection.service';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -150,6 +153,7 @@ describe('BookCardComponent', () => {
             shouldShowStatusIcon: vi.fn(() => true),
           },
         },
+        {provide: FailureNotificationService, useValue: {reportSafe: vi.fn()}},
       ],
     }).compileComponents();
   });
@@ -727,6 +731,62 @@ describe('BookCardComponent', () => {
       currentTarget: trigger,
       target: trigger,
     }));
+  });
+
+  it('templates touch range-select handlers on isTouchRangeSelectEnabled (not phone-only geometry)', () => {
+    const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
+    const template = readFileSync(templatePath, 'utf8');
+    expect(template).toMatch(/\(touchstart\)="isTouchRangeSelectEnabled \? onTouchStart\(\$event\) : null"/);
+    expect(template).toMatch(/\(contextmenu\)="isTouchRangeSelectEnabled \? onContextMenu\(\$event\) : null"/);
+  });
+
+  it('enables touch range select for tablet/desktop layout outside phone geometry', () => {
+    const component = createComponent();
+    component.screenWidth = 1156;
+    component.screenHeight = 840;
+    expect(component.isMobileInteractionMode).toBe(false);
+
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(false);
+    expect(component.isTouchRangeSelectEnabled).toBe(true);
+
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
+    expect(component.isTouchRangeSelectEnabled).toBe(true);
+  });
+
+  it('keeps touch range select on phone geometry even when tablet/desktop flags are false', () => {
+    const component = createComponent();
+    component.screenWidth = 390;
+    component.screenHeight = 844;
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(false);
+    expect(component.isMobileInteractionMode).toBe(true);
+    expect(component.isTouchRangeSelectEnabled).toBe(true);
+  });
+
+  it('long-press emits range select (shiftKey) when a selection is already active', () => {
+    vi.useFakeTimers();
+    const component = createComponent();
+    component.isCheckboxEnabled = true;
+    component.isSelected = false;
+    component.index = 3;
+    component.book = createBook({id: 33});
+    const emitSpy = vi.spyOn(component.checkboxClick, 'emit');
+    const selection = TestBed.inject(BookSelectionService);
+    vi.spyOn(selection, 'hasSelection').mockReturnValue(true);
+
+    component.onTouchStart(createTouchEvent(40, 40));
+    vi.advanceTimersByTime(500);
+
+    expect(emitSpy).toHaveBeenCalledWith(expect.objectContaining({
+      index: 3,
+      selected: true,
+      shiftKey: true
+    }));
+    vi.useRealTimers();
   });
 
 });

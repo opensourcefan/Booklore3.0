@@ -357,6 +357,18 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return shortEdge <= this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
   }
 
+  /**
+   * Long-press range multiselect + selection-tap behavior.
+   * Preserves the existing phone geometry path; also enables for tablet/desktop
+   * layout chrome (including auto-shape on touch tablets). Does not change Phone Mode.
+   */
+  get isTouchRangeSelectEnabled(): boolean {
+    if (this.isMobileInteractionMode) {
+      return true;
+    }
+    return this.mobileUx.isTablet || this.mobileUx.isDesktop;
+  }
+
   get shouldAutoMobileTitlePreview(): boolean {
     return this.isMobileInteractionMode;
   }
@@ -1443,7 +1455,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onCardClick(event: MouseEvent | KeyboardEvent): void {
-    if (this.isMobileInteractionMode && this.bookSelectionService.hasSelection()) {
+    if (this.isTouchRangeSelectEnabled && this.bookSelectionService.hasSelection()) {
       event.preventDefault();
       event.stopPropagation();
       this.checkboxClick.emit({
@@ -1485,7 +1497,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onTitleAreaActivate(event: Event): void {
-    if (this.isMobileInteractionMode && this.bookSelectionService.hasSelection()) {
+    if (this.isTouchRangeSelectEnabled && this.bookSelectionService.hasSelection()) {
       event.preventDefault();
       event.stopPropagation();
       this.checkboxClick.emit({
@@ -1809,10 +1821,16 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onContextMenu(event: MouseEvent): void {
-    if (this.isMobileInteractionMode) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (!this.isTouchRangeSelectEnabled) {
+      return;
     }
+    // Phone geometry path unchanged. On tablet/desktop, only suppress when a
+    // touch digitizer is present so mouse right-click still works on desktop.
+    if (!this.isMobileInteractionMode && !this.mobileUx.hasTouchInput) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   ngOnDestroy(): void {
