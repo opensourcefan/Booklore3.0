@@ -55,19 +55,22 @@
 
 .book-browser-toolbar {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   width: 100%;
   max-width: 100%;
   gap: 0.25rem;
-  min-height: 2.5rem;
+  // Tall enough that a bottom scrollbar sits under the icon glyphs, not through them.
+  min-height: 2.75rem;
+  box-sizing: border-box;
 
   @media (min-width: 768px) {
     gap: 1rem;
+    min-height: 3rem;
   }
 
   @media (max-width: 768px) {
-    min-height: 2rem;
+    min-height: 2.5rem;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -77,6 +80,7 @@
 .header-leading-action {
   display: flex;
   align-items: center;
+  align-self: stretch;
   flex-shrink: 0;
 }
 
@@ -84,6 +88,7 @@
 .entity-info-wrapper {
   display: flex;
   align-items: center;
+  align-self: stretch;
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -182,8 +187,10 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  align-self: stretch;
   gap: 0.25rem;
   flex-shrink: 0;
+  box-sizing: border-box;
 
   @media (min-width: 768px) {
     gap: 1rem;
@@ -194,6 +201,7 @@
   @media (min-width: 769px) {
     flex: 0 1 auto;
     flex-shrink: 1;
+    min-height: 100%;
     @include icon-rail.icon-rail($scroll-padding: 8px);
   }
 }
@@ -673,7 +681,7 @@
   overflow: hidden;
   max-height: 8rem;
   // Separate the icon row from the book-browser toolbar above.
-  padding-top: 0.55rem;
+  padding-top: 0.275rem;
   border-top: 1px solid color-mix(in srgb, var(--p-content-border-color) 78%, transparent);
   opacity: 1;
   transition: max-height 0.18s ease, opacity 0.18s ease, padding-top 0.18s ease, margin-top 0.18s ease;
@@ -698,7 +706,7 @@
   }
 
   @media (min-width: 768px) {
-    padding-top: 0.7rem;
+    padding-top: 0.35rem;
   }
 }
 
