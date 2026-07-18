@@ -6,7 +6,8 @@
 // (see Desktop report 2026-07-18-Tablet_Header_Icon_Side_Scrolling.html §10–§11).
 // Never replace phone overflow menus (topbar, ebook, CBX) with this rail.
 //
-// Scroll affordance: a thin bottom scrollbar (visible only when content overflows).
+// Scroll affordance: inherits the app-wide scrollbar from styles.scss
+// (3px, --p-primary-color) — same as the left sidebar. Do not invent a second style.
 
 @mixin icon-rail($scroll-padding: 12px, $with-fade: false) {
   min-width: 0;
@@ -14,9 +15,6 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-padding-inline: $scroll-padding;
-  // Room for the thin track without crowding icon hit targets.
-  padding-bottom: 2px;
-  @include icon-rail-thin-scrollbar;
 
   @if $with-fade {
     padding-inline: $scroll-padding;
@@ -42,27 +40,4 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-}
-
-// Thin but visible horizontal scrollbar — appears when the rail overflows.
-@mixin icon-rail-thin-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--p-surface-100, #e8eaef) 35%, transparent) transparent;
-
-  &::-webkit-scrollbar {
-    height: 3px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--p-surface-100, #e8eaef) 35%, transparent);
-    border-radius: 999px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--p-surface-100, #e8eaef) 55%, transparent);
-  }
 }
