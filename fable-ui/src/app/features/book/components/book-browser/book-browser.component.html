@@ -584,13 +584,11 @@
                   <p-button
                     styleClass="staging-release-action"
                     icon="pi pi-check"
-                    [label]="isMobile ? t('labels.release') : t('labels.releaseFromStaging')"
+                    [label]="t('labels.release')"
                     severity="success"
-                    size="small"
                     [disabled]="selectedCount === 0"
                     (onClick)="releaseFromStaging()"
                     [pTooltip]="t('tooltip.releaseFromStaging')"
-                    [tooltipDisabled]="!isMobile && selectedCount > 0"
                     tooltipPosition="top"
                     [attr.aria-label]="t('tooltip.releaseFromStaging')">
                   </p-button>
