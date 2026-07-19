@@ -453,6 +453,48 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
   });
 
+  it('pages Staging with staged=true and appends only staged imports without clearing the grid', async () => {
+    const service = createService();
+
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [{...createBook(101, 'Already Staged'), staged: true}],
+      page: 0,
+      size: 80,
+      totalElements: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
+
+    const context = {
+      entity: 'STAGING' as const,
+      entityId: null,
+      viewMode: 'grid' as const,
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    };
+
+    const bookState$ = service.connect(context, () => of(legacyState([createBook(90, 'Warm 90')])));
+    const initialState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+
+    expect(initialState.books?.map(book => book.id)).toEqual([101]);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      staged: true,
+      page: 0,
+      size: 80,
+    }));
+
+    service.appendNewBook({...createBook(102, 'Fresh Import'), staged: true});
+    service.appendNewBook({...createBook(103, 'Not Staged'), staged: false});
+
+    const afterAppend = await firstValueFrom(bookState$.pipe(filter(state => (state.books?.length ?? 0) >= 2)));
+    expect(afterAppend.books?.map(book => book.id)).toEqual([102, 101]);
+  });
+
   it('uses shelf-specific request keys and refetches the active shelf query after invalidation', async () => {
     const service = createService();
     const pagedStateService = getPagedStateService();

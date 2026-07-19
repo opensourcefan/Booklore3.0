@@ -92,7 +92,8 @@ export class BookSocketService {
     return previousBook.libraryId !== nextBook.libraryId
       || !!previousBook.isPhysical !== !!nextBook.isPhysical
       || this.normalizeFileType(previousBook.fileType) !== this.normalizeFileType(nextBook.fileType)
-      || this.getShelfIds(previousBook).join(',') !== this.getShelfIds(nextBook).join(',');
+      || this.getShelfIds(previousBook).join(',') !== this.getShelfIds(nextBook).join(',')
+      || !!previousBook.staged !== !!nextBook.staged;
   }
 
   private normalizeFileType(fileType?: string): string {

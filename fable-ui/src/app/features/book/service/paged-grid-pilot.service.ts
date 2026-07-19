@@ -14,6 +14,7 @@ const ENABLED_PAGED_ENTITIES: ReadonlySet<PagedBookBrowserEntity> = new Set([
   'LIBRARY',
   'SHELF',
   'NOT_SHELFED',
+  'STAGING',
 ]);
 
 export interface PagedGridPilotContext {
@@ -227,11 +228,15 @@ export class PagedGridPilotService {
   /**
    * Append a newly imported book to the active paged grid without
    * resetting state to null — avoids screen flash during bulk import.
-   * Only applies when the default sort is active (addedOn,desc) and
-   * no search/filters are applied (new books always match unshelved).
+   * Only applies when the book matches the active entity (e.g. staged
+   * books on Staging) and the viewer is already in paged mode.
    */
   appendNewBook(book: Book): void {
     if (!this.pagedActive || !this.activeQuery) {
+      return;
+    }
+
+    if (!this.bookMatchesActivePagedEntity(book, this.activeQuery.requestKey.entity, this.activeQuery.requestKey.entityId)) {
       return;
     }
 
@@ -247,6 +252,27 @@ export class PagedGridPilotService {
       loaded: true,
       error: null,
     });
+  }
+
+  private bookMatchesActivePagedEntity(
+    book: Book,
+    entity: PagedBookBrowserEntity,
+    entityId: number | null
+  ): boolean {
+    switch (entity) {
+      case 'STAGING':
+        return book.staged === true;
+      case 'NOT_SHELFED':
+        return !book.shelves || book.shelves.length === 0;
+      case 'LIBRARY':
+        return entityId != null && book.libraryId === entityId;
+      case 'SHELF':
+        return entityId != null && !!book.shelves?.some(shelf => shelf.id === entityId);
+      case 'ALL_BOOKS':
+        return true;
+      default:
+        return false;
+    }
   }
 
   loadNextPageIfNeeded(scrollTop: number, clientHeight: number, scrollHeight: number): void {

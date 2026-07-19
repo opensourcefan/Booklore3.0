@@ -30,7 +30,7 @@ function createMetadata(bookId: number, title: string, coverUpdatedOn?: string):
 }
 
 function createCacheEntry(
-  entity: 'ALL_BOOKS' | 'LIBRARY',
+  entity: 'ALL_BOOKS' | 'LIBRARY' | 'STAGING' | 'NOT_SHELFED',
   entityId: number | null,
   books: Book[],
   totalElements = books.length
@@ -137,6 +137,7 @@ describe('BookSocketService', () => {
       allBooks: createCacheEntry('ALL_BOOKS', null, [createBook(11, 'Existing Book', 1)], 10),
       matchingLibrary: createCacheEntry('LIBRARY', 1, [createBook(11, 'Existing Book', 1)], 4),
       otherLibrary: createCacheEntry('LIBRARY', 9, [createBook(99, 'Other Library Book', 9)], 2),
+      staging: createCacheEntry('STAGING', null, [createBook(11, 'Existing Book', 1)], 1),
     });
 
     socketService.handleNewlyCreatedBook(createBook(22, 'New Book', 1));
@@ -147,6 +148,43 @@ describe('BookSocketService', () => {
     expect(Object.keys(state.pagedCache ?? {})).toEqual(['otherLibrary']);
     expect(state.totalCount).toBe(2);
     expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves staged when a realtime update omits the staged field', () => {
+    const {socketService, bookStateService} = createServices();
+
+    bookStateService.updateBookState({
+      books: [{...createBook(44, 'Old Title', 1), staged: true}],
+      loaded: true,
+      error: null,
+    });
+
+    socketService.handleBookUpdate(createBook(44, 'New Title', 1));
+
+    const state = bookStateService.getCurrentBookState();
+    expect(state.books?.[0].metadata?.title).toBe('New Title');
+    expect(state.books?.[0].staged).toBe(true);
+  });
+
+  it('invalidates staging cache when staged flag changes', () => {
+    const {socketService, bookStateService} = createServices();
+
+    bookStateService.updateBookState({
+      books: [{...createBook(44, 'Staged Book', 1), staged: true}],
+      loaded: true,
+      error: null,
+    });
+
+    bookStateService.setPagedCache({
+      staging: createCacheEntry('STAGING', null, [{...createBook(44, 'Staged Book', 1), staged: true}], 1),
+      allBooks: createCacheEntry('ALL_BOOKS', null, [{...createBook(44, 'Staged Book', 1), staged: true}], 1),
+    });
+
+    socketService.handleBookUpdate({...createBook(44, 'Staged Book', 1), staged: false});
+
+    const state = bookStateService.getCurrentBookState();
+    expect(state.books?.[0].staged).toBe(false);
+    expect(Object.keys(state.pagedCache ?? {})).toEqual(['allBooks']);
   });
 
   it('invalidates impacted caches when books are removed', () => {
@@ -163,6 +201,7 @@ describe('BookSocketService', () => {
       libraryOne: createCacheEntry('LIBRARY', 1, [createBook(11, 'Library One', 1)], 5),
       libraryTwo: createCacheEntry('LIBRARY', 2, [createBook(22, 'Library Two', 2)], 5),
       otherLibrary: createCacheEntry('LIBRARY', 9, [createBook(99, 'Other Library Book', 9)], 2),
+      staging: createCacheEntry('STAGING', null, [createBook(11, 'Library One', 1)], 1),
     });
 
     socketService.handleRemovedBookIds([11, 22]);

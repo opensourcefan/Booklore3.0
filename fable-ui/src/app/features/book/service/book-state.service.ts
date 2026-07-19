@@ -164,6 +164,7 @@ export class BookStateService {
     const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
       entry.key.entity === 'ALL_BOOKS'
       || entry.key.entity === 'NOT_SHELFED'
+      || entry.key.entity === 'STAGING'
       || (entry.key.entity === 'LIBRARY' && entry.key.entityId === book.libraryId)
     ));
 
@@ -182,6 +183,7 @@ export class BookStateService {
     const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
       entry.key.entity === 'ALL_BOOKS'
       || entry.key.entity === 'NOT_SHELFED'
+      || entry.key.entity === 'STAGING'
       || (entry.key.entity === 'LIBRARY' && entry.key.entityId !== null && impactedLibraryIds.has(entry.key.entityId))
     ));
 
@@ -190,25 +192,39 @@ export class BookStateService {
 
   replaceBookAcrossState(updatedBook: Book): void {
     const currentState = this.getCurrentBookState();
+    const previousBook = currentState.books?.find(book => book.id === updatedBook.id);
+    // Preserve staged when an update payload omits it so Staging views don't flicker empty mid-import.
+    const bookToApply = previousBook && updatedBook.staged === undefined && previousBook.staged !== undefined
+      ? {...updatedBook, staged: previousBook.staged}
+      : updatedBook;
+    const stagedChanged = !!previousBook?.staged !== !!bookToApply.staged;
     let didChange = false;
 
     const nextBooks = currentState.books?.map(book => {
-      if (book.id !== updatedBook.id) {
+      if (book.id !== bookToApply.id) {
         return book;
       }
 
       didChange = true;
-      return updatedBook;
+      return bookToApply;
     }) ?? null;
 
-    const nextPagedCache = this.mapPagedCacheBooks(book => {
-      if (book.id !== updatedBook.id) {
+    let nextPagedCache = this.mapPagedCacheBooks(book => {
+      if (book.id !== bookToApply.id) {
         return book;
       }
 
       didChange = true;
-      return updatedBook;
+      return bookToApply;
     });
+
+    if (stagedChanged) {
+      nextPagedCache = Object.fromEntries(
+        Object.entries(nextPagedCache)
+          .filter(([, entry]) => entry.key.entity !== 'STAGING')
+      );
+      didChange = true;
+    }
 
     if (!didChange) {
       return;
