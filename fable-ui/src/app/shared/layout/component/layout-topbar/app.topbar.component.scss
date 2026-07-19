@@ -46,6 +46,9 @@
 .topbar-content {
   display: flex;
   align-items: center;
+  // Fill .layout-topbar height so icon-rail children can stretch and park
+  // the scrollbar under the glyphs (same pattern as book-browser toolbar).
+  align-self: stretch;
   width: 100%;
   min-width: 0;
   gap: 1rem;
@@ -534,9 +537,14 @@
   padding-left: 1rem;
   min-width: 0;
   flex: 0 1 auto;
+  box-sizing: border-box;
 
   @media (min-width: 768px) {
     display: flex;
+    // Stretch to topbar floor so the scrollbar sits under icons, not flush
+    // against glyph bottoms. Icons stay vertically centered via align-items.
+    align-self: stretch;
+    min-height: 100%;
     // Side-scroll when status pills + icons exceed available topbar width.
     // Hidden under layout-phone — never applies to Phone Mode chrome.
     @include icon-rail.icon-rail($scroll-padding: 8px);
