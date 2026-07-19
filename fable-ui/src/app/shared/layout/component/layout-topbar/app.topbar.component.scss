@@ -2,7 +2,8 @@
 
 .topbar-logo {
   padding-left: 1.25rem;
-  padding-right: 6rem;
+  // Was 6rem — cut empty space between title and sidebar toggle by 50%.
+  padding-right: 3rem;
   gap: 0.5rem;
 }
 
@@ -55,8 +56,11 @@
 }
 
 .topbar-search {
-  flex-grow: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  // Hold a usable search width so status pills must shrink before colliding.
+  min-width: 12rem;
+  // Extra clearance beyond .topbar-content gap so pills/icons stay off the input.
+  margin-inline-end: 1.5rem;
 
   @media (max-width: 768px) {
     display: none;
@@ -71,6 +75,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
@@ -119,6 +124,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
@@ -167,6 +173,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
@@ -203,6 +210,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 28rem;
   padding: 0.45rem 0.8rem;
@@ -251,6 +259,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
@@ -299,6 +308,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
@@ -372,6 +382,7 @@
   display: none;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
@@ -720,6 +731,15 @@
   justify-content: center;
   pointer-events: none;
   user-select: none;
+}
+
+// Desktop/tablet toolbar only — top-right badge clips off the viewport edge.
+// Phone Mode keeps the default top-right via .notification-badge + inline styles.
+.topbar-desktop-items .notification-badge {
+  top: auto;
+  right: auto;
+  bottom: -0.15rem;
+  left: -0.15rem;
 }
 
 .logo-version {

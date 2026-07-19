@@ -22,7 +22,9 @@
     align-items: center;
     font-size: 1.7rem;
     font-weight: 500;
-    width: 265px;
+    // Match .topbar-logo padding-right reduction (6rem → 3rem) so the fixed
+    // width actually reclaims the emptied gap instead of leaving dead space.
+    width: calc(265px - 3rem);
     border-radius: 12px;
   }
 }
