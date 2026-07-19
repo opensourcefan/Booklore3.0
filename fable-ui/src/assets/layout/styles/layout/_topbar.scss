@@ -525,6 +525,24 @@ body.header-bottom {
   }
 }
 
+/* Customize-toolbar: keep within the viewport when PrimeNG flips above a bottom topbar. */
+.toolbar-editor-popover.p-popover {
+  max-height: min(70dvh, calc(100dvh - 5rem));
+
+  .p-popover-content {
+    max-height: inherit;
+    overflow: hidden;
+    padding: 0.25rem;
+  }
+}
+
+body.header-bottom .toolbar-editor-popover.p-popover {
+  max-height: min(
+    70dvh,
+    calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px) - 1rem)
+  );
+}
+
 .quick-layout-btn--active {
   background-color: var(--p-primary-color) !important;
   border-color: var(--p-primary-color) !important;

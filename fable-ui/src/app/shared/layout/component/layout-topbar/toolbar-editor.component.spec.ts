@@ -155,4 +155,36 @@ describe('ToolbarEditorComponent drag reorder', () => {
     fixture.detectChanges();
     expect(component.isDragging).toBe(false);
   });
+
+  it('emits cancelled from the header close button without saving', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const cancelled = vi.fn();
+    const saved = vi.fn();
+    component.cancelled.subscribe(cancelled);
+    component.saved.subscribe(saved);
+    const saveSpy = vi.spyOn(config, 'save');
+
+    const closeBtn = fixture.debugElement.query(By.css('.toolbar-editor-close'));
+    expect(closeBtn).toBeTruthy();
+    closeBtn.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(cancelled).toHaveBeenCalledTimes(1);
+    expect(saved).not.toHaveBeenCalled();
+    expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  it('caps editor height and scrolls the item list so footer actions stay reachable', () => {
+    const fixture = createFixture();
+    const editor = fixture.debugElement.query(By.css('.toolbar-editor')).nativeElement as HTMLElement;
+    const list = fixture.debugElement.query(By.css('.toolbar-editor-list')).nativeElement as HTMLElement;
+    const footer = fixture.debugElement.query(By.css('.toolbar-editor-footer'));
+    const closeBtn = fixture.debugElement.query(By.css('.toolbar-editor-close'));
+
+    expect(footer).toBeTruthy();
+    expect(closeBtn).toBeTruthy();
+    expect(getComputedStyle(editor).display).toBe('flex');
+    expect(getComputedStyle(list).overflowY).toBe('auto');
+  });
 });

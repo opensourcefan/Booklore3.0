@@ -9,7 +9,12 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
   template: `
     <div class="toolbar-editor">
       <div class="toolbar-editor-header">
-        <span>Customize Toolbar</span>
+        <div class="toolbar-editor-title-row">
+          <span>Customize Toolbar</span>
+          <button type="button" class="toolbar-editor-close" (click)="close()" aria-label="Close" title="Close">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
         <span class="toolbar-editor-hint">Saved for the current layout (phone, tablet, or desktop) on this browser</span>
       </div>
       <ul
@@ -40,22 +45,76 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
           </li>
         }
       </ul>
-      <div class="toolbar-editor-add-actions">
-        <button type="button" class="add-sep-btn" (click)="addSeparator()">
-          <i class="pi pi-plus" style="font-size: 0.75rem; margin-right: 0.25rem;"></i>Add Separator
-        </button>
-      </div>
-      <div class="toolbar-editor-actions">
-        <button type="button" class="save-btn" (click)="save()">Save</button>
-        <button type="button" class="reset-btn" (click)="reset()">Reset</button>
+      <div class="toolbar-editor-footer">
+        <div class="toolbar-editor-add-actions">
+          <button type="button" class="add-sep-btn" (click)="addSeparator()">
+            <i class="pi pi-plus" style="font-size: 0.75rem; margin-right: 0.25rem;"></i>Add Separator
+          </button>
+        </div>
+        <div class="toolbar-editor-actions">
+          <button type="button" class="save-btn" (click)="save()">Save</button>
+          <button type="button" class="reset-btn" (click)="reset()">Reset</button>
+        </div>
       </div>
     </div>
   `,
   styles: [`
-    .toolbar-editor { min-width: 220px; padding: 0.5rem; }
-    .toolbar-editor-header { font-weight: 700; font-size: 0.85rem; padding: 0.25rem 0 0.5rem; border-bottom: 1px solid var(--p-content-border-color); margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.15rem; }
+    .toolbar-editor {
+      display: flex;
+      flex-direction: column;
+      min-width: 220px;
+      max-width: min(22rem, calc(100vw - 1.5rem));
+      /* Leave room for topbar + margin so PrimeNG flip-up cannot pin to y=0. */
+      max-height: min(70dvh, calc(100dvh - 5rem));
+      padding: 0.5rem;
+      box-sizing: border-box;
+    }
+    .toolbar-editor-header {
+      flex-shrink: 0;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.25rem 0 0.5rem;
+      border-bottom: 1px solid var(--p-content-border-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .toolbar-editor-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .toolbar-editor-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      margin: -0.25rem -0.15rem -0.25rem 0;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--p-surface-400);
+      cursor: pointer;
+    }
+    .toolbar-editor-close:hover { color: var(--p-surface-100); background: var(--p-surface-700); }
     .toolbar-editor-hint { font-weight: 500; font-size: 0.7rem; color: var(--p-surface-400); }
-    .toolbar-editor-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+    .toolbar-editor-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
     .toolbar-editor-item {
       display: flex;
       align-items: center;
@@ -90,6 +149,7 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
     .toggle-btn { background: none; border: none; cursor: pointer; color: var(--p-surface-400); padding: 0; &:hover { color: var(--p-primary-color); } }
     .remove-btn { background: none; border: none; cursor: pointer; color: var(--p-surface-400); padding: 0; transition: color 0.15s ease; &:hover { color: #ef4444; } }
 
+    .toolbar-editor-footer { flex-shrink: 0; }
     .toolbar-editor-add-actions { display: flex; margin-top: 0.5rem; padding-top: 0.25rem; }
     .add-sep-btn {
       width: 100%;
@@ -136,6 +196,8 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 export class ToolbarEditorComponent implements OnInit {
   config = inject(ToolbarConfigService);
   @Output() saved = new EventEmitter<void>();
+  /** Dismiss without persisting draft changes. */
+  @Output() cancelled = new EventEmitter<void>();
   /** True while a CDK drag is active — parent popover should not auto-dismiss. */
   isDragging = false;
   draftItems: ToolbarItem[] = [];
@@ -193,5 +255,9 @@ export class ToolbarEditorComponent implements OnInit {
     this.config.reset();
     this.syncItems();
     this.saved.emit();
+  }
+
+  close() {
+    this.cancelled.emit();
   }
 }

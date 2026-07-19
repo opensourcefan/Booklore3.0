@@ -513,7 +513,7 @@
       <i class="pi pi-sliders-h"></i>
     </button>
     <p-popover #toolbarEditorPop [dismissable]="!toolbarEditor?.isDragging" appendTo="body" styleClass="toolbar-editor-popover" (onShow)="toolbarEditor.syncItems()">
-      <app-toolbar-editor #toolbarEditor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
+      <app-toolbar-editor #toolbarEditor (saved)="toolbarEditorPop.hide()" (cancelled)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>
 
     @if (showMobileBookFilterTrigger) {
