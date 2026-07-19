@@ -1,36 +1,50 @@
-// Shared tab-rail chrome: scrollable tabs in the main column, fixed close (X) beside them.
-// Prevents PrimeNG tablist scroll chevrons from colliding with the return control.
+// Shared tab-rail chrome: scrollable tabs full-width, fixed close (X) on the tablist row only.
+// X is absolutely positioned over reserved tablist/header padding so it never creates a
+// full-height empty column beside the panel body.
+
+$tab-rail-close-size: 2.75rem;
 
 @mixin tab-rail-host {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto minmax(0, 1fr);
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
   position: relative;
+
+  // Reserve space on the tablist row only — not a full-height grid column.
+  ::ng-deep p-tablist,
+  ::ng-deep .p-tablist {
+    padding-right: $tab-rail-close-size !important;
+    box-sizing: border-box;
+  }
+}
+
+// For chrome hosts where the close sits beside a title header (no tablist child).
+@mixin tab-rail-header-reserve {
+  padding-right: $tab-rail-close-size;
+  box-sizing: border-box;
 }
 
 @mixin tab-rail-body {
-  grid-column: 1;
-  grid-row: 1 / -1;
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 @mixin tab-rail-close {
-  grid-column: 2;
-  grid-row: 1;
-  position: static;
+  position: absolute;
+  top: 0;
+  right: 0;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: start;
-  padding: 0.15rem 0.35rem 0.15rem 0.1rem;
-  min-height: 2.75rem;
+  width: $tab-rail-close-size;
+  height: $tab-rail-close-size;
+  padding: 0;
   box-sizing: border-box;
 }
 

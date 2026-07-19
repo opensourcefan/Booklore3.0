@@ -20,10 +20,6 @@
 
   &.tab-rail {
     @include tab-rail.tab-rail-host;
-    // Footer (when present) spans the full width under the tab rail.
-    .book-browser-footer {
-      grid-column: 1 / -1;
-    }
   }
 }
 

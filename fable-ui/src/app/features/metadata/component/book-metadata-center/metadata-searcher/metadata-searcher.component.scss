@@ -80,10 +80,6 @@ $provider-colors: (
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
-  // Size the field grid from the card width (dialog content), not the viewport —
-  // otherwise ≥1024px viewports still force a 5-column strip inside a narrower panel.
-  container-type: inline-size;
-  container-name: metadata-search-card;
 }
 
 .search-card-layout {
@@ -156,22 +152,14 @@ $provider-colors: (
 
 .search-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  // Size columns from this grid's own width (not the viewport). auto-fit avoids
+  // container-query first-paint flash where fields stacked/overlapped until CQ resolved.
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
   width: 100%;
   min-width: 0;
-
-  // Prefer container width so Book Details (and other narrow hosts) do not
-  // inherit the viewport's ≥640 / ≥1024 column counts.
-  @container metadata-search-card (min-width: 520px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @container metadata-search-card (min-width: 920px) {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1.5fr) auto;
-    align-items: end;
-  }
+  align-items: end;
 }
 
 .search-navigation-row {
@@ -228,24 +216,10 @@ $provider-colors: (
     box-sizing: border-box;
   }
 
-  &.search-field-provider {
-    @container metadata-search-card (min-width: 520px) {
-      grid-column: span 2;
-    }
-
-    @container metadata-search-card (min-width: 920px) {
-      grid-column: auto;
-    }
-  }
-
+  &.search-field-provider,
   &.search-button-field {
-    @container metadata-search-card (min-width: 520px) {
-      grid-column: span 2;
-    }
-
-    @container metadata-search-card (min-width: 920px) {
-      grid-column: auto;
-    }
+    // Full row under auto-fit so provider/search don't shrink into a tiny track.
+    grid-column: 1 / -1;
   }
 }
 
@@ -256,11 +230,6 @@ $provider-colors: (
     font-weight: 600;
     font-size: 0.9375rem;
     border-radius: 0.5rem;
-
-    @container metadata-search-card (min-width: 920px) {
-      width: auto;
-      min-width: 8rem;
-    }
   }
 }
 
