@@ -32,7 +32,9 @@ $provider-colors: (
   align-items: flex-start;
   gap: 1.5rem;
   width: 100%;
-  max-width: 1600px;
+  max-width: min(1600px, 100%);
+  min-width: 0;
+  box-sizing: border-box;
   margin: 0 auto;
   animation: fadeIn 0.3s ease-in;
 }
@@ -74,6 +76,8 @@ $provider-colors: (
 .search-card {
   flex: 1 1 100%;
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .search-card-layout {
@@ -134,7 +138,9 @@ $provider-colors: (
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-color);
   margin-bottom: 1.25rem;
-  transition: all 0.3s ease;
+  // Animate only the shadow — `transition: all` stretched layout reflows into a
+  // visible multi-hundred-ms settle on first paint.
+  transition: box-shadow 0.3s ease;
 
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -143,17 +149,18 @@ $provider-colors: (
 
 .search-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
+  width: 100%;
+  min-width: 0;
 
+  // Two shrinkable columns above the historical 640 band. minmax(0,…) lets tracks
+  // shrink so the field strip never spills past a narrow host (e.g. the Book Details
+  // dialog) into a horizontal scroll. The old ≥1024 dense 5-column strip was the
+  // viewport-keyed rule that overflowed inside narrower panels — intentionally gone.
   @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: 2fr 1fr 1.5fr 1.5fr auto;
-    align-items: end;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -186,6 +193,7 @@ $provider-colors: (
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
+  min-width: 0;
 
   label {
     font-weight: 600;
@@ -201,23 +209,21 @@ $provider-colors: (
     }
   }
 
-  &.search-field-provider {
-    @media (min-width: 640px) {
-      grid-column: span 2;
-    }
-
-    @media (min-width: 1024px) {
-      grid-column: auto;
-    }
+  // Inputs must be allowed to shrink below content width, or a single long value
+  // (URL/ISBN) reopens the horizontal spill.
+  .custom-input,
+  ::ng-deep .p-inputtext,
+  ::ng-deep .p-multiselect {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
+  &.search-field-provider,
   &.search-button-field {
     @media (min-width: 640px) {
       grid-column: span 2;
-    }
-
-    @media (min-width: 1024px) {
-      grid-column: auto;
     }
   }
 }
@@ -229,11 +235,6 @@ $provider-colors: (
     font-weight: 600;
     font-size: 0.9375rem;
     border-radius: 0.5rem;
-
-    @media (min-width: 1024px) {
-      width: auto;
-      min-width: 8rem;
-    }
   }
 }
 
