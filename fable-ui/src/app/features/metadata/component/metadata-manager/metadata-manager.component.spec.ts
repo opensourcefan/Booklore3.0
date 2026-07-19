@@ -160,7 +160,7 @@ describe('MetadataManagerComponent route return button', () => {
     }).compileComponents();
   });
 
-  it('renders the shared text-style close button in the tab-rail column', () => {
+  it('renders the shared text-style close button in the tab-rail chrome', () => {
     const fixture = createComponent();
 
     const button = (fixture.nativeElement as HTMLElement).querySelector('.route-return-control.tab-rail-close button');

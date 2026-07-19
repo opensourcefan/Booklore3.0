@@ -1,6 +1,9 @@
-// Shared tab-rail chrome: scrollable tabs full-width, fixed close (X) on the tablist row only.
-// X is absolutely positioned over reserved tablist/header padding so it never creates a
-// full-height empty column beside the panel body.
+// Shared tab-rail chrome: full-width panels, fixed close (X) on the tablist/header row only.
+//
+// The top-level tablist is narrowed with calc() so PrimeNG's absolute next-chevron
+// (inset-inline-end: 0) stays inside the tablist box, to the left of the X.
+// Padding alone cannot do this — abspos nav buttons ignore padding-right.
+// Panels stay 100% width; there is no full-height empty column.
 
 $tab-rail-close-size: 2.75rem;
 
@@ -10,13 +13,6 @@ $tab-rail-close-size: 2.75rem;
   min-width: 0;
   min-height: 0;
   position: relative;
-
-  // Reserve space on the tablist row only — not a full-height grid column.
-  ::ng-deep p-tablist,
-  ::ng-deep .p-tablist {
-    padding-right: $tab-rail-close-size !important;
-    box-sizing: border-box;
-  }
 }
 
 // For chrome hosts where the close sits beside a title header (no tablist child).
@@ -32,6 +28,15 @@ $tab-rail-close-size: 2.75rem;
   display: flex;
   flex-direction: column;
   width: 100%;
+
+  // Only the rail's direct tablist — not nested tablists inside panels.
+  ::ng-deep > p-tabs > p-tablist,
+  ::ng-deep > p-tabs > .p-tablist,
+  ::ng-deep > .p-tabs > .p-tablist {
+    width: calc(100% - #{$tab-rail-close-size});
+    max-width: calc(100% - #{$tab-rail-close-size});
+    box-sizing: border-box;
+  }
 }
 
 @mixin tab-rail-close {

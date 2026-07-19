@@ -143,7 +143,8 @@ $provider-colors: (
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-color);
   margin-bottom: 1.25rem;
-  transition: all 0.3s ease;
+  // Only animate shadow — `transition: all` was stretching layout reflows into a visible delay.
+  transition: box-shadow 0.3s ease;
 
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -152,14 +153,20 @@ $provider-colors: (
 
 .search-grid {
   display: grid;
-  // Size columns from this grid's own width (not the viewport). auto-fit avoids
-  // container-query first-paint flash where fields stacked/overlapped until CQ resolved.
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  // First-paint stable: viewport media (not container-query / auto-fit, which wait for
+  // parent width and flash a single-column stack). Cap at 2 shrinkable columns —
+  // the old ≥1024 5-column strip overflowed inside narrower Book Details hosts.
+  // Phone Mode (≤768): leave existing max-width:768 rules elsewhere untouched;
+  // the historical ≥640 two-column band is preserved as-is.
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
   width: 100%;
   min-width: 0;
-  align-items: end;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .search-navigation-row {
@@ -218,8 +225,9 @@ $provider-colors: (
 
   &.search-field-provider,
   &.search-button-field {
-    // Full row under auto-fit so provider/search don't shrink into a tiny track.
-    grid-column: 1 / -1;
+    @media (min-width: 640px) {
+      grid-column: span 2;
+    }
   }
 }
 

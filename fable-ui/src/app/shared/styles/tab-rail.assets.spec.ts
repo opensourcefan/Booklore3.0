@@ -39,16 +39,19 @@ const FULL_HEIGHT_COLUMN = /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/;
 const GRID_SPAN_LEFTOVER = /grid-column:\s*1\s*\/\s*-1/;
 const GRID_ROW_SPAN_BODY = /grid-row:\s*1\s*\/\s*-1/;
 
-describe('tab-rail fixed close on tablist/header row (all hosts)', () => {
-  it('keeps close confined to the chrome row (no full-height grid column)', () => {
+describe('tab-rail fixed close beside narrowed tablist (all hosts)', () => {
+  it('keeps X outside the tablist box without a full-height grid column', () => {
     const mixin = readFileSync(join(process.cwd(), 'src/app/shared/styles/_tab-rail.scss'), 'utf8');
     expect(mixin).toMatch(/@mixin tab-rail-host/);
     expect(mixin).toMatch(/@mixin tab-rail-close/);
     expect(mixin).toMatch(/@mixin tab-rail-header-reserve/);
     expect(mixin).toMatch(/position:\s*absolute/);
     expect(mixin).toMatch(/height:\s*\$tab-rail-close-size/);
+    // Narrow the tablist so PrimeNG next-chevron stays left of X (padding cannot move abspos nav).
+    expect(mixin).toMatch(/width:\s*calc\(100% - #\{\$tab-rail-close-size\}\)/);
     expect(mixin).not.toMatch(FULL_HEIGHT_COLUMN);
-    expect(mixin).toMatch(/padding-right:\s*\$tab-rail-close-size/);
+    // Absolute overlay + padding-only was the chevron collision pattern.
+    expect(mixin).not.toMatch(/padding-right:\s*\$tab-rail-close-size\s*!important/);
   });
 
   for (const host of HOSTS) {
@@ -63,8 +66,11 @@ describe('tab-rail fixed close on tablist/header row (all hosts)', () => {
       expect(scss).toMatch(/@include tab-rail\.tab-rail-close/);
       expect(scss).not.toMatch(FULL_HEIGHT_COLUMN);
       expect(scss).not.toMatch(GRID_ROW_SPAN_BODY);
-      // Old 2-column footer span is obsolete under flex tab-rail.
       expect(scss).not.toMatch(GRID_SPAN_LEFTOVER);
+
+      if (host.hasTablistInRail) {
+        expect(scss).toMatch(/@include tab-rail\.tab-rail-body/);
+      }
     });
   }
 
