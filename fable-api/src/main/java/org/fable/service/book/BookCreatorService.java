@@ -104,6 +104,7 @@ public class BookCreatorService {
                 .addedOn(Instant.now())
                 .bookFiles(new ArrayList<>())
                 .markedForAiSearch(autoEmbed)
+                .staged(true)
                 .build();
 
         BookFileEntity bookFileEntity = BookFileEntity.builder()

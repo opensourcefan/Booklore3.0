@@ -452,6 +452,11 @@ public class BookService {
         return bookUpdateService.assignFileTypeToBooks(bookIds, fileType);
     }
 
+    @Transactional
+    public List<Book> releaseFromStaging(Set<Long> bookIds) {
+        return bookUpdateService.releaseFromStaging(bookIds);
+    }
+
     public Resource getBookThumbnail(long bookId) {
         return getBookThumbnail(bookId, false).resource();
     }
@@ -780,7 +785,7 @@ public class BookService {
 
     public AppPageResponse<AppBookGridSummary> getBooksPaged(int page, int size, List<String> sorts,
             String sortField, String sortDir, Long libraryId,
-            Long shelfId, boolean unshelved, List<String> mediaTypes, String search, List<String> authors, List<String> categories,
+            Long shelfId, boolean unshelved, boolean staged, List<String> mediaTypes, String search, List<String> authors, List<String> categories,
             String series, String publisher, String language, String isbn,
             String readStatus, String bookType, String contentRating, String filterMode) {
         FableUser user = getAuthenticatedOrSystemUser();
@@ -792,7 +797,7 @@ public class BookService {
         // Build filter specification
         Specification<BookEntity> filterSpec = buildFilterSpec(search, authors, categories,
             series, publisher, language, isbn, readStatus, bookType, contentRating,
-            shelfId, unshelved, mediaTypes, filterMode, user);
+            shelfId, unshelved, staged, mediaTypes, filterMode, user);
 
         Set<Long> accessibleLibraryIds = getUserLibraryIds(user);
 
@@ -886,7 +891,7 @@ public class BookService {
     private Specification<BookEntity> buildFilterSpec(String search, List<String> authors,
             List<String> categories, String series, String publisher, String language,
             String isbn, String readStatus, String bookType, String contentRating,
-            Long shelfId, boolean unshelved, List<String> mediaTypes, String filterMode, FableUser user) {
+            Long shelfId, boolean unshelved, boolean staged, List<String> mediaTypes, String filterMode, FableUser user) {
         boolean orMode = "or".equalsIgnoreCase(filterMode);
 
         List<Specification<BookEntity>> specs = new ArrayList<>();
@@ -898,6 +903,10 @@ public class BookService {
 
         if (unshelved) {
             specs.add(AppBookSpecification.withoutShelvesForUser(user.getId()));
+        }
+
+        if (staged) {
+            specs.add(AppBookSpecification.staged());
         }
 
         if (mediaTypes != null && !mediaTypes.isEmpty()) {

@@ -15,6 +15,7 @@ import org.fable.model.dto.request.PersonalRatingUpdateRequest;
 import org.fable.model.dto.request.ReadProgressRequest;
 import org.fable.model.dto.request.ReadStatusUpdateRequest;
 import org.fable.model.dto.request.ShelvesAssignmentRequest;
+import org.fable.model.dto.request.StagingReleaseRequest;
 import org.fable.model.dto.response.AttachBookFileResponse;
 import org.fable.model.dto.response.BookDeletionResponse;
 import org.fable.model.dto.response.BookStatusUpdateResponse;
@@ -90,6 +91,7 @@ public class BookController {
             @Parameter(description = "Optional library ID filter") @RequestParam(required = false) Long libraryId,
             @Parameter(description = "Optional shelf ID filter") @RequestParam(required = false) Long shelfId,
             @Parameter(description = "Return only books without shelves owned by the current user") @RequestParam(required = false, defaultValue = "false") boolean unshelved,
+            @Parameter(description = "Return only books currently in staging for metadata review") @RequestParam(required = false, defaultValue = "false") boolean staged,
             @Parameter(description = "Filter by custom media type labels") @RequestParam(required = false) List<String> mediaTypes,
             @Parameter(description = "Text search across normalized metadata plus file names") @RequestParam(required = false) String search,
             @Parameter(description = "Filter by authors (comma-separated, OR within, AND/OR between categories depending on filterMode)") @RequestParam(required = false) List<String> authors,
@@ -103,7 +105,7 @@ public class BookController {
             @Parameter(description = "Filter by content rating") @RequestParam(required = false) String contentRating,
             @Parameter(description = "Filter: AND (all categories must match) or OR (any category matches)") @RequestParam(defaultValue = "and") String filterMode) {
         return ResponseEntity.ok(bookService.getBooksPaged(page, size, sorts, sort, dir, libraryId,
-            shelfId, unshelved, mediaTypes, search, authors, categories, series, publisher, language, isbn,
+            shelfId, unshelved, staged, mediaTypes, search, authors, categories, series, publisher, language, isbn,
                 readStatus, bookType, contentRating, filterMode));
     }
 
@@ -243,6 +245,14 @@ public class BookController {
     public ResponseEntity<List<Book>> addBookToShelf(
             @Parameter(description = "Shelves assignment request") @RequestBody @Valid ShelvesAssignmentRequest request) {
         return ResponseEntity.ok(bookService.assignShelvesToBooks(request.getBookIds(), request.getShelvesToAssign(), request.getShelvesToUnassign()));
+    }
+
+    @Operation(summary = "Release books from staging", description = "Clear the staging flag on books after metadata review. Does not change library or shelf membership.")
+    @ApiResponse(responseCode = "200", description = "Books released from staging successfully")
+    @PostMapping("/staging/release")
+    public ResponseEntity<List<Book>> releaseFromStaging(
+            @Parameter(description = "Staging release request") @RequestBody @Valid StagingReleaseRequest request) {
+        return ResponseEntity.ok(bookService.releaseFromStaging(request.getBookIds()));
     }
 
     @Operation(summary = "Assign file type to books", description = "Assign a custom file type to one or more books.")

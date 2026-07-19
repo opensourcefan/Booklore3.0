@@ -82,6 +82,7 @@ public class BookFileDetachmentService {
                 .library(sourceBook.getLibrary())
                 .libraryPath(newLibraryPath)
                 .addedOn(Instant.now())
+                .staged(true)
                 .build();
 
         BookMetadataEntity newMetadata;

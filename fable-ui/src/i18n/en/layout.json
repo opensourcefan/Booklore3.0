@@ -91,6 +91,7 @@
     "reorderSaveFailed": "Could not save order",
     "reorderSaveFailedDetail": "Order changed for this session, but this browser could not save it.",
     "dashboard": "Dashboard",
+    "staging": "Staging",
     "allBooks": "All Books",
     "physicalBooks": "Physical Books",
     "libraries": "Libraries",

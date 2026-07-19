@@ -64,4 +64,5 @@ public class AppBookGridSummary {
     private Boolean markedForAiSearch;
     private Instant lastReadTime;
     private Instant addedOn;
+    private Boolean staged;
 }

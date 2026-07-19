@@ -1249,7 +1249,7 @@ export class AppTopBarComponent implements OnDestroy {
 
   private updateMobileBookFilterTriggerVisibility(url: string): void {
     const path = (url || '').split('?')[0].split('#')[0];
-    const isBookBrowsing = /^\/(all-books|not-shelfed|library\/[^/]+\/books|shelf\/[^/]+\/books|magic-shelf\/[^/]+\/books)\/?$/.test(path);
+    const isBookBrowsing = /^\/(all-books|staging|not-shelfed|library\/[^/]+\/books|shelf\/[^/]+\/books|magic-shelf\/[^/]+\/books)\/?$/.test(path);
     this.showMobileBookFilterTrigger = isBookBrowsing;
     this.showMobileDirTrigger = isBookBrowsing;
   }

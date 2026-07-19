@@ -646,6 +646,17 @@
                       tooltipPosition="top">
                     </p-button>
                   }
+                  @if (entityType === EntityType.STAGING) {
+                    <p-button
+                      icon="pi pi-check"
+                      outlined="true"
+                      severity="success"
+                      [disabled]="selectedCount === 0"
+                      (onClick)="releaseFromStaging()"
+                      [pTooltip]="t('tooltip.releaseFromStaging')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
                   @if (userState.user!.permissions.canBulkLockUnlockMetadata) {
                     <p-button
                       outlined="true"

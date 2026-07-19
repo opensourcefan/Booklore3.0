@@ -36,7 +36,7 @@ import {SidebarBadgeRefreshService} from '../../../../features/book/service/side
 import {NotebookService} from '../../../../features/notebook/service/notebook.service';
 import {environment} from '../../../../../environments/environment';
 
-type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'series' | 'authors' | 'notebook';
+type HomeItemVisibilityKey = 'dashboard' | 'staging' | 'allBooks' | 'physicalBooks' | 'series' | 'authors' | 'notebook';
 
 @Component({
   selector: 'app-menu',
@@ -102,6 +102,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   };
   homeItemVisibility: Record<HomeItemVisibilityKey, boolean> = {
     dashboard: true,
+    staging: true,
     allBooks: true,
     physicalBooks: true,
     series: true,
@@ -132,6 +133,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   ];
   readonly homeItemOptions: {key: HomeItemVisibilityKey; label: string}[] = [
     {key: 'dashboard', label: 'layout.menu.dashboard'},
+    {key: 'staging', label: 'layout.menu.staging'},
     {key: 'allBooks', label: 'layout.menu.allBooks'},
     {key: 'physicalBooks', label: 'layout.menu.physicalBooks'},
     {key: 'series', label: 'layout.menu.series'},
@@ -236,6 +238,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
     const allBooksCount$ = this.createRefreshableCount$(() => this.bookService.getBooksCount());
     const physicalBooksCount$ = this.createRefreshableCount$(() => this.bookService.getBooksCount({bookType: 'PHYSICAL'}));
+    const stagingBooksCount$ = this.createRefreshableCount$(() => this.bookService.getBooksCount({staged: true}));
 
     this.homeMenu$ = combineLatest([
       this.t.langChanges$,
@@ -253,6 +256,15 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             endActionAriaLabel: this.t.translate('dashboard.main.customizeDashboard'),
             endActionClass: 'dashboard-row-end-action',
             endActionCommand: () => this.dialogLauncherService.openDashboardSettingsDialog(),
+          },
+          {
+            label: this.t.translate('layout.menu.staging'),
+            visibilityKey: 'staging',
+            type: 'Staging',
+            icon: 'pi pi-fw pi-inbox',
+            routerLink: ['/staging'],
+            bookCount$: stagingBooksCount$,
+            showBookCount: true,
           },
           {
             label: this.t.translate('layout.menu.allBooks'),
@@ -1224,6 +1236,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private normalizeHomeItemVisibility(savedVisibility: Record<string, boolean> | null | undefined): Record<HomeItemVisibilityKey, boolean> {
     return {
       dashboard: savedVisibility?.['home.dashboard'] ?? true,
+      staging: savedVisibility?.['home.staging'] ?? true,
       allBooks: savedVisibility?.['home.allBooks'] ?? true,
       physicalBooks: savedVisibility?.['home.physicalBooks'] ?? true,
       series: savedVisibility?.['home.series'] ?? true,
@@ -1277,6 +1290,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     return {
       ...this.normalizeSectionVisibility(savedVisibility),
       'home.dashboard': homeItemVisibility.dashboard,
+      'home.staging': homeItemVisibility.staging,
       'home.allBooks': homeItemVisibility.allBooks,
       'home.physicalBooks': homeItemVisibility.physicalBooks,
       'home.series': homeItemVisibility.series,
@@ -1289,6 +1303,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     return {
       ...this.sectionVisibility,
       'home.dashboard': this.homeItemVisibility.dashboard,
+      'home.staging': this.homeItemVisibility.staging,
       'home.allBooks': this.homeItemVisibility.allBooks,
       'home.physicalBooks': this.homeItemVisibility.physicalBooks,
       'home.series': this.homeItemVisibility.series,
@@ -1330,10 +1345,19 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
       for (const child of items) {
         const id = this.getMenuItemOrderId(child);
-        if (lookup.has(id)) {
-          ordered.push(child);
-          lookup.delete(id);
+        if (!lookup.has(id)) {
+          continue;
         }
+        lookup.delete(id);
+        // New Staging item should sit directly under Dashboard even when a prior nested order exists.
+        if (menuKey === 'home' && child.visibilityKey === 'staging') {
+          const dashboardIdx = ordered.findIndex(entry => entry.visibilityKey === 'dashboard');
+          if (dashboardIdx >= 0) {
+            ordered.splice(dashboardIdx + 1, 0, child);
+            continue;
+          }
+        }
+        ordered.push(child);
       }
 
       return {

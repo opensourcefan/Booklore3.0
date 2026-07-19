@@ -63,6 +63,7 @@ export interface PagedBooksParams {
   libraryId?: number;
   shelfId?: number;
   unshelved?: boolean;
+  staged?: boolean;
   mediaTypes?: string[];
   search?: string;
   authors?: string[];
@@ -182,6 +183,7 @@ export class BookService {
     if (params.libraryId != null) httpParams = httpParams.set('libraryId', String(params.libraryId));
     if (params.shelfId != null) httpParams = httpParams.set('shelfId', String(params.shelfId));
     if (params.unshelved) httpParams = httpParams.set('unshelved', 'true');
+    if (params.staged) httpParams = httpParams.set('staged', 'true');
     if (params.mediaTypes?.length) {
       params.mediaTypes.forEach(mediaType => httpParams = httpParams.append('mediaTypes', mediaType));
     }
@@ -219,6 +221,7 @@ export class BookService {
       hasMismatchedAiSearchData: summary.hasMismatchedAiSearchData,
       aiSearchEmbeddingModel: summary.aiSearchEmbeddingModel,
       markedForAiSearch: summary.markedForAiSearch,
+      staged: summary.staged,
       lastReadTime: summary.lastReadTime,
       addedOn: summary.addedOn,
       libraryId: 0,
@@ -466,6 +469,16 @@ export class BookService {
 
   updateBookShelves(bookIds: Set<number | undefined>, shelvesToAssign: Set<number | null | undefined>, shelvesToUnassign: Set<number | null | undefined>): Observable<Book[]> {
     return this.bookPatchService.updateBookShelves(bookIds, shelvesToAssign, shelvesToUnassign).pipe(
+      catchError(error => {
+        const currentState = this.bookStateService.getCurrentBookState();
+        this.bookStateService.updateBookState({...currentState, error: error.message});
+        throw error;
+      })
+    );
+  }
+
+  releaseFromStaging(bookIds: Set<number | undefined>): Observable<Book[]> {
+    return this.bookPatchService.releaseFromStaging(bookIds).pipe(
       catchError(error => {
         const currentState = this.bookStateService.getCurrentBookState();
         this.bookStateService.updateBookState({...currentState, error: error.message});

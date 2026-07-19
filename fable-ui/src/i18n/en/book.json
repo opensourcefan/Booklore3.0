@@ -28,6 +28,8 @@
       "readingProgressUpdated": "Reading Progress Updated",
       "unshelveSuccessDetail": "Books shelves updated",
       "unshelveFailedDetail": "Failed to update books shelves",
+      "releaseFromStagingSuccessDetail": "Books released from Staging",
+      "releaseFromStagingFailedDetail": "Failed to release books from Staging",
       "wipeMetadataSuccessDetail": "Metadata deleted for {{ count }} selected book(s).",
       "wipeMetadataFailedDetail": "Failed to delete metadata for the selected books.",
       "restoreTitlesFromFilenamesSuccessSummary": "Titles Restored",
@@ -43,11 +45,14 @@
     "loading": {
       "deleting": "Deleting {{ count }} book(s)...",
       "unshelving": "Unshelving {{ count }} book(s)...",
+      "releasingFromStaging": "Releasing {{ count }} book(s) from Staging...",
       "wipingMetadata": "Deleting metadata for {{ count }} book(s)...",
       "restoringTitlesFromFilenames": "Restoring titles from filenames for {{ count }} book(s)..."
     },
     "labels": {
       "allBooks": "All Books",
+      "stagingBooks": "Staging",
+      "stagingBooksFiltered": "Staging (Filtered)",
       "unshelvedBooks": "Not Shelfed Books",
       "unshelvedBooksFiltered": "Not Shelfed Books (Filtered)",
       "filteredSuffix": "(Filtered)",
@@ -87,6 +92,7 @@
       "metadataActions": "Metadata actions",
       "assignToShelf": "Assign to shelf",
       "removeFromShelf": "Remove from this shelf",
+      "releaseFromStaging": "Release from Staging",
       "lockUnlockMetadata": "Lock/Unlock metadata",
       "organizeFiles": "Organize Files",
       "attachToBook": "Attach to Another Book",

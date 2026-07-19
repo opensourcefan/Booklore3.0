@@ -108,6 +108,15 @@ export class BookBrowserEntityService {
     );
   }
 
+  fetchStagedBooks(sortOption: SortOption): Observable<BookState> {
+    return this.bookService.bookState$.pipe(
+      map(bookState => {
+        const staged = {...bookState, books: (bookState.books || []).filter(book => book.staged === true)};
+        return this.processBookState(staged, sortOption);
+      })
+    );
+  }
+
   isLibrary(entity: Library | Shelf | MagicShelf): entity is Library {
     return (entity as Library).paths !== undefined;
   }

@@ -108,6 +108,7 @@ export enum EntityType {
   MAGIC_SHELF = 'Magic Shelf',
   ALL_BOOKS = 'All Books',
   NOT_SHELFED = 'Not Shelfed',
+  STAGING = 'Staging',
 }
 
 @Component({
@@ -709,11 +710,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isRouteAttached = true;
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
 
-    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
+    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED || this.entityType === EntityType.STAGING) {
       const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
       const fallbackTitle = currentPath === 'not-shelfed'
         ? this.t.translate('book.browser.labels.unshelvedBooks')
-        : this.t.translate('book.browser.labels.allBooks');
+        : currentPath === 'staging'
+          ? this.t.translate('book.browser.labels.stagingBooks')
+          : this.t.translate('book.browser.labels.allBooks');
       this.pageTitle.setPageTitle(this.currentFilterLabel || fallbackTitle);
     } else if (this.entity?.name) {
       this.pageTitle.setPageTitle(this.entity.name);
@@ -836,15 +839,24 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private initializeEntityRouting(): void {
     const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
 
-    if (currentPath === 'all-books' || currentPath === 'not-shelfed') {
-      const entityType = currentPath === 'all-books' ? EntityType.ALL_BOOKS : EntityType.NOT_SHELFED;
+    if (currentPath === 'all-books' || currentPath === 'not-shelfed' || currentPath === 'staging') {
+      const entityType = currentPath === 'all-books'
+        ? EntityType.ALL_BOOKS
+        : currentPath === 'not-shelfed'
+          ? EntityType.NOT_SHELFED
+          : EntityType.STAGING;
       this.entityType = entityType;
       this.entityType$ = of(entityType);
       this.entityRouteInfo$ = of({entityId: NaN, entityType});
       this.entity$ = of(null);
       this.seriesCollapseFilter.setContext(null, null);
       this.bookCardOverlayPreferenceService.setContext(null, null);
-      this.pageTitle.setPageTitle(currentPath === 'all-books' ? this.t.translate('book.browser.labels.allBooks') : this.t.translate('book.browser.labels.unshelvedBooks'));
+      const pageTitleKey = currentPath === 'all-books'
+        ? 'book.browser.labels.allBooks'
+        : currentPath === 'not-shelfed'
+          ? 'book.browser.labels.unshelvedBooks'
+          : 'book.browser.labels.stagingBooks';
+      this.pageTitle.setPageTitle(this.t.translate(pageTitleKey));
       this.handleEntityLoaded(null);
     } else {
       const routeEntityInfo$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
@@ -1092,7 +1104,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.parsedFilters = parseResult.filters;
       const currentFilterSignature = JSON.stringify(this.parsedFilters);
 
-      if (entityInfo.entityType === EntityType.ALL_BOOKS || entityInfo.entityType === EntityType.NOT_SHELFED) {
+      if (entityInfo.entityType === EntityType.ALL_BOOKS || entityInfo.entityType === EntityType.NOT_SHELFED || entityInfo.entityType === EntityType.STAGING) {
         this.pageTitle.setPageTitle(this.currentFilterLabel ?? '');
       }
 
@@ -1566,7 +1578,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const pagedEntity = this.getPagedPilotEntity();
 
     if (pagedEntity) {
-      if (pagedEntity === 'ALL_BOOKS' || pagedEntity === 'NOT_SHELFED') {
+      if (pagedEntity === 'ALL_BOOKS' || pagedEntity === 'NOT_SHELFED' || pagedEntity === 'STAGING') {
         this.bookState$ = this.pagedGridPilotService.connect({
           entity: pagedEntity,
           entityId: null,
@@ -1579,7 +1591,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           searchTerm: this.searchTerm$.getValue(),
         }, () => (pagedEntity === 'NOT_SHELFED'
           ? this.entityService.fetchNotShelfedBooks(primarySort)
-          : this.entityService.fetchAllBooks(primarySort)
+          : pagedEntity === 'STAGING'
+            ? this.entityService.fetchStagedBooks(primarySort)
+            : this.entityService.fetchAllBooks(primarySort)
         ).pipe(
           map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
           switchMap(bookState => this.applyBookFilters(bookState))
@@ -1855,7 +1869,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
            this.entityType === EntityType.SHELF ||
            this.entityType === EntityType.MAGIC_SHELF ||
            this.entityType === EntityType.ALL_BOOKS ||
-           this.entityType === EntityType.NOT_SHELFED;
+           this.entityType === EntityType.NOT_SHELFED ||
+           this.entityType === EntityType.STAGING;
   }
 
   onSaveSortConfig(criteria: SortOption[]): void {
@@ -1873,7 +1888,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayAiSearchData: true, overlayIssueNumber: true}, overrides: []}
     );
 
-    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
+    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED || this.entityType === EntityType.STAGING) {
       prefs.global = {
         ...prefs.global,
         sortKey: sortCriteria[0]?.field ?? 'title',
@@ -1927,7 +1942,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.messageService.add({
       severity: 'success',
       summary: this.t.translate('book.browser.toast.sortSavedSummary'),
-      detail: this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED
+      detail: this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED || this.entityType === EntityType.STAGING
         ? this.t.translate('book.browser.toast.sortSavedGlobalDetail')
         : this.t.translate('book.browser.toast.sortSavedEntityDetail', {entityType: this.entityType.toLowerCase()})
     });
@@ -2077,6 +2092,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         return 'SHELF';
       case EntityType.NOT_SHELFED:
         return 'NOT_SHELFED';
+      case EntityType.STAGING:
+        return 'STAGING';
       default:
         return null;
     }
@@ -2123,6 +2140,33 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         error: () => {
           this.writeProgressService.fail(this.t.translate('book.browser.toast.unshelveFailedDetail'));
+        }
+      });
+  }
+
+  releaseFromStaging(): void {
+    if (this.entityType !== EntityType.STAGING || this.selectedBooks.size === 0) {
+      return;
+    }
+    const count = this.selectedBooks.size;
+    this.writeProgressService.show(this.t.translate('book.browser.loading.releasingFromStaging', {count}));
+
+    this.bookService.releaseFromStaging(this.selectedBooks)
+      .subscribe({
+        next: () => {
+          this.writeProgressService.complete(this.t.translate('book.browser.toast.releaseFromStagingSuccessDetail'));
+          this.messageService.add({
+            severity: 'info',
+            summary: this.t.translate('common.success'),
+            detail: this.t.translate('book.browser.toast.releaseFromStagingSuccessDetail'),
+          });
+          this.pagedBookBrowserStateService.invalidateEntity('STAGING');
+          void this.bookService.refreshBooks().subscribe();
+          this.bookSelectionService.deselectAll();
+          this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
+        },
+        error: () => {
+          this.writeProgressService.fail(this.t.translate('book.browser.toast.releaseFromStagingFailedDetail'));
         }
       });
   }

@@ -75,6 +75,7 @@ public class PhysicalBookService {
                 .library(library)
             .libraryPath(libraryPath)
                 .isPhysical(true)
+                .staged(true)
                 .addedOn(Instant.now())
                 .scannedOn(Instant.now())
                 .bookFiles(new ArrayList<>())

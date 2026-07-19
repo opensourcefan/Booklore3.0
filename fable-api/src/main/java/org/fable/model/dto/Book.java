@@ -20,6 +20,7 @@ public class Book {
     private Boolean hasMismatchedAiSearchData;
     private String aiSearchEmbeddingModel;
     private Boolean markedForAiSearch;
+    private Boolean staged;
     private Long libraryId;
     private String libraryName;
     private BookFile primaryFile;

@@ -117,6 +117,10 @@ export class PagedGridPilotService {
       params.unshelved = true;
     }
 
+    if (context.entity === 'STAGING') {
+      params.staged = true;
+    }
+
     const requestKey = this.pagedBookBrowserStateService.buildRequestKey(
       context.entity,
       context.entityId ?? null,
@@ -145,7 +149,7 @@ export class PagedGridPilotService {
       fallbackMode: 'legacy-full-state',
       allowPagedGridView: true,
       allowPagedTableView: true,
-      enabledEntities: ['ALL_BOOKS', 'LIBRARY', 'SHELF', 'NOT_SHELFED'],
+      enabledEntities: ['ALL_BOOKS', 'LIBRARY', 'SHELF', 'NOT_SHELFED', 'STAGING'],
     });
 
     this.activeQuery = {
@@ -201,6 +205,7 @@ export class PagedGridPilotService {
   invalidateAllBooksCache(): void {
     this.pagedBookBrowserStateService.invalidateEntity('ALL_BOOKS');
     this.pagedBookBrowserStateService.invalidateEntity('NOT_SHELFED');
+    this.pagedBookBrowserStateService.invalidateEntity('STAGING');
 
     if (this.activeQuery) {
       this.pagedBookBrowserStateService.invalidateEntity(

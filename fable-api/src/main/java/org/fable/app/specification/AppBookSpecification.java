@@ -65,6 +65,10 @@ public class AppBookSpecification {
         };
     }
 
+    public static Specification<BookEntity> staged() {
+        return (root, query, cb) -> cb.isTrue(root.get("staged"));
+    }
+
     public static Specification<BookEntity> withReadStatus(ReadStatus status, Long userId) {
         return (root, query, cb) -> {
             if (status == null || userId == null) {

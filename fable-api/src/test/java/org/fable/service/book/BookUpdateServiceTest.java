@@ -325,6 +325,29 @@ class BookUpdateServiceTest {
     }
 
     @Test
+    void releaseFromStaging_clearsStagedFlagOnly() {
+        FableUser user = mock(FableUser.class);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(user);
+        when(user.getId()).thenReturn(1L);
+
+        BookEntity bookEntity = new BookEntity();
+        bookEntity.setId(1L);
+        bookEntity.setStaged(true);
+        bookEntity.setBookFiles(List.of());
+
+        when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
+        when(bookMapper.toBook(any())).thenReturn(mock(Book.class));
+        when(readingProgressService.fetchUserProgress(eq(1L), anySet())).thenReturn(Collections.emptyMap());
+        when(readingProgressService.fetchUserFileProgress(eq(1L), anySet())).thenReturn(Collections.emptyMap());
+
+        List<Book> result = bookUpdateService.releaseFromStaging(Set.of(1L));
+
+        assertFalse(Boolean.TRUE.equals(bookEntity.getStaged()));
+        verify(bookRepository).saveAll(List.of(bookEntity));
+        assertEquals(1, result.size());
+    }
+
+    @Test
     void assignShelvesToBooks_shouldThrowIfUnauthorized() {
         FableUser user = mock(FableUser.class);
         when(authenticationService.getAuthenticatedUser()).thenReturn(user);

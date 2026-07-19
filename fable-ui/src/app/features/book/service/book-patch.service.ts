@@ -90,6 +90,27 @@ export class BookPatchService {
     );
   }
 
+  releaseFromStaging(bookIds: Set<number | undefined>): Observable<Book[]> {
+    const requestPayload = {
+      bookIds: Array.from(bookIds).filter((id): id is number => id != null),
+    };
+    return this.http.post<Book[]>(`${this.url}/staging/release`, requestPayload).pipe(
+      tap(updatedBooks => {
+        const currentState = this.bookStateService.getCurrentBookState();
+        if (currentState.books && updatedBooks.length > 0) {
+          const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
+          const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
+          this.bookStateService.updateBookState({...currentState, books: newBooks});
+          this.syncPagedBrowsersAfterStateMutation();
+        }
+
+        if (updatedBooks.length > 0) {
+          this.sidebarBadgeRefresh.requestRefresh();
+        }
+      })
+    );
+  }
+
   private syncPagedBrowsersAfterStateMutation(): void {
     this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
     this.injector.get(PagedGridPilotService).refreshActiveState();

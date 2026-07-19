@@ -206,6 +206,24 @@ describe('AppMenuComponent reorder mode', () => {
     expect(menu[0].items?.[0].showBookCount).toBe(true);
   });
 
+  it('adds staging under dashboard in the home menu', async () => {
+    component.ngOnInit();
+
+    const menu = await firstValueFrom(component.homeMenu$!);
+    const items = menu[0].items ?? [];
+    const dashboardIdx = items.findIndex(item => item.routerLink?.[0] === '/dashboard');
+    const stagingIdx = items.findIndex(item => item.routerLink?.[0] === '/staging');
+    const stagingItem = items[stagingIdx];
+    const subscription = stagingItem?.bookCount$?.subscribe();
+
+    expect(dashboardIdx).toBeGreaterThanOrEqual(0);
+    expect(stagingIdx).toBe(dashboardIdx + 1);
+    expect(stagingItem?.showBookCount).toBe(true);
+    expect(getBooksCount).toHaveBeenCalledWith({staged: true});
+
+    subscription?.unsubscribe();
+  });
+
   it('adds the dashboard settings end action to the dashboard row', async () => {
     component.ngOnInit();
 

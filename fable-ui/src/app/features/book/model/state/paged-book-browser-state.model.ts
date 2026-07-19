@@ -1,7 +1,7 @@
 import {Book} from '../book.model';
 
 export type BookBrowserDataSourceMode = 'legacy-full-state' | 'paged-browse';
-export type PagedBookBrowserEntity = 'ALL_BOOKS' | 'LIBRARY' | 'SHELF' | 'NOT_SHELFED';
+export type PagedBookBrowserEntity = 'ALL_BOOKS' | 'LIBRARY' | 'SHELF' | 'NOT_SHELFED' | 'STAGING';
 export type BookBrowserViewMode = 'grid' | 'table';
 export type PagedBookBrowserStatus = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -54,7 +54,7 @@ export const DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS: Readonly<BookBrowserRollou
   fallbackMode: 'legacy-full-state',
   allowPagedGridView: true,
   allowPagedTableView: true,
-  enabledEntities: ['ALL_BOOKS', 'LIBRARY', 'SHELF', 'NOT_SHELFED'] as PagedBookBrowserEntity[],
+  enabledEntities: ['ALL_BOOKS', 'LIBRARY', 'SHELF', 'NOT_SHELFED', 'STAGING'] as PagedBookBrowserEntity[],
 });
 
 /**

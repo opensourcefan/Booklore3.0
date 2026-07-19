@@ -47,6 +47,7 @@ export interface AppBookGridSummary {
   hasMismatchedAiSearchData?: boolean;
   aiSearchEmbeddingModel?: string;
   markedForAiSearch?: boolean;
+  staged?: boolean;
   lastReadTime?: string;
   addedOn?: string;
 }
@@ -107,6 +108,7 @@ export interface Book extends FileInfo {
   supplementaryFiles?: AdditionalFile[];
   isPhysical?: boolean;
   isCurrentlyReading?: boolean;
+  staged?: boolean;
 
   [key: string]: unknown;
 }

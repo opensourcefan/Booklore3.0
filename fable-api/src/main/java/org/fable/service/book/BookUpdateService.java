@@ -139,6 +139,18 @@ public class BookUpdateService {
         return buildBooksWithProgress(bookEntities, user.getId());
     }
 
+    @BroadcastBookUpdate
+    @Transactional
+    public List<Book> releaseFromStaging(Set<Long> bookIds) {
+        FableUser user = authenticationService.getAuthenticatedUser();
+        List<BookEntity> bookEntities = bookQueryService.findAllWithMetadataByIds(bookIds);
+        for (BookEntity bookEntity : bookEntities) {
+            bookEntity.setStaged(false);
+        }
+        bookRepository.saveAll(bookEntities);
+        return buildBooksWithProgress(bookEntities, user.getId());
+    }
+
     private void updatePdfViewerSettings(long bookId, Long userId, BookViewerSettings settings) {
         if (settings.getPdfSettings() != null) {
             PdfViewerPreferencesEntity prefs = findOrCreatePdfPreferences(bookId, userId);

@@ -1,0 +1,2 @@
+ALTER TABLE book ADD COLUMN staged BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_book_staged ON book(staged);

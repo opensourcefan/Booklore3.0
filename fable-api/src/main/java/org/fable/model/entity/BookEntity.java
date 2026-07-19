@@ -87,6 +87,10 @@ public class BookEntity {
     @Builder.Default
     private Boolean markedForAiSearch = Boolean.FALSE;
 
+    @Column(name = "staged")
+    @Builder.Default
+    private Boolean staged = Boolean.FALSE;
+
     @Column(name = "file_type", length = 120)
     private String fileType;
 
