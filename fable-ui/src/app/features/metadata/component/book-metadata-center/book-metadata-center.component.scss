@@ -1,4 +1,5 @@
 @use '../../../../shared/styles/panel-shared' as panel;
+@use '../../../../shared/styles/tab-rail' as tab-rail;
 
 .book-metadata-center-container {
   display: flex;
@@ -52,13 +53,23 @@
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
+
+  &.tab-rail {
+    @include tab-rail.tab-rail-host;
+  }
 }
 
-.route-return-control {
-  position: absolute;
-  top: 0.4rem;
-  right: 0.5rem;
-  z-index: 2;
+.tab-rail-body {
+  @include tab-rail.tab-rail-body;
+
+  ::ng-deep > p-tabs,
+  ::ng-deep > .p-tabs {
+    @include tab-rail.tab-rail-tabs-fill;
+  }
+}
+
+.route-return-control.tab-rail-close {
+  @include tab-rail.tab-rail-close;
 }
 
 .dialog-mode {
@@ -92,7 +103,7 @@
 ::ng-deep .book-details-dialog app-book-metadata-center p-tabs,
 ::ng-deep .book-details-dialog app-book-metadata-center p-tabpanels,
 ::ng-deep .book-details-dialog app-book-metadata-center p-tabpanel,
-::ng-deep .book-details-dialog app-book-metadata-viewer,
+::ng-deep .book-details-dialog app-metadata-viewer,
 ::ng-deep .book-details-dialog app-metadata-editor,
 ::ng-deep .book-details-dialog app-metadata-searcher,
 ::ng-deep .book-details-dialog app-sidecar-viewer {
@@ -109,10 +120,6 @@
 
 ::ng-deep .book-details-dialog .tabpanels-responsive {
   height: auto;
-}
-
-.route-mode ::ng-deep p-tablist {
-  padding-right: 3.5rem;
 }
 
 ::ng-deep .book-details-dialog .p-dialog-content {

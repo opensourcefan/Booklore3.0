@@ -160,14 +160,15 @@ describe('MetadataManagerComponent route return button', () => {
     }).compileComponents();
   });
 
-  it('renders the shared text-style back arrow button', () => {
+  it('renders the shared text-style close button in the tab-rail column', () => {
     const fixture = createComponent();
 
-    const button = (fixture.nativeElement as HTMLElement).querySelector('.route-return-control button');
+    const button = (fixture.nativeElement as HTMLElement).querySelector('.route-return-control.tab-rail-close button');
 
     expect(button).not.toBeNull();
     expect(button?.classList.contains('p-button-text')).toBe(true);
     expect(button?.classList.contains('p-button-outlined')).toBe(false);
+    expect(button?.querySelector('.pi-times')).not.toBeNull();
   });
 
   it('navigates back when the route return button is clicked', () => {

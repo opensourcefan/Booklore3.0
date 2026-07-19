@@ -1,17 +1,8 @@
 <ng-container *transloco="let t; prefix: 'settings.tabs'">
   @if (userService.userState$ | async; as userState) {
     @if (userState.user) {
-      <div class="settings-container">
-          <div class="route-return-control">
-          <p-button
-            icon="pi pi-arrow-left"
-              [rounded]="true"
-              [text]="true"
-            severity="secondary"
-              class="route-return-button"
-            (onClick)="onReturn()"
-          ></p-button>
-        </div>
+      <div class="settings-container tab-rail">
+        <div class="tab-rail-body">
         <p-tabs [(value)]="activeTab" lazy scrollable>
           <p-tablist>
             <p-tab [value]="SettingsTab.ReaderSettings">
@@ -174,6 +165,17 @@
             </p-tabpanel>
           </p-tabpanels>
         </p-tabs>
+        </div>
+        <div class="route-return-control tab-rail-close">
+          <p-button
+            icon="pi pi-times"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            class="route-return-button"
+            (onClick)="onReturn()"
+          ></p-button>
+        </div>
       </div>
     }
   }

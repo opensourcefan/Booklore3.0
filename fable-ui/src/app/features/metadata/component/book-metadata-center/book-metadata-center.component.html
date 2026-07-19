@@ -18,11 +18,64 @@
       </p-button>
     </div>
   }
-  <div class="tabs-wrapper" [class.dialog-mode]="config" [class.route-mode]="!config">
+  <div class="tabs-wrapper" [class.dialog-mode]="config" [class.route-mode]="!config" [class.tab-rail]="!config">
+    <div [class.tab-rail-body]="!config">
+      <p-tabs [(value)]="tab" lazy="true" scrollable>
+      <p-tablist>
+        <p-tab value="view">
+          <i [class]="'pi pi-book'"></i>
+          {{ t('tabView') }}
+        </p-tab>
+        @if (admin || canEditMetadata) {
+          <p-tab value="edit">
+            <i [class]="'pi pi-pencil'"></i>
+            {{ t('tabEdit') }}
+          </p-tab>
+        }
+        @if (admin || canEditMetadata) {
+          <p-tab value="match">
+            <i [class]="'pi pi-search'"></i>
+            {{ t('tabSearch') }}
+          </p-tab>
+        }
+        @if ((admin || canEditMetadata) && !isPhysical && isLocalStorage) {
+          <p-tab value="sidecar">
+            <i [class]="'pi pi-file'"></i>
+            {{ t('tabSidecar') }}
+          </p-tab>
+        }
+      </p-tablist>
+      <p-tabpanels class="tabpanels-responsive" [class.dialog-tabpanels]="!!config" [class.route-tabpanels]="!config">
+        <p-tabpanel value="view">
+          <app-metadata-viewer
+            [book$]="book$"
+            [recommendedBooks]="recommendedBooks">
+          </app-metadata-viewer>
+        </p-tabpanel>
+        @if (admin || canEditMetadata) {
+          <p-tabpanel value="edit">
+            <app-metadata-editor
+              [book$]="book$">
+            </app-metadata-editor>
+          </p-tabpanel>
+        }
+        @if (admin || canEditMetadata) {
+          <p-tabpanel value="match">
+            <app-metadata-searcher [book$]="book$" [isActiveTab]="tab === 'match'"></app-metadata-searcher>
+          </p-tabpanel>
+        }
+        @if ((admin || canEditMetadata) && !isPhysical && isLocalStorage) {
+          <p-tabpanel value="sidecar">
+            <app-sidecar-viewer [book$]="book$"></app-sidecar-viewer>
+          </p-tabpanel>
+        }
+      </p-tabpanels>
+      </p-tabs>
+    </div>
     @if (!config) {
-      <div class="route-return-control">
+      <div class="route-return-control tab-rail-close">
         <p-button
-          icon="pi pi-arrow-left"
+          icon="pi pi-times"
           [rounded]="true"
           [text]="true"
           severity="secondary"
@@ -31,56 +84,5 @@
         </p-button>
       </div>
     }
-    <p-tabs [(value)]="tab" lazy="true" scrollable>
-    <p-tablist>
-      <p-tab value="view">
-        <i [class]="'pi pi-book'"></i>
-        {{ t('tabView') }}
-      </p-tab>
-      @if (admin || canEditMetadata) {
-        <p-tab value="edit">
-          <i [class]="'pi pi-pencil'"></i>
-          {{ t('tabEdit') }}
-        </p-tab>
-      }
-      @if (admin || canEditMetadata) {
-        <p-tab value="match">
-          <i [class]="'pi pi-search'"></i>
-          {{ t('tabSearch') }}
-        </p-tab>
-      }
-      @if ((admin || canEditMetadata) && !isPhysical && isLocalStorage) {
-        <p-tab value="sidecar">
-          <i [class]="'pi pi-file'"></i>
-          {{ t('tabSidecar') }}
-        </p-tab>
-      }
-    </p-tablist>
-    <p-tabpanels class="tabpanels-responsive" [class.dialog-tabpanels]="!!config" [class.route-tabpanels]="!config">
-      <p-tabpanel value="view">
-        <app-metadata-viewer
-          [book$]="book$"
-          [recommendedBooks]="recommendedBooks">
-        </app-metadata-viewer>
-      </p-tabpanel>
-      @if (admin || canEditMetadata) {
-        <p-tabpanel value="edit">
-          <app-metadata-editor
-            [book$]="book$">
-          </app-metadata-editor>
-        </p-tabpanel>
-      }
-      @if (admin || canEditMetadata) {
-        <p-tabpanel value="match">
-          <app-metadata-searcher [book$]="book$" [isActiveTab]="tab === 'match'"></app-metadata-searcher>
-        </p-tabpanel>
-      }
-      @if ((admin || canEditMetadata) && !isPhysical && isLocalStorage) {
-        <p-tabpanel value="sidecar">
-          <app-sidecar-viewer [book$]="book$"></app-sidecar-viewer>
-        </p-tabpanel>
-      }
-    </p-tabpanels>
-  </p-tabs>
   </div>
 </div>

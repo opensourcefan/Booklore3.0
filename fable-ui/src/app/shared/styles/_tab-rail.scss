@@ -1,0 +1,44 @@
+// Shared tab-rail chrome: scrollable tabs in the main column, fixed close (X) beside them.
+// Prevents PrimeNG tablist scroll chevrons from colliding with the return control.
+
+@mixin tab-rail-host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: stretch;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+}
+
+@mixin tab-rail-body {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin tab-rail-close {
+  grid-column: 2;
+  grid-row: 1;
+  position: static;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  padding: 0.15rem 0.35rem 0.15rem 0.1rem;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+}
+
+@mixin tab-rail-tabs-fill {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+}

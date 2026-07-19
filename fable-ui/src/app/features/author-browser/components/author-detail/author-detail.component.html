@@ -8,17 +8,8 @@
   }
 
   @if (!loading && author) {
-    <div class="author-wrapper">
-      <div class="route-return-control">
-        <p-button
-          icon="pi pi-arrow-left"
-          [rounded]="true"
-          [text]="true"
-          severity="secondary"
-          class="route-return-button"
-          (onClick)="closePage()"
-        ></p-button>
-      </div>
+    <div class="author-wrapper tab-rail">
+      <div class="tab-rail-body">
       <p-tabs [value]="tab" lazy="true" scrollable>
         <p-tablist>
           <p-tab value="books">
@@ -211,6 +202,17 @@
           }
         </p-tabpanels>
       </p-tabs>
+      </div>
+      <div class="route-return-control tab-rail-close">
+        <p-button
+          icon="pi pi-times"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          class="route-return-button"
+          (onClick)="closePage()"
+        ></p-button>
+      </div>
     </div>
   }
 </ng-container>

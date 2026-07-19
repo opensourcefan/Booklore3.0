@@ -1,8 +1,18 @@
-.route-return-control {
-  position: absolute;
-  top: 0.4rem;
-  right: 0.5rem;
-  z-index: 2;
+@use '../../../../shared/styles/tab-rail' as tab-rail;
+
+.metadata-manager-chrome.tab-rail {
+  @include tab-rail.tab-rail-host;
+  grid-template-rows: auto;
+  margin-bottom: 0.5rem;
+}
+
+.metadata-manager-chrome .tab-rail-body {
+  @include tab-rail.tab-rail-body;
+  grid-row: 1;
+}
+
+.metadata-manager-chrome .route-return-control.tab-rail-close {
+  @include tab-rail.tab-rail-close;
 }
 
 .route-return-button {
