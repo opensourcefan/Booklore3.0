@@ -44,6 +44,8 @@
                     }
                   } @else if (entityType === EntityType.NOT_SHELFED) {
                     {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
+                  } @else if (entityType === EntityType.STAGING) {
+                    {{ (isFilterActive || hasSearchTerm) ? t('labels.stagingBooksFiltered') : t('labels.stagingBooks') }}
                   } @else {
                     {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
                   }

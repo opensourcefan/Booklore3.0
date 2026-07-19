@@ -71,6 +71,9 @@ export class BookFilterService {
     if (entityType === EntityType.NOT_SHELFED) {
       return books.filter(book => !book.shelves || book.shelves.length === 0);
     }
+    if (entityType === EntityType.STAGING) {
+      return books.filter(book => book.staged === true);
+    }
     if (!entity) return books;
 
     switch (entityType) {
