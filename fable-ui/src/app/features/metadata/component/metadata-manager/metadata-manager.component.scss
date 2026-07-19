@@ -1,23 +1,15 @@
-@use '../../../../shared/styles/tab-rail' as tab-rail;
-
-.metadata-manager-chrome.tab-rail {
-  @include tab-rail.tab-rail-host;
-  margin-bottom: 0.5rem;
-
-  // Header-only chrome (tabs live below) — reserve space beside the title, not a column.
-  .settings-header {
-    @include tab-rail.tab-rail-header-reserve;
-  }
+// Non-phone: show an X for the static close, matching the other detail pages.
+// The close already sits on the header row here (tabs are non-scrollable below),
+// so only the glyph is swapped. Phone Mode keeps the back arrow untouched.
+:host-context(body:not(.layout-phone)) ::ng-deep .route-return-button .pi-arrow-left::before {
+  content: "\e90b"; // pi-times
 }
 
-.metadata-manager-chrome .tab-rail-body {
-  @include tab-rail.tab-rail-body;
-}
-
-.metadata-manager-chrome .route-return-control.tab-rail-close {
-  @include tab-rail.tab-rail-close;
-  // Align with .settings-header margin-top so the X sits on the title row.
-  top: 0.75rem;
+.route-return-control {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 2;
 }
 
 .route-return-button {

@@ -1,7 +1,16 @@
 <ng-container *transloco="let t; prefix: 'book.seriesPage'">
 @if (filteredBooks$ | async; as books) {
-  <div class="series-wrapper tab-rail">
-    <div class="tab-rail-body">
+  <div class="series-wrapper">
+    <div class="route-return-control">
+      <p-button
+        icon="pi pi-arrow-left"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        class="route-return-button"
+        (onClick)="closePage()"
+      ></p-button>
+    </div>
     <p-tabs [value]="tab" lazy="true" scrollable>
       <p-tablist>
         <p-tab value="view">
@@ -356,17 +365,6 @@
 
     </p-tabpanels>
   </p-tabs>
-    </div>
-    <div class="route-return-control tab-rail-close">
-      <p-button
-        icon="pi pi-times"
-        [rounded]="true"
-        [text]="true"
-        severity="secondary"
-        class="route-return-button"
-        (onClick)="closePage()"
-      ></p-button>
-    </div>
   @if (selectedBooks.size > 0) {
     @if (userService.userState$ | async; as userState) {
       <div class="book-browser-footer" [@slideInOut]>

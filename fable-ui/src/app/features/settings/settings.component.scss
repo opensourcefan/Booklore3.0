@@ -1,26 +1,33 @@
-@use '../../shared/styles/tab-rail' as tab-rail;
-
 .settings-container {
   position: relative;
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
   background: var(--p-content-background);
-
-  &.tab-rail {
-    @include tab-rail.tab-rail-host;
-  }
 }
 
-.tab-rail-body {
-  @include tab-rail.tab-rail-body;
-
-  ::ng-deep > p-tabs,
-  ::ng-deep > .p-tabs {
-    @include tab-rail.tab-rail-tabs-fill;
-  }
+.route-return-control {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 2;
 }
 
-.route-return-control.tab-rail-close {
-  @include tab-rail.tab-rail-close;
+:host ::ng-deep p-tablist {
+  padding-right: 3.5rem;
+}
+
+// Non-phone: static close (X) sits beside the tablist's next-chevron, not under it.
+// Phone Mode keeps the baseline padding above, untouched.
+:host-context(body:not(.layout-phone)) {
+  ::ng-deep p-tablist {
+    padding-right: 0;
+    width: calc(100% - 3.5rem);
+    max-width: calc(100% - 3.5rem);
+    box-sizing: border-box;
+  }
+
+  ::ng-deep .route-return-button .pi-arrow-left::before {
+    content: "\e90b"; // pi-times
+  }
 }

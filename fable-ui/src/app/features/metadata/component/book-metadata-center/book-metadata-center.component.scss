@@ -1,5 +1,4 @@
 @use '../../../../shared/styles/panel-shared' as panel;
-@use '../../../../shared/styles/tab-rail' as tab-rail;
 
 .book-metadata-center-container {
   display: flex;
@@ -53,23 +52,13 @@
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
-
-  &.tab-rail {
-    @include tab-rail.tab-rail-host;
-  }
 }
 
-.tab-rail-body {
-  @include tab-rail.tab-rail-body;
-
-  ::ng-deep > p-tabs,
-  ::ng-deep > .p-tabs {
-    @include tab-rail.tab-rail-tabs-fill;
-  }
-}
-
-.route-return-control.tab-rail-close {
-  @include tab-rail.tab-rail-close;
+.route-return-control {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 2;
 }
 
 .dialog-mode {
@@ -103,7 +92,7 @@
 ::ng-deep .book-details-dialog app-book-metadata-center p-tabs,
 ::ng-deep .book-details-dialog app-book-metadata-center p-tabpanels,
 ::ng-deep .book-details-dialog app-book-metadata-center p-tabpanel,
-::ng-deep .book-details-dialog app-metadata-viewer,
+::ng-deep .book-details-dialog app-book-metadata-viewer,
 ::ng-deep .book-details-dialog app-metadata-editor,
 ::ng-deep .book-details-dialog app-metadata-searcher,
 ::ng-deep .book-details-dialog app-sidecar-viewer {
@@ -120,6 +109,30 @@
 
 ::ng-deep .book-details-dialog .tabpanels-responsive {
   height: auto;
+}
+
+.route-mode ::ng-deep p-tablist {
+  padding-right: 3.5rem;
+}
+
+// Non-phone (tablet/desktop/auto-shape): reserve a fixed slot on the right of the
+// scrollable tablist so the static close control sits beside — not under — PrimeNG's
+// next-chevron (>). Narrowing the tablist (padding cannot move the abspos chevron)
+// puts the > at the tablist's new right edge, left of the X. Phone Mode keeps the
+// baseline padding above, untouched.
+:host-context(body:not(.layout-phone)) {
+  .route-mode ::ng-deep p-tablist {
+    padding-right: 0;
+    width: calc(100% - 3.5rem);
+    max-width: calc(100% - 3.5rem);
+    box-sizing: border-box;
+  }
+
+  // < reads oddly next to > (">  <"); show an X on non-phone. Icon stays pi-arrow-left
+  // in the DOM (phone unchanged); only the rendered glyph is swapped here.
+  .route-mode ::ng-deep .route-return-button .pi-arrow-left::before {
+    content: "\e90b"; // pi-times
+  }
 }
 
 ::ng-deep .book-details-dialog .p-dialog-content {

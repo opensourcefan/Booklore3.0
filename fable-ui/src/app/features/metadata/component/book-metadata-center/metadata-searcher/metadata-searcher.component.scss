@@ -34,10 +34,8 @@ $provider-colors: (
   width: 100%;
   max-width: min(1600px, 100%);
   min-width: 0;
-  margin: 0 auto;
   box-sizing: border-box;
-  // Prevent the search field strip from forcing dialog/page horizontal scroll.
-  overflow-x: clip;
+  margin: 0 auto;
   animation: fadeIn 0.3s ease-in;
 }
 
@@ -87,8 +85,6 @@ $provider-colors: (
   grid-template-columns: minmax(140px, 150px) minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
-  width: 100%;
-  min-width: 0;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -97,7 +93,6 @@ $provider-colors: (
 
 .search-form-content {
   min-width: 0;
-  max-width: 100%;
 }
 
 ::ng-deep app-metadata-picker {
@@ -143,7 +138,8 @@ $provider-colors: (
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-color);
   margin-bottom: 1.25rem;
-  // Only animate shadow — `transition: all` was stretching layout reflows into a visible delay.
+  // Animate only the shadow — `transition: all` stretched layout reflows into a
+  // visible multi-hundred-ms settle on first paint.
   transition: box-shadow 0.3s ease;
 
   &:hover {
@@ -153,17 +149,16 @@ $provider-colors: (
 
 .search-grid {
   display: grid;
-  // First-paint stable: viewport media (not container-query / auto-fit, which wait for
-  // parent width and flash a single-column stack). Cap at 2 shrinkable columns —
-  // the old ≥1024 5-column strip overflowed inside narrower Book Details hosts.
-  // Phone Mode (≤768): leave existing max-width:768 rules elsewhere untouched;
-  // the historical ≥640 two-column band is preserved as-is.
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
   width: 100%;
   min-width: 0;
 
+  // Two shrinkable columns above the historical 640 band. minmax(0,…) lets tracks
+  // shrink so the field strip never spills past a narrow host (e.g. the Book Details
+  // dialog) into a horizontal scroll. The old ≥1024 dense 5-column strip was the
+  // viewport-keyed rule that overflowed inside narrower panels — intentionally gone.
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -214,6 +209,8 @@ $provider-colors: (
     }
   }
 
+  // Inputs must be allowed to shrink below content width, or a single long value
+  // (URL/ISBN) reopens the horizontal spill.
   .custom-input,
   ::ng-deep .p-inputtext,
   ::ng-deep .p-multiselect {

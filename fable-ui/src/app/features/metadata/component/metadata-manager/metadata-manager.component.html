@@ -1,37 +1,33 @@
 <ng-container *transloco="let t; prefix: 'metadata.manager'">
 <div class="main-container enclosing-container">
-  <div class="metadata-manager-chrome tab-rail">
-    <div class="tab-rail-body">
-      <div class="settings-header">
-        <h2 class="settings-title">
-          <i class="pi pi-sitemap"></i>
-          {{ t('title') }}
-          <app-external-doc-link docType="metadataManager"></app-external-doc-link>
-        </h2>
-        <p class="settings-description">
-          {{ t('description') }}
-          <i
-            class="pi pi-exclamation-triangle info-icon"
-            [pTooltip]="t('writeToFileWarning')"
-            tooltipPosition="right"
-            [escape]="false"></i>
-        </p>
-      </div>
-    </div>
-    <div class="route-return-control tab-rail-close">
-      <p-button
-        icon="pi pi-times"
-        [rounded]="true"
-        [text]="true"
-        severity="secondary"
-        (onClick)="closeAndReturn()"
-        class="route-return-button">
-      </p-button>
-    </div>
+  <div class="route-return-control">
+    <p-button
+      icon="pi pi-arrow-left"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      (onClick)="closeAndReturn()"
+      class="route-return-button">
+    </p-button>
+  </div>
+  <div class="settings-header">
+    <h2 class="settings-title">
+      <i class="pi pi-sitemap"></i>
+      {{ t('title') }}
+      <app-external-doc-link docType="metadataManager"></app-external-doc-link>
+    </h2>
+    <p class="settings-description">
+      {{ t('description') }}
+      <i
+        class="pi pi-exclamation-triangle info-icon"
+        [pTooltip]="t('writeToFileWarning')"
+        tooltipPosition="right"
+        [escape]="false"></i>
+    </p>
   </div>
 
   <div class="settings-content">
-    <p-tabs [(value)]="activeTab" scrollable>
+    <p-tabs [(value)]="activeTab">
       <p-tablist>
         @for (tab of tabConfigs; track tab.type) {
           <p-tab [value]="tab.type">
