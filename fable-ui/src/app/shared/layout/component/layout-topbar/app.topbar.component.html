@@ -507,7 +507,7 @@
        tooltipPosition="bottom">
       <i class="pi pi-sliders-h"></i>
     </button>
-    <p-popover #toolbarEditorPop [dismissable]="true" appendTo="body" styleClass="toolbar-editor-popover" (onShow)="toolbarEditor.syncItems()">
+    <p-popover #toolbarEditorPop [dismissable]="!toolbarEditor?.isDragging" appendTo="body" styleClass="toolbar-editor-popover" (onShow)="toolbarEditor.syncItems()">
       <app-toolbar-editor #toolbarEditor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>
 

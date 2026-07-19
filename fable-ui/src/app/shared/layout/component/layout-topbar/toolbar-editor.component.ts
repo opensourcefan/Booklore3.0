@@ -1,37 +1,39 @@
 import {Component, EventEmitter, inject, Output, OnInit} from '@angular/core';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 
 @Component({
   selector: 'app-toolbar-editor',
   standalone: true,
-  imports: [],
+  imports: [CdkDropList, CdkDrag, CdkDragHandle],
   template: `
     <div class="toolbar-editor">
       <div class="toolbar-editor-header">
         <span>Customize Toolbar</span>
         <span class="toolbar-editor-hint">Saved for the current layout (phone, tablet, or desktop) on this browser</span>
       </div>
-      <ul class="toolbar-editor-list">
-        @for (item of draftItems; track item.id; let i = $index) {
+      <ul
+          class="toolbar-editor-list"
+          cdkDropList
+          [cdkDropListData]="draftItems"
+          (cdkDropListDropped)="onDrop($event)">
+        @for (item of draftItems; track item.id) {
           <li
               class="toolbar-editor-item"
               [class.separator-item]="item.type === 'separator'"
-              [class.dragging]="dragIndex === i"
-              [class.drag-over-above]="dragOverIndex === i && dragIndex > i"
-              [class.drag-over-below]="dragOverIndex === i && dragIndex < i"
-              draggable="true"
-              (dragstart)="onDragStart(i)"
-              (dragover)="onDragOver($event, i)"
-              (drop)="onDrop(i)"
-              (dragend)="onDragEnd()">
-            <i class="pi pi-bars drag-icon"></i>
+              cdkDrag
+              (cdkDragStarted)="isDragging = true"
+              (cdkDragEnded)="isDragging = false">
+            <div class="drag-handle" cdkDragHandle aria-label="Drag to reorder" title="Drag to reorder">
+              <i class="pi pi-bars drag-icon"></i>
+            </div>
             <span class="item-label">{{ getItemLabel(item) }}</span>
             @if (item.type === 'separator') {
-              <button class="remove-btn" (click)="removeSeparator(i)" title="Remove Separator">
+              <button type="button" class="remove-btn" (click)="removeSeparator($index)" title="Remove Separator">
                 <i class="pi pi-trash"></i>
               </button>
             } @else {
-              <button class="toggle-btn" (click)="toggleVisible(item)">
+              <button type="button" class="toggle-btn" (click)="toggleVisible(item)">
                 <i [class]="item.visible ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
               </button>
             }
@@ -39,13 +41,13 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
         }
       </ul>
       <div class="toolbar-editor-add-actions">
-        <button class="add-sep-btn" (click)="addSeparator()">
+        <button type="button" class="add-sep-btn" (click)="addSeparator()">
           <i class="pi pi-plus" style="font-size: 0.75rem; margin-right: 0.25rem;"></i>Add Separator
         </button>
       </div>
       <div class="toolbar-editor-actions">
-        <button class="save-btn" (click)="save()">Save</button>
-        <button class="reset-btn" (click)="reset()">Reset</button>
+        <button type="button" class="save-btn" (click)="save()">Save</button>
+        <button type="button" class="reset-btn" (click)="reset()">Reset</button>
       </div>
     </div>
   `,
@@ -59,28 +61,35 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
       align-items: center;
       gap: 0.5rem;
       padding: 0.4rem 0.35rem;
-      cursor: grab;
       border-radius: 4px;
-      border-top: 2px solid transparent;
-      border-bottom: 2px solid transparent;
+      border: 2px solid transparent;
       transition: background 0.15s ease, border-color 0.1s ease;
     }
     .toolbar-editor-item:hover { background: var(--p-surface-700); }
-    .toolbar-editor-item.dragging { opacity: 0.4; }
-    .toolbar-editor-item.drag-over-above { border-top: 2px solid var(--p-primary-color); }
-    .toolbar-editor-item.drag-over-below { border-bottom: 2px solid var(--p-primary-color); }
-    
+
     .separator-item {
       background: rgba(255, 255, 255, 0.03);
       border: 1px dashed var(--p-surface-600);
       margin: 2px 0;
     }
-    
-    .drag-icon { font-size: 0.65rem; color: var(--p-surface-500); }
+
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0.25rem;
+      margin: -0.25rem;
+      cursor: grab;
+      touch-action: none;
+      color: var(--p-surface-500);
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-icon { font-size: 0.65rem; pointer-events: none; }
     .item-label { flex: 1; font-size: 0.8rem; }
     .toggle-btn { background: none; border: none; cursor: pointer; color: var(--p-surface-400); padding: 0; &:hover { color: var(--p-primary-color); } }
     .remove-btn { background: none; border: none; cursor: pointer; color: var(--p-surface-400); padding: 0; transition: color 0.15s ease; &:hover { color: #ef4444; } }
-    
+
     .toolbar-editor-add-actions { display: flex; margin-top: 0.5rem; padding-top: 0.25rem; }
     .add-sep-btn {
       width: 100%;
@@ -102,16 +111,33 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
         background: rgba(255, 255, 255, 0.02);
       }
     }
-    
+
     .toolbar-editor-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--p-content-border-color); }
     .save-btn, .reset-btn { flex: 1; padding: 0.25rem; border-radius: 4px; border: 1px solid var(--p-content-border-color); cursor: pointer; font-size: 0.75rem; background: var(--p-surface-700); color: var(--p-surface-100); &:hover { border-color: var(--p-primary-color); } }
+
+    .cdk-drag-preview {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.35rem;
+      border-radius: 4px;
+      background: var(--p-surface-800, var(--card-background));
+      border: 1px solid var(--p-primary-color);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+      list-style: none;
+    }
+    .cdk-drag-placeholder { opacity: 0.35; }
+    .cdk-drag-animating { transition: transform 200ms cubic-bezier(0, 0, 0.2, 1); }
+    .toolbar-editor-list.cdk-drop-list-dragging .toolbar-editor-item:not(.cdk-drag-placeholder) {
+      transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+    }
   `]
 })
 export class ToolbarEditorComponent implements OnInit {
   config = inject(ToolbarConfigService);
   @Output() saved = new EventEmitter<void>();
-  dragIndex = -1;
-  dragOverIndex = -1;
+  /** True while a CDK drag is active — parent popover should not auto-dismiss. */
+  isDragging = false;
   draftItems: ToolbarItem[] = [];
 
   ngOnInit() {
@@ -124,36 +150,13 @@ export class ToolbarEditorComponent implements OnInit {
       .map(item => ({...item}));
   }
 
-  onDragStart(i: number) {
-    this.dragIndex = i;
-  }
-
-  onDragOver(e: DragEvent, i: number) {
-    e.preventDefault();
-    if (this.dragIndex === i) {
-      this.dragOverIndex = -1;
-      return;
-    }
-    this.dragOverIndex = i;
-  }
-
-  onDragEnd() {
-    this.dragIndex = -1;
-    this.dragOverIndex = -1;
-  }
-
-  onDrop(i: number) {
-    if (this.dragIndex < 0 || this.dragIndex === i) {
-      this.dragIndex = -1;
-      this.dragOverIndex = -1;
+  onDrop(event: CdkDragDrop<ToolbarItem[]>) {
+    if (event.previousIndex === event.currentIndex) {
       return;
     }
     const items = [...this.draftItems];
-    const [moved] = items.splice(this.dragIndex, 1);
-    items.splice(i, 0, moved);
+    moveItemInArray(items, event.previousIndex, event.currentIndex);
     this.draftItems = items;
-    this.dragIndex = -1;
-    this.dragOverIndex = -1;
   }
 
   getItemLabel(item: ToolbarItem): string {
@@ -169,11 +172,11 @@ export class ToolbarEditorComponent implements OnInit {
       type: 'separator',
       visible: true
     };
-    this.draftItems.push(newSep);
+    this.draftItems = [...this.draftItems, newSep];
   }
 
   removeSeparator(index: number) {
-    this.draftItems.splice(index, 1);
+    this.draftItems = this.draftItems.filter((_, i) => i !== index);
   }
 
   toggleVisible(item: ToolbarItem) {
