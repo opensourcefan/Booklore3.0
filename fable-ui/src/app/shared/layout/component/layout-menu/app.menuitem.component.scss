@@ -317,7 +317,10 @@
 
 .menu-item-text-inner {
   display: inline-block;
-  height: 17px;
+  // Height must cover the parent line box (0.985rem × 1.2). A fixed 17px
+  // undershot that and clipped descenders (g/y/p/q/j) under overflow:hidden.
+  max-height: none;
+  line-height: inherit;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
