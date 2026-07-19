@@ -221,6 +221,53 @@ describe('MetadataSearcherComponent control rail integration', () => {
     expect(coverShell).not.toBeNull();
     expect(coverImage?.getAttribute('src')).toContain('test-cover.jpg');
   });
+
+  it('applies searchable style classes without embedded quotes on list controls', () => {
+    const fixture = TestBed.createComponent(MetadataSearcherComponent);
+    const component = fixture.componentInstance;
+
+    component.book$ = of(createBook(1));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const searcher = host.querySelector('.searcher-container') as HTMLElement;
+    const multiselectDebug = fixture.debugElement.query(By.directive(MultiSelect));
+    const buttonDebug = fixture.debugElement.query(By.directive(Button));
+
+    expect(searcher).not.toBeNull();
+    expect(host.querySelector('.metadata-container')).toBeNull();
+
+    const multiStyleClass = String(multiselectDebug?.componentInstance?.styleClass ?? '');
+    const buttonStyleClass = String(buttonDebug?.componentInstance?.styleClass ?? '');
+
+    expect(multiStyleClass).toBe('custom-multiselect');
+    expect(multiStyleClass).not.toContain("'");
+    expect(buttonStyleClass).toBe('custom-search-button');
+    expect(buttonStyleClass).not.toContain("'");
+
+    // styleClass is applied to the rendered control root (not a quoted class="'…'" host attribute)
+    expect(host.querySelector('.custom-multiselect, .p-multiselect.custom-multiselect')).not.toBeNull();
+    expect(host.querySelector('.custom-search-button, .p-button.custom-search-button')).not.toBeNull();
+
+    expect(host.querySelector('.search-field-title')).not.toBeNull();
+    expect(host.querySelector('.search-field-isbn')).not.toBeNull();
+    expect(host.querySelector('.search-button-field')).not.toBeNull();
+  });
+
+  it('switches to metadata-container when a fetched result is selected', () => {
+    const fixture = TestBed.createComponent(MetadataSearcherComponent);
+    const component = fixture.componentInstance;
+
+    component.book$ = of(createBook(1));
+    fixture.detectChanges();
+
+    component.selectedFetchedMetadata$.next({title: 'Fetched Book'} as BookMetadata);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.searcher-container')).toBeNull();
+    expect(host.querySelector('.metadata-container')).not.toBeNull();
+  });
 });
 
 function createBook(id: number): Book {
