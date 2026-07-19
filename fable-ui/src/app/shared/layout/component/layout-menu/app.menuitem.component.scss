@@ -309,19 +309,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-left: 0;
-  margin-bottom: -3px;
-  padding-bottom: 3px;
   font-size: 0.985rem;
-  line-height: 1.2;
+  // Match the pre-descender-fix row strut (was inner height: 17px).
+  line-height: 17px;
 }
 
 .menu-item-text-inner {
   display: inline-block;
-  // Height must cover the parent line box (0.985rem × 1.2). A fixed 17px
-  // undershot that and clipped descenders (g/y/p/q/j) under overflow:hidden.
-  max-height: none;
-  line-height: inherit;
   max-width: 100%;
+  line-height: 17px;
+  // Paint room for descenders inside overflow:hidden (clips to padding edge),
+  // cancelled in flow so row spacing stays at the old 17px strut.
+  padding-bottom: 3px;
+  margin-bottom: -3px;
+  vertical-align: top;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
