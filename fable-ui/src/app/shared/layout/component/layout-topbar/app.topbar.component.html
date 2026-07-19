@@ -168,18 +168,23 @@
             }
             @case ('notifications') {
               <li class="topbar-item-relative">
-                <button type="button" class="topbar-item" (click)="notificationPopover.toggle($event)">
-                  <i
-                    class="pi"
-                    [ngClass]="iconClass"
-                    [ngStyle]="{ color: iconColor }"
-                    style="font-size: 1.25rem"
-                    [class.pulsating]="iconPulsating"
-                    [attr.aria-label]="t('notificationAriaLabel')"></i>
+                <button
+                  type="button"
+                  class="topbar-item"
+                  [class.topbar-item--notification-count]="shouldShowNotificationBadge"
+                  (click)="notificationPopover.toggle($event)"
+                  [attr.aria-label]="t('notificationAriaLabel')">
+                  @if (shouldShowNotificationBadge) {
+                    <span class="notification-count-face">{{ notificationBadgeCount }}</span>
+                  } @else {
+                    <i
+                      class="pi"
+                      [ngClass]="iconClass"
+                      [ngStyle]="{ color: iconColor }"
+                      style="font-size: 1.25rem"
+                      [class.pulsating]="iconPulsating"></i>
+                  }
                 </button>
-                @if (shouldShowNotificationBadge) {
-                  <span class="notification-badge">{{ notificationBadgeCount }}</span>
-                }
                 <p-popover #notificationPopover [dismissable]="true" (onShow)="onNotificationPopoverShow()" (onHide)="onNotificationPopoverHide()">
                   <app-unified-notification-popover-component></app-unified-notification-popover-component>
                 </p-popover>

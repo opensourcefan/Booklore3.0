@@ -741,13 +741,27 @@
   user-select: none;
 }
 
-// Desktop/tablet toolbar only — top-right badge clips off the viewport edge.
-// Phone Mode keeps the default top-right via .notification-badge + inline styles.
-.topbar-desktop-items .notification-badge {
-  top: auto;
-  right: auto;
-  bottom: -0.15rem;
-  left: -0.15rem;
+// Desktop/tablet: when a count is active, the button becomes the count (no overhanging badge).
+// Phone Mode keeps .notification-badge top-right overlay on the mobile center-bar bell.
+.topbar-desktop-items .notification-count-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background-color: red;
+  color: #fff !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.topbar-desktop-items .topbar-item--notification-count {
+  border-color: color-mix(in srgb, red 55%, var(--border-color));
 }
 
 .logo-version {
