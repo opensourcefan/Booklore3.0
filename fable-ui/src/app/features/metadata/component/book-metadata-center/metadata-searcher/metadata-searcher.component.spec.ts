@@ -6,7 +6,7 @@ import {By} from '@angular/platform-browser';
 import {convertToParamMap, ActivatedRoute, Router} from '@angular/router';
 import {TranslocoDirective, TranslocoTestingModule} from '@jsverse/transloco';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
 import {MultiSelect} from 'primeng/multiselect';
@@ -252,6 +252,29 @@ describe('MetadataSearcherComponent control rail integration', () => {
     expect(host.querySelector('.search-field-title')).not.toBeNull();
     expect(host.querySelector('.search-field-isbn')).not.toBeNull();
     expect(host.querySelector('.search-button-field')).not.toBeNull();
+  });
+
+  it('keeps the form grid mounted when book$ has not emitted yet (cover absent)', () => {
+    const fixture = TestBed.createComponent(MetadataSearcherComponent);
+    const component = fixture.componentInstance;
+
+    // Never emits — reproduces first paint before the parent book stream resolves.
+    component.book$ = new Subject<Book | null>().asObservable();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const layout = host.querySelector('.search-card-layout') as HTMLElement;
+    const formContent = layout?.querySelector(':scope > .search-form-content');
+    const cover = layout?.querySelector(':scope > .search-cover');
+
+    expect(layout).not.toBeNull();
+    expect(cover).toBeNull();
+    expect(formContent).not.toBeNull();
+    expect(formContent?.querySelector('.search-grid')).not.toBeNull();
+    expect(formContent?.querySelector('.search-field-provider')).not.toBeNull();
+    expect(formContent?.querySelector('.search-field-title')).not.toBeNull();
+    // Only one direct child while cover is pending — CSS must pin form to column 2.
+    expect(layout.querySelectorAll(':scope > *').length).toBe(1);
   });
 
   it('switches to metadata-container when a fetched result is selected', () => {

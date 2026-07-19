@@ -90,12 +90,28 @@ $provider-colors: (
 
 .search-card-layout {
   display: grid;
+  // Cover track is reserved even when book$ has not emitted yet, so the form
+  // never auto-places into the narrow first column on first paint.
   grid-template-columns: minmax(140px, 150px) minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
 
+  > .search-cover {
+    grid-column: 1;
+  }
+
+  > .search-form-content {
+    grid-column: 2;
+    min-width: 0;
+  }
+
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+
+    > .search-cover,
+    > .search-form-content {
+      grid-column: 1;
+    }
   }
 }
 
@@ -161,11 +177,12 @@ $provider-colors: (
   margin-bottom: 0;
 
   @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  // Title gets the widest track; Providers is a single track (not span-2).
   @media (min-width: 1024px) {
-    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr auto;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 2fr) minmax(0, 1.5fr) auto;
     align-items: end;
   }
 }
@@ -232,21 +249,21 @@ $provider-colors: (
     }
 
     @media (min-width: 1024px) {
-      grid-column: 1 / span 2;
+      grid-column: 1;
       grid-row: 1;
     }
   }
 
   &.search-field-title {
     @media (min-width: 1024px) {
-      grid-column: 3;
+      grid-column: 2;
       grid-row: 1;
     }
   }
 
   &.search-field-author {
     @media (min-width: 1024px) {
-      grid-column: 4;
+      grid-column: 3;
       grid-row: 1;
     }
   }
@@ -257,7 +274,7 @@ $provider-colors: (
     }
 
     @media (min-width: 1024px) {
-      grid-column: 5;
+      grid-column: 4;
       grid-row: 1;
     }
   }
@@ -285,7 +302,7 @@ $provider-colors: (
 
   &.search-field-isbn {
     @media (min-width: 1024px) {
-      grid-column: 4 / span 2;
+      grid-column: 4;
       grid-row: 2;
     }
   }
