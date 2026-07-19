@@ -53,6 +53,8 @@
       "allBooks": "All Books",
       "stagingBooks": "Staging",
       "stagingBooksFiltered": "Staging (Filtered)",
+      "releaseFromStaging": "Release from Staging",
+      "release": "Release",
       "unshelvedBooks": "Not Shelfed Books",
       "unshelvedBooksFiltered": "Not Shelfed Books (Filtered)",
       "filteredSuffix": "(Filtered)",

@@ -574,10 +574,27 @@
         <div class="selection-action-panel" [class.panel-hidden]="!isSelectionActionPanelOpen">
           <div class="selection-panel-content">
             <div class="selection-panel-left">
-              <div class="selected-count-badge">
-                <i class="pi pi-check-circle"></i>
-                <span class="selected-count">{{ selectedCount }}</span>
-                <span class="selected-label">{{ t('labels.selected') }}</span>
+              <div class="selection-panel-left-primary">
+                <div class="selected-count-badge">
+                  <i class="pi pi-check-circle"></i>
+                  <span class="selected-count">{{ selectedCount }}</span>
+                  <span class="selected-label">{{ t('labels.selected') }}</span>
+                </div>
+                @if ((entityType$ | async) === EntityType.STAGING) {
+                  <p-button
+                    styleClass="staging-release-action"
+                    icon="pi pi-check"
+                    [label]="isMobile ? t('labels.release') : t('labels.releaseFromStaging')"
+                    severity="success"
+                    size="small"
+                    [disabled]="selectedCount === 0"
+                    (onClick)="releaseFromStaging()"
+                    [pTooltip]="t('tooltip.releaseFromStaging')"
+                    [tooltipDisabled]="!isMobile && selectedCount > 0"
+                    tooltipPosition="top"
+                    [attr.aria-label]="t('tooltip.releaseFromStaging')">
+                  </p-button>
+                }
               </div>
               @if (hasHiddenSelections) {
                 <div class="selection-visibility-hint">
@@ -645,17 +662,6 @@
                       [disabled]="selectedCount === 0"
                       (click)="unshelfBooks()"
                       [pTooltip]="t('tooltip.removeFromShelf')"
-                      tooltipPosition="top">
-                    </p-button>
-                  }
-                  @if (entityType === EntityType.STAGING) {
-                    <p-button
-                      icon="pi pi-check"
-                      outlined="true"
-                      severity="success"
-                      [disabled]="selectedCount === 0"
-                      (onClick)="releaseFromStaging()"
-                      [pTooltip]="t('tooltip.releaseFromStaging')"
                       tooltipPosition="top">
                     </p-button>
                   }
