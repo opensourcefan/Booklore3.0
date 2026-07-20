@@ -99,6 +99,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   canManipulateLibrary = false;
   admin = false;
   expandedItems = new Set<string>();
+  private readonly sectionExpandedKey = 'sidebarSectionExpanded';
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
   private suppressTapUntil = 0;
@@ -176,7 +177,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const rootKey = this.menuKey ? this.menuKey + '-' : '';
     this.key = this.parentKey ? this.parentKey + '-' + this.index : rootKey + String(this.index);
-    this.expandedItems.add(this.key);
+    if (this.shouldRestoreSectionExpanded() && this.readPersistedSectionExpanded() === false) {
+      this.expandedItems.delete(this.key);
+    } else {
+      this.expandedItems.add(this.key);
+    }
     if (this.item.routerLink) {
       this.updateActiveStateFromRoute();
     }
@@ -199,6 +204,8 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     } else {
       this.expandedItems.add(key);
     }
+
+    this.persistSectionExpanded(key);
   }
 
   isExpanded(key: string): boolean {
@@ -244,6 +251,33 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
   isChildSortable(): boolean {
     return this.reorderMode && this.root && !!this.item?.items?.length;
+  }
+
+  private shouldRestoreSectionExpanded(): boolean {
+    return this.root && !!this.item?.hasDropDown && !!this.menuKey;
+  }
+
+  private readPersistedSectionExpanded(): boolean | null {
+    if (!this.menuKey) {
+      return null;
+    }
+    const saved = this.localStorageService.get<Record<string, boolean>>(this.sectionExpandedKey);
+    if (!saved || typeof saved[this.menuKey] !== 'boolean') {
+      return null;
+    }
+    return saved[this.menuKey];
+  }
+
+  private persistSectionExpanded(key: string): void {
+    if (!this.shouldRestoreSectionExpanded() || key !== this.key) {
+      return;
+    }
+
+    const saved = this.localStorageService.get<Record<string, boolean>>(this.sectionExpandedKey) ?? {};
+    this.localStorageService.trySet(this.sectionExpandedKey, {
+      ...saved,
+      [this.menuKey]: this.expandedItems.has(key),
+    });
   }
 
   private persistChildOrder(): void {

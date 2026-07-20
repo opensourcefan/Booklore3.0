@@ -311,6 +311,10 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
   it('collapses a dropdown section when the section header is clicked', () => {
     const fixture = createRootWithChildrenFixture(false);
     const component = fixture.componentInstance;
+    const localStorage = TestBed.inject(LocalStorageService) as unknown as {
+      trySet: ReturnType<typeof vi.fn>;
+      get: ReturnType<typeof vi.fn>;
+    };
     const header = fixture.nativeElement.querySelector('.root-item-with-dropdown') as HTMLElement;
 
     expect(header).not.toBeNull();
@@ -323,6 +327,51 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     expect(component.isExpanded(component.key)).toBe(false);
     expect(header.getAttribute('aria-expanded')).toBe('false');
     expect(fixture.nativeElement.querySelector('.expand-icon')?.classList.contains('pi-angle-down')).toBe(true);
+    expect(localStorage.trySet).toHaveBeenCalledWith('sidebarSectionExpanded', {library: false});
+  });
+
+  it('restores a collapsed dropdown section from browser storage on init', () => {
+    const localStorage = TestBed.inject(LocalStorageService) as unknown as {
+      get: ReturnType<typeof vi.fn>;
+    };
+    localStorage.get.mockImplementation((key: string) => {
+      if (key === 'sidebarSectionExpanded') {
+        return {library: false};
+      }
+      return null;
+    });
+
+    const fixture = createRootWithChildrenFixture(false);
+    const component = fixture.componentInstance;
+    const header = fixture.nativeElement.querySelector('.root-item-with-dropdown') as HTMLElement;
+
+    expect(component.isExpanded(component.key)).toBe(false);
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('persists expanded state when a collapsed section is reopened', () => {
+    const localStorage = TestBed.inject(LocalStorageService) as unknown as {
+      trySet: ReturnType<typeof vi.fn>;
+      get: ReturnType<typeof vi.fn>;
+    };
+    localStorage.get.mockImplementation((key: string) => {
+      if (key === 'sidebarSectionExpanded') {
+        return {library: false};
+      }
+      return null;
+    });
+
+    const fixture = createRootWithChildrenFixture(false);
+    const component = fixture.componentInstance;
+    const header = fixture.nativeElement.querySelector('.root-item-with-dropdown') as HTMLElement;
+
+    expect(component.isExpanded(component.key)).toBe(false);
+
+    header.click();
+    fixture.detectChanges();
+
+    expect(component.isExpanded(component.key)).toBe(true);
+    expect(localStorage.trySet).toHaveBeenCalledWith('sidebarSectionExpanded', {library: true});
   });
 
   it('collapses a dropdown section when the expand chevron is clicked', () => {
