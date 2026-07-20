@@ -46,6 +46,8 @@ public class IsbnDiscoveryService {
     private static final int HIGH_CONFIDENCE_THRESHOLD = 75;
     private static final int TITLE_VERIFY_THRESHOLD = 55;
     private static final int DEFAULT_MAX_PAGES = 8;
+    /** Higher than AI-search default (150) — small copyright-page ISBNs need sharper glyphs. */
+    private static final int ISBN_OCR_DPI = 220;
 
     private final AppSettingService appSettingService;
     private final AppProperties appProperties;
@@ -77,6 +79,18 @@ public class IsbnDiscoveryService {
             }
 
             List<ParserUtils.IsbnCandidate> candidates = ParserUtils.findIsbnCandidates(extract.text());
+            log.info("ISBN discovery for {}: {} front-matter chars, {} candidate(s), ocrAttempted={}, ocrSucceeded={}",
+                    file.getName(),
+                    extract.text().length(),
+                    candidates.size(),
+                    extract.ocrAttempted(),
+                    extract.ocrSucceeded());
+            if (candidates.isEmpty()
+                    && extract.ocrAttempted()
+                    && !extract.ocrSucceeded()) {
+                return IsbnDiscoveryResult.ocrUnavailable(
+                        "No ISBN in text layer and OCR sidecar unavailable or failed — enable AI Search OCR for image/scanned pages");
+            }
             return resolveCandidates(candidates, existingMetadata);
         } catch (Exception e) {
             log.warn("ISBN discovery failed for {}: {}", file.getName(), e.getMessage());
@@ -183,27 +197,75 @@ public class IsbnDiscoveryService {
         try (PDDocument document = Loader.loadPDF(file)) {
             int pageCount = Math.min(document.getNumberOfPages(), maxPages);
             PDFTextStripper stripper = new PDFTextStripper();
+            String[] pageTexts = new String[pageCount];
+
             for (int page = 1; page <= pageCount; page++) {
                 stripper.setStartPage(page);
                 stripper.setEndPage(page);
                 String pageText = stripper.getText(document);
-                if (pageText != null && !pageText.isBlank()) {
-                    text.append(pageText).append('\n');
-                    continue;
+                pageTexts[page - 1] = pageText != null ? pageText : "";
+                if (!pageTexts[page - 1].isBlank()) {
+                    text.append(pageTexts[page - 1]).append('\n');
                 }
-                if (!useOcr) {
-                    continue;
+            }
+
+            // Text layer alone is enough when it already yields a checksum-valid ISBN.
+            // Otherwise OCR pages that lack ISBN-like signals (blank, page numbers only,
+            // or body text with the ISBN only in an embedded image — common on scanned PDFs).
+            List<ParserUtils.IsbnCandidate> textCandidates = ParserUtils.findIsbnCandidates(text.toString());
+            if (textCandidates.isEmpty() && useOcr) {
+                for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+                    if (!pageNeedsOcrForIsbn(pageTexts[pageIndex])) {
+                        continue;
+                    }
+                    ocrAttempted = true;
+                    String ocrText = softOcrPdfPage(document, pageIndex);
+                    if (ocrText != null && !ocrText.isBlank()) {
+                        ocrSucceeded = true;
+                        text.append(ocrText).append('\n');
+                        log.info("ISBN OCR succeeded on page {} of {}", pageIndex + 1, file.getName());
+                    } else {
+                        log.debug("ISBN OCR returned empty/failed on page {} of {}", pageIndex + 1, file.getName());
+                    }
                 }
-                ocrAttempted = true;
-                String ocrText = softOcrPdfPage(document, page - 1);
-                if (ocrText != null && !ocrText.isBlank()) {
-                    ocrSucceeded = true;
-                    text.append(ocrText).append('\n');
+
+                // If selective OCR still found nothing ISBN-like, OCR remaining pages once.
+                // Covers the case where the text layer had a false ISBN-like signal (e.g. order id)
+                // that blocked OCR on the real copyright page.
+                if (ParserUtils.findIsbnCandidates(text.toString()).isEmpty()) {
+                    for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+                        if (pageNeedsOcrForIsbn(pageTexts[pageIndex])) {
+                            continue; // already attempted above
+                        }
+                        ocrAttempted = true;
+                        String ocrText = softOcrPdfPage(document, pageIndex);
+                        if (ocrText != null && !ocrText.isBlank()) {
+                            ocrSucceeded = true;
+                            text.append(ocrText).append('\n');
+                            log.info("ISBN OCR fallback succeeded on page {} of {}", pageIndex + 1, file.getName());
+                        }
+                    }
                 }
+            } else if (textCandidates.isEmpty() && !useOcr) {
+                log.info("ISBN discovery: no text-layer ISBN in first {} page(s) of {} and OCR is disabled",
+                        pageCount, file.getName());
             }
         }
 
         return new FrontMatterExtract(text.toString(), ocrAttempted, ocrSucceeded);
+    }
+
+    /**
+     * OCR when the text layer is blank/sparse or has no ISBN-like token.
+     * Package-visible for unit tests.
+     */
+    static boolean pageNeedsOcrForIsbn(String pageText) {
+        if (pageText == null || pageText.isBlank()) {
+            return true;
+        }
+        // Text layer already has an ISBN-like token — skip OCR for this page on the
+        // first pass (invalid lookalikes are covered by the full-page OCR fallback).
+        return !ParserUtils.hasIsbnLikeSignal(pageText);
     }
 
     private FrontMatterExtract extractEpubFrontMatter(File file, int maxPages) {
@@ -238,9 +300,10 @@ public class IsbnDiscoveryService {
     private String softOcrPdfPage(PDDocument document, int pageIndex) {
         try {
             PDFRenderer renderer = new PDFRenderer(document);
-            BufferedImage bufferedImage = renderer.renderImageWithDPI(pageIndex, 150, ImageType.RGB);
+            BufferedImage bufferedImage = renderer.renderImageWithDPI(pageIndex, ISBN_OCR_DPI, ImageType.RGB);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(bufferedImage, "jpg", baos);
+            // PNG preserves small digit edges better than JPEG for Tesseract.
+            ImageIO.write(bufferedImage, "png", baos);
             String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
 
             AiSearchSettings aiSettings = appSettingService.getAppSettings().getAiSearchSettings();

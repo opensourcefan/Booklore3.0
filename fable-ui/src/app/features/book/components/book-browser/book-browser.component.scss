@@ -122,6 +122,15 @@
   flex-wrap: wrap;
 }
 
+.staging-triage-separator {
+  display: inline-block;
+  width: 1px;
+  height: 1.35rem;
+  margin: 0 0.2rem;
+  background: color-mix(in srgb, var(--p-content-border-color) 85%, var(--text-color, #888));
+  flex-shrink: 0;
+}
+
 .staging-triage-tab {
   display: inline-flex;
   align-items: center;
@@ -137,14 +146,68 @@
   line-height: 1;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: var(--p-primary-color);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   &--active {
     background: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
     border-color: var(--p-primary-color);
     color: var(--p-primary-color);
+  }
+
+  &--review {
+    border-color: color-mix(in srgb, #f59e0b 55%, var(--p-content-border-color));
+    color: #d97706;
+
+    .staging-triage-badge {
+      background: #f59e0b;
+      color: #111;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: #f59e0b;
+    }
+
+    &.staging-triage-tab--active {
+      background: color-mix(in srgb, #f59e0b 22%, transparent);
+      border-color: #f59e0b;
+      color: #b45309;
+    }
+  }
+
+  &--completed,
+  &--release {
+    border-color: color-mix(in srgb, #22c55e 55%, var(--p-content-border-color));
+    color: #16a34a;
+
+    .staging-triage-badge {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: #22c55e;
+    }
+
+    &.staging-triage-tab--active {
+      background: color-mix(in srgb, #22c55e 22%, transparent);
+      border-color: #22c55e;
+      color: #15803d;
+    }
+  }
+
+  &--release {
+    padding-inline: 0.7rem;
+
+    .pi {
+      font-size: 0.75rem;
+    }
   }
 }
 

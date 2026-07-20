@@ -14,17 +14,23 @@ public final class ParserUtils {
 
     /**
      * Matches labeled ISBN tokens and bare ISBN-13 / ISBN-10 digit runs.
-     * Candidates are validated via checksum before use.
+     * Allows spaces/dashes (common in OCR and copyright pages). Candidates are
+     * validated via checksum before use.
      */
     private static final Pattern ISBN_CANDIDATE_PATTERN = Pattern.compile(
             "(?i)(?:ISBN(?:-1[03])?|International\\s+Standard\\s+Book\\s+Number)"
-                    + "\\s*[:#]?\\s*([0-9Xx][0-9Xx\\-\\s]{8,20}[0-9Xx])"
-                    + "|(?<![0-9])(97[89][0-9\\-]{10,16}[0-9])(?![0-9])"
-                    + "|(?<![0-9])([0-9]{9}[0-9Xx])(?![0-9A-Za-z])"
+                    + "\\s*[:#]?\\s*([0-9XxOoIl|][0-9XxOoIl|\\-\\s]{8,22}[0-9XxOoIl|])"
+                    + "|(?<![0-9])(97[89][0-9\\-\\s]{10,20}[0-9])(?![0-9])"
+                    + "|(?<![0-9])([0-9][0-9\\-\\s]{8,14}[0-9Xx])(?![0-9A-Za-z])"
     );
 
     private static final Pattern ISBN_LABEL_NEARBY = Pattern.compile(
             "(?i)(?:ISBN(?:-1[03])?|International\\s+Standard\\s+Book\\s+Number)"
+    );
+
+    /** Cheap signal that a page might already contain an ISBN in its text layer. */
+    private static final Pattern ISBN_LIKE_SIGNAL = Pattern.compile(
+            "(?i)ISBN|97[89][\\d\\-\\s]{10,}|\\b\\d[\\d\\-\\s]{8,12}\\d[Xx]?\\b"
     );
 
     private ParserUtils() {
@@ -38,6 +44,35 @@ public final class ParserUtils {
             cleaned = cleaned.substring(0, 9) + "X";
         }
         return cleaned;
+    }
+
+    /**
+     * Like {@link #cleanIsbn(String)} but also maps common OCR confusions (O→0, l/I/|→1)
+     * when the plain clean fails checksum validation.
+     */
+    public static String cleanIsbnTolerant(String isbn) {
+        String cleaned = cleanIsbn(isbn);
+        if (cleaned != null && isValidIsbnChecksum(cleaned)) {
+            return cleaned;
+        }
+        if (isbn == null) {
+            return cleaned;
+        }
+        String deconfused = isbn
+                .replace('O', '0')
+                .replace('o', '0')
+                .replace('I', '1')
+                .replace('l', '1')
+                .replace('|', '1');
+        return cleanIsbn(deconfused);
+    }
+
+    /**
+     * True when text already looks like it contains an ISBN token (label or digit run).
+     * Used to decide whether a PDF page still needs OCR for ISBN discovery.
+     */
+    public static boolean hasIsbnLikeSignal(String text) {
+        return text != null && !text.isBlank() && ISBN_LIKE_SIGNAL.matcher(text).find();
     }
 
     /**
@@ -161,7 +196,7 @@ public final class ParserUtils {
             if (raw == null) {
                 continue;
             }
-            String cleaned = cleanIsbn(raw);
+            String cleaned = cleanIsbnTolerant(raw);
             if (!isValidIsbnChecksum(cleaned) || !seen.add(cleaned)) {
                 continue;
             }

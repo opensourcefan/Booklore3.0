@@ -54,7 +54,7 @@
       "stagingBooks": "Staging",
       "stagingBooksFiltered": "Staging (Filtered)",
       "stagingTriage": "Staging triage",
-      "stagingTab": "Staging",
+      "stagingTab": "Staged",
       "completedTab": "Completed",
       "reviewTab": "Review",
       "stagingForReview": "For Review ({{ count }})",

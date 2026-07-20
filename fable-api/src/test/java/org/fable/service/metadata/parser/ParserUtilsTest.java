@@ -61,6 +61,29 @@ class ParserUtilsTest {
     }
 
     @Test
+    void findIsbnCandidates_acceptsSpacedBareIsbn13() {
+        String text = "Published 2019. 978 0 306 40615 7 printed in USA.";
+        List<ParserUtils.IsbnCandidate> candidates = ParserUtils.findIsbnCandidates(text);
+        assertThat(candidates).extracting(ParserUtils.IsbnCandidate::isbn13)
+                .contains("9780306406157");
+    }
+
+    @Test
+    void findIsbnCandidates_toleratesOcrLetterOInDigits() {
+        String text = "ISBN: 978-O-306-40615-7";
+        List<ParserUtils.IsbnCandidate> candidates = ParserUtils.findIsbnCandidates(text);
+        assertThat(candidates).isNotEmpty();
+        assertThat(candidates.getFirst().isbn13()).isEqualTo("9780306406157");
+    }
+
+    @Test
+    void hasIsbnLikeSignal_detectsLabelAndBarePrefix() {
+        assertThat(ParserUtils.hasIsbnLikeSignal("ISBN 123")).isTrue();
+        assertThat(ParserUtils.hasIsbnLikeSignal("code 9780306406157 here")).isTrue();
+        assertThat(ParserUtils.hasIsbnLikeSignal("page 4")).isFalse();
+    }
+
+    @Test
     void findIsbnCandidates_ignoresInvalidChecksums() {
         String text = "ISBN: 978-0-306-40615-8";
         assertThat(ParserUtils.findIsbnCandidates(text)).isEmpty();
