@@ -19,4 +19,10 @@ public class MetadataUpdateContext {
     private boolean mergeMoods;
     private boolean mergeTags;
     private MetadataReplaceMode replaceMode;
+    /**
+     * When true, attempt file write-back even if the update would not otherwise
+     * trigger persistence (used by ISBN fill write-back toggle). Still requires
+     * local storage and format write enabled.
+     */
+    private boolean forceFileWrite;
 }

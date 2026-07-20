@@ -76,6 +76,11 @@
     "metadataScheduledDetail": "The metadata update for the selected books has been successfully scheduled.",
     "metadataAlreadyRunningDetail": "A metadata refresh task is already in progress. Please wait for it to complete before starting another one.",
     "metadataFailed": "Metadata Update Failed",
-    "metadataFailedDetail": "An unexpected error occurred while scheduling the metadata update. Please try again later or contact support if the issue persists."
+    "metadataFailedDetail": "An unexpected error occurred while scheduling the metadata update. Please try again later or contact support if the issue persists.",
+    "isbnDiscoveryScheduled": "ISBN Discovery Scheduled",
+    "isbnDiscoveryScheduledDetail": "ISBN discovery and fill for the selected books has been scheduled.",
+    "isbnDiscoveryAlreadyRunningDetail": "An ISBN discovery task is already in progress. Please wait for it to complete before starting another one.",
+    "isbnDiscoveryFailed": "ISBN Discovery Failed",
+    "isbnDiscoveryFailedDetail": "An unexpected error occurred while scheduling ISBN discovery."
   }
 }

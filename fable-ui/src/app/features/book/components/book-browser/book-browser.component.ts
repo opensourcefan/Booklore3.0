@@ -947,7 +947,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           () => this.restoreTitlesFromFilenamesForSelected(),
           () => this.regenerateCoversForSelected(),
           () => this.generateCustomCoversForSelected(),
-          userState.user
+          userState.user,
+          () => this.isbnDiscoveryFill(),
+          !this.mobileUx.isPhone
         );
 
         this.updateEntityOptions();
@@ -2250,6 +2252,36 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           refreshType: MetadataRefreshType.BOOKS,
           bookIds: Array.from(this.selectedBooks),
         }).subscribe(result => {
+          if (result.success) {
+            this.deselectAllBooks();
+          }
+        });
+      }
+    });
+  }
+
+  isbnDiscoveryFill(): void {
+    if (!this.selectedBooks || this.selectedBooks.size === 0 || this.mobileUx.isPhone) {
+      return;
+    }
+
+    const count = this.selectedBooks.size;
+    this.confirmationService.confirm({
+      message: this.t.translate('book.menuService.confirm.isbnDiscoveryMessage', {count}),
+      header: this.t.translate('book.menuService.confirm.isbnDiscoveryHeader'),
+      icon: 'pi pi-barcode',
+      acceptLabel: this.t.translate('common.confirm'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonProps: {
+        label: this.t.translate('common.confirm'),
+        severity: 'info'
+      },
+      rejectButtonProps: {
+        label: this.t.translate('common.cancel'),
+        severity: 'secondary'
+      },
+      accept: () => {
+        this.taskHelperService.isbnDiscoveryTask(Array.from(this.selectedBooks)).subscribe(result => {
           if (result.success) {
             this.deselectAllBooks();
           }

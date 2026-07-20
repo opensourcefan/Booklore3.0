@@ -82,6 +82,14 @@ public enum TaskType {
         false,
         "Scan Marked AI Search Embeddings",
         "Extracts text and generates embeddings for books that have been marked for AI Search embedding."
+    ),
+    ISBN_DISCOVERY(
+            false,
+            true,
+            false,
+            true,
+            "ISBN Discovery & Fill",
+            "Discovers ISBNs from front matter and fills metadata via multi-pass provider lookup. Auto-applies when ISBN is verified unless ISBN review-before-apply is enabled."
     );
 
     @Getter

@@ -33,7 +33,9 @@ export class BookMenuService {
     restoreTitlesFromFilenames: () => void,
     regenerateCovers: () => void,
     generateCustomCovers: () => void,
-    user: User | null): MenuItem[] {
+    user: User | null,
+    isbnDiscovery?: () => void,
+    showIsbnDiscovery = false): MenuItem[] {
 
     const permissions = user?.permissions;
     const items: MenuItem[] = [];
@@ -44,6 +46,13 @@ export class BookMenuService {
         icon: 'pi pi-bolt',
         command: autoFetchMetadata
       });
+      if (showIsbnDiscovery && isbnDiscovery) {
+        items.push({
+          label: this.t.translate('book.menuService.menu.isbnDiscovery'),
+          icon: 'pi pi-barcode',
+          command: isbnDiscovery
+        });
+      }
     }
 
     if (permissions?.canBulkCustomFetchMetadata) {

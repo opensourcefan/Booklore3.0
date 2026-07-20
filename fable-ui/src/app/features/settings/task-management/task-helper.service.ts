@@ -51,6 +51,40 @@ export class TaskHelperService {
       })
     );
   }
+
+  isbnDiscoveryTask(bookIds: number[]) {
+    const request: TaskCreateRequest = {
+      taskType: TaskType.ISBN_DISCOVERY,
+      triggeredByCron: false,
+      options: {bookIds}
+    };
+    return this.taskService.startTask(request).pipe(
+      map((response): StartedTaskResult => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('settingsTasks.toast.isbnDiscoveryScheduled'),
+          detail: this.t.translate('settingsTasks.toast.isbnDiscoveryScheduledDetail')
+        });
+        return {success: true, taskId: response.taskId ?? null};
+      }),
+      catchError((e) => {
+        if (e.status === 409) {
+          this.messageService.add({
+            severity: 'error',
+            summary: this.t.translate('settingsTasks.toast.alreadyRunning'),
+            detail: this.t.translate('settingsTasks.toast.isbnDiscoveryAlreadyRunningDetail'),
+            life: 5000
+          });
+        } else {
+          this.toastError(
+            this.t.translate('settingsTasks.toast.isbnDiscoveryFailed'),
+            this.t.translate('settingsTasks.toast.isbnDiscoveryFailedDetail'),
+            5000);
+        }
+        return of({success: false, taskId: null});
+      })
+    );
+  }
   private toastError(summary: string, detail: string, life = 3000): void {
     this.messageService.add({severity: 'error', summary, detail, life});
     this.failureNotifications.reportSafe(summary, detail);

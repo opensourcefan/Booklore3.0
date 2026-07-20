@@ -246,6 +246,7 @@
   "menuService": {
     "menu": {
       "autoFetchMetadata": "Auto Fetch Metadata",
+      "isbnDiscovery": "ISBN Discovery & Fill",
       "customFetchMetadata": "Custom Fetch Metadata",
       "bulkMetadataEditor": "Bulk Metadata Editor",
       "multiBookMetadataEditor": "Multi-Book Metadata Editor",
@@ -264,6 +265,8 @@
     "confirm": {
       "autoFetchMetadataMessage": "Are you sure you want to Auto Fetch Metadata for {{ count }} book(s)? This will request external data and could overwrite unlocked fields.",
       "autoFetchMetadataHeader": "Confirm Auto Fetch Metadata",
+      "isbnDiscoveryMessage": "Discover ISBNs from front matter and fill metadata for {{ count }} book(s)? Verified ISBNs auto-apply (unless ISBN review-before-apply is enabled). Ambiguous results go to the review queue.",
+      "isbnDiscoveryHeader": "Confirm ISBN Discovery & Fill",
       "readStatusMessage": "Are you sure you want to mark {{ count }} book(s) as \"{{ label }}\"?",
       "readStatusHeader": "Confirm Read Status Update",
       "ageRatingMessage": "Are you sure you want to set the age rating to \"{{ label }}\" for {{ count }} book(s)?",

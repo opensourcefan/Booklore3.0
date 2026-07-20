@@ -14,6 +14,7 @@ import org.fable.model.enums.MetadataProvider;
 import org.fable.repository.BookdropFileRepository;
 import org.fable.service.appsettings.AppSettingService;
 import org.fable.service.metadata.IsbnDiscoveryService;
+import org.fable.service.metadata.IsbnMetadataFillService;
 import org.fable.service.metadata.MetadataRefreshService;
 import org.fable.service.metadata.extractor.MetadataExtractorFactory;
 import org.fable.util.FileService;
@@ -46,6 +47,7 @@ public class BookdropMetadataService {
     private final MetadataRefreshService metadataRefreshService;
     private final FileService fileService;
     private final IsbnDiscoveryService isbnDiscoveryService;
+    private final IsbnMetadataFillService isbnMetadataFillService;
 
     @Transactional
     public BookdropFileEntity attachInitialMetadata(Long bookdropFileId) throws JacksonException {
@@ -111,8 +113,26 @@ public class BookdropMetadataService {
             }
         }
 
-        Map<MetadataProvider, BookMetadata> metadataMap = metadataRefreshService.fetchMetadataForBook(providers, book);
-        BookMetadata fetchedMetadata = metadataRefreshService.buildFetchMetadata(initial, book.getId(), refreshOptions, metadataMap);
+        BookMetadata fetchedMetadata;
+        boolean multiPass = appSettings.getIsbnFillMode() == null
+                || "MULTI_PASS".equalsIgnoreCase(appSettings.getIsbnFillMode());
+        String isbn = firstNonBlank(initial.getIsbn13(), initial.getIsbn10());
+        if (multiPass && isbn != null && !isbn.isBlank()) {
+            fetchedMetadata = isbnMetadataFillService.mergeByIsbn(isbn, initial);
+            if (fetchedMetadata == null) {
+                Map<MetadataProvider, BookMetadata> metadataMap = metadataRefreshService.fetchMetadataForBook(providers, book);
+                fetchedMetadata = metadataRefreshService.buildFetchMetadata(initial, book.getId(), refreshOptions, metadataMap);
+            }
+        } else {
+            Map<MetadataProvider, BookMetadata> metadataMap = metadataRefreshService.fetchMetadataForBook(providers, book);
+            fetchedMetadata = metadataRefreshService.buildFetchMetadata(initial, book.getId(), refreshOptions, metadataMap);
+        }
+        if (fetchedMetadata == null) {
+            log.info("No online metadata found for bookdrop file '{}'", entity.getFileName());
+            entity.setStatus(PENDING_REVIEW);
+            entity.setUpdatedAt(Instant.now());
+            return bookdropFileRepository.save(entity);
+        }
         if (Boolean.TRUE.equals(initial.getIsbnVerified())) {
             fetchedMetadata.setIsbnVerified(Boolean.TRUE);
             if (fetchedMetadata.getIsbn13() == null || fetchedMetadata.getIsbn13().isBlank()) {
@@ -135,6 +155,16 @@ public class BookdropMetadataService {
         return metadata != null
                 && ((metadata.getIsbn13() != null && !metadata.getIsbn13().isBlank())
                 || (metadata.getIsbn10() != null && !metadata.getIsbn10().isBlank()));
+    }
+
+    private static String firstNonBlank(String a, String b) {
+        if (a != null && !a.isBlank()) {
+            return a;
+        }
+        if (b != null && !b.isBlank()) {
+            return b;
+        }
+        return null;
     }
 
     private boolean hasSearchableMetadata(BookMetadata metadata, BookdropFileEntity entity) {

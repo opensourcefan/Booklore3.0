@@ -60,6 +60,8 @@ class BookdropMetadataServiceTest {
     private MetadataExtractorFactory metadataExtractorFactory;
     @Mock
     private IsbnDiscoveryService isbnDiscoveryService;
+    @Mock
+    private org.fable.service.metadata.IsbnMetadataFillService isbnMetadataFillService;
 
     @InjectMocks
     private BookdropMetadataService bookdropMetadataService;

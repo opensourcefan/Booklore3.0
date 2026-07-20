@@ -337,15 +337,18 @@ Disabled on all security filter chains — by design. All API endpoints are stat
 | Feasibility report | `~/Desktop/2026-07-20-AI_Search_Metadata_Import_Feasibility_Report.html` |
 | Regression / Phone Mode investigation | `~/Desktop/2026-07-20-ISBN_Metadata_Regression_and_Mode_Design.html` |
 
-**Status (v4.16.0+):** Core discovery shipped.
+**Status (v4.16.1+):** Core discovery + multi-pass fill shipped.
 - `ParserUtils` checksum validation + candidate extraction
 - `IsbnDiscoveryService` front-matter scan (PDF/EPUB; CBX OCR soft-fail)
+- `IsbnMetadataFillService` multi-pass merge + scoped auto-apply + write-back gate
+- `IsbnDiscoveryTask` two-phase batch skeleton + proposal review queue
 - Settings keys + Metadata Settings UI section
 - Bookdrop hook when `isbnDiscoveryEnabled` + `isbnDiscoveryOnBookdrop`
+- Tablet/desktop bulk menu: “ISBN Discovery & Fill” (hidden in Phone Mode)
 - `isbn_verified` / `isbn_written_to_file` columns (V163)
 - `clearUnlockedMetadata` (does **not** call `wipeBookMetadata`)
 
-**Still upcoming:** multi-pass provider fill + scoped auto-apply, write-back gate, two-phase batch task, exception review queue UX polish.
+**Still later:** OpenLibrary provider, LLM OCR assist, unify staging UIs, library-scan auto on by default.
 
 **Summary:** Discover ISBN from front-matter text (checksum + verify vs title/author), multi-pass provider fill, auto-apply when verified, minimize reviews. No embeddings. Phone Mode frozen — tablet/desktop chrome only. Never reuse `wipeBookMetadata` for multi-pass; scope auto-apply to ISBN path only.
 

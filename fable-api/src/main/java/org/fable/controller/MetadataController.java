@@ -45,6 +45,7 @@ public class MetadataController {
     private final BookRepository bookRepository;
     private final MetadataManagementService metadataManagementService;
     private final AuditService auditService;
+    private final org.fable.service.metadata.IsbnMetadataFillService isbnMetadataFillService;
 
     @Operation(summary = "Get prospective metadata for a book", description = "Fetch prospective metadata for a book by its ID. Requires metadata edit permission or admin.")
     @ApiResponse(responseCode = "200", description = "Prospective metadata returned successfully")
@@ -174,6 +175,16 @@ public class MetadataController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(metadata);
+    }
+
+    @Operation(summary = "ISBN discovery fill for a book", description = "Discover ISBN from front matter if needed and multi-pass fill metadata. Auto-applies when verified unless ISBN review-before-apply is enabled.")
+    @ApiResponse(responseCode = "200", description = "ISBN fill outcome returned")
+    @PostMapping("/{bookId}/metadata/isbn-fill")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
+    public ResponseEntity<org.fable.service.metadata.IsbnMetadataFillService.IsbnFillOutcome> fillFromIsbn(
+            @Parameter(description = "ID of the book") @PathVariable long bookId) {
+        return ResponseEntity.ok(isbnMetadataFillService.fillBookFromIsbn(bookId));
     }
 
     @Operation(summary = "Get detailed metadata from provider", description = "Fetch full metadata details for a specific item from a provider. Requires metadata edit permission or admin.")

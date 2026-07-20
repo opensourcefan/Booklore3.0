@@ -14,7 +14,8 @@ export enum TaskType {
   BOOKDROP_PERIODIC_SCANNING = 'BOOKDROP_PERIODIC_SCANNING',
   CLEANUP_TEMP_METADATA = 'CLEANUP_TEMP_METADATA',
   REFRESH_METADATA_MANUAL = 'REFRESH_METADATA_MANUAL',
-  FLUSH_METADATA_TO_FILES = 'FLUSH_METADATA_TO_FILES'
+  FLUSH_METADATA_TO_FILES = 'FLUSH_METADATA_TO_FILES',
+  ISBN_DISCOVERY = 'ISBN_DISCOVERY',
 }
 
 export const TASK_TYPE_CONFIG: Record<TaskType, { parallel: boolean; async: boolean; displayOrder: number }> = {
@@ -28,6 +29,7 @@ export const TASK_TYPE_CONFIG: Record<TaskType, { parallel: boolean; async: bool
   [TaskType.REFRESH_METADATA_MANUAL]: {parallel: false, async: true, displayOrder: 8},
   [TaskType.CLEAR_PDF_CACHE]: {parallel: false, async: false, displayOrder: 9},
   [TaskType.FLUSH_METADATA_TO_FILES]: {parallel: false, async: true, displayOrder: 10},
+  [TaskType.ISBN_DISCOVERY]: {parallel: false, async: true, displayOrder: 11},
 };
 
 export enum MetadataReplaceMode {
@@ -42,7 +44,7 @@ export interface LibraryRescanOptions {
 export interface TaskCreateRequest {
   taskType: TaskType;
   triggeredByCron?: boolean;
-  options?: LibraryRescanOptions | MetadataRefreshRequest | null;
+  options?: LibraryRescanOptions | MetadataRefreshRequest | {bookIds: number[]} | null;
 }
 
 export interface TaskCreateResponse {

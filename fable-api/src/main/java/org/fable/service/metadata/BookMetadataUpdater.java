@@ -125,6 +125,13 @@ public class BookMetadataUpdater {
         }
 
         updateBasicFields(newMetadata, metadata, clearFlags, replaceMode);
+        if (Boolean.TRUE.equals(newMetadata.getIsbnVerified())) {
+            metadata.setIsbnVerified(Boolean.TRUE);
+        }
+        if (Boolean.TRUE.equals(newMetadata.getIsbnWrittenToFile()) && !context.isForceFileWrite()) {
+            // Persist intent when caller already marked write-back; actual file write may follow below.
+            metadata.setIsbnWrittenToFile(Boolean.TRUE);
+        }
         updateAuthorsIfNeeded(newMetadata, metadata, clearFlags, mergeCategories, replaceMode);
         updateCategoriesIfNeeded(newMetadata, metadata, clearFlags, mergeCategories, replaceMode);
         updateMoodsIfNeeded(newMetadata, metadata, clearFlags, mergeMoods, replaceMode);
@@ -144,7 +151,8 @@ public class BookMetadataUpdater {
             log.warn("Failed to calculate metadata match score for book ID {}: {}", bookId, e.getMessage());
         }
 
-        if (appProperties.isLocalStorage() && primaryFile != null && bookType != null && ((writeToFile.isAnyFormatEnabled() && hasValueChangesForFileWrite) || thumbnailRequiresUpdate)) {
+        if (appProperties.isLocalStorage() && primaryFile != null && bookType != null
+                && ((writeToFile.isAnyFormatEnabled() && (hasValueChangesForFileWrite || context.isForceFileWrite())) || thumbnailRequiresUpdate)) {
             metadataWriterFactory.getWriter(bookType).ifPresent(writer -> {
                 try {
                     String thumbnailUrl = updateThumbnail ? newMetadata.getThumbnailUrl() : null;
@@ -160,6 +168,10 @@ public class BookMetadataUpdater {
                             : FileFingerprint.generateHash(bookEntity.getFullFilePath());
                     bookEntity.setMetadataForWriteUpdatedAt(Instant.now());
                     primaryFile.setCurrentHash(newHash);
+                    if (Boolean.TRUE.equals(newMetadata.getIsbnWrittenToFile())
+                            || (context.isForceFileWrite() && Boolean.TRUE.equals(newMetadata.getIsbnVerified()))) {
+                        metadata.setIsbnWrittenToFile(Boolean.TRUE);
+                    }
                     bookRepository.save(bookEntity);
                 } catch (Exception e) {
                     log.warn("Failed to write metadata for book ID {}: {}", bookId, e.getMessage());
