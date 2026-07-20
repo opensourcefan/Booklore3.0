@@ -32,8 +32,8 @@ import static org.fable.model.enums.UserPermission.CAN_BULK_AUTO_FETCH_METADATA;
 /**
  * Two-phase ISBN batch skeleton:
  * discover when needed, then multi-pass fill per book via {@link IsbnMetadataFillService}.
- * Verified ISBNs auto-apply unless {@code isbnFetchReviewBeforeApply} is on;
- * otherwise fetchable outcomes are staged as proposals (exception review queue).
+ * Outcomes with reviewable metadata become proposals (same review dialog as metadata refresh).
+ * Hard failures (no ISBN found) are reported in the task message without a fake review queue.
  */
 @Slf4j
 @Component
@@ -78,6 +78,7 @@ public class IsbnDiscoveryTask implements Task {
 
         int completed = 0;
         int reviewCount = 0;
+        int failedCount = 0;
         for (Long bookId : bookIds) {
             if (cancellationManager.isTaskCancelled(taskId)) {
                 job.setStatus(MetadataFetchTaskStatus.CANCELLED);
@@ -106,20 +107,23 @@ public class IsbnDiscoveryTask implements Task {
                             .build();
                     job.getProposals().add(proposal);
                     reviewCount++;
-                } else if (outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.NEEDS_REVIEW) {
-                    reviewCount++;
+                } else if (outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.ERROR
+                        || outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.DISABLED) {
+                    failedCount++;
+                    log.info("ISBN discovery did not fill book {}: {}", bookId, outcome.message());
                 }
                 completed++;
                 job.setCompletedBooks(completed);
-                job.setStatusMessage("Processed book " + bookId + ": " + outcome.status());
+                job.setStatusMessage(buildProgressMessage(bookId, outcome));
                 metadataFetchJobRepository.save(job);
                 sendProgress(taskId, completed, bookIds.size(),
-                        "Processed book " + bookId + ": " + outcome.status(),
+                        job.getStatusMessage(),
                         MetadataFetchTaskStatus.IN_PROGRESS,
                         reviewCount > 0);
             } catch (Exception e) {
                 log.error("ISBN discovery failed for book {}", bookId, e);
                 completed++;
+                failedCount++;
                 sendProgress(taskId, completed, bookIds.size(),
                         "Failed book " + bookId + ": " + e.getMessage(),
                         MetadataFetchTaskStatus.IN_PROGRESS,
@@ -130,16 +134,43 @@ public class IsbnDiscoveryTask implements Task {
         job.setStatus(MetadataFetchTaskStatus.COMPLETED);
         job.setCompletedAt(Instant.now());
         job.setCompletedBooks(completed);
-        job.setStatusMessage("ISBN discovery completed. Review queue items: " + reviewCount);
+        String finalMessage = buildFinalMessage(reviewCount, failedCount, completed);
+        job.setStatusMessage(finalMessage);
         metadataFetchJobRepository.save(job);
-        sendProgress(taskId, completed, bookIds.size(), job.getStatusMessage(),
-                MetadataFetchTaskStatus.COMPLETED, reviewCount > 0);
+
+        // Mirror MetadataTaskService.getActiveTasks semantics so the Review button stays visible:
+        // completed = accepted count (0), total = pending FETCHED proposals.
+        if (reviewCount > 0) {
+            sendProgress(taskId, 0, reviewCount, finalMessage, MetadataFetchTaskStatus.COMPLETED, true);
+        } else {
+            sendProgress(taskId, completed, bookIds.size(), finalMessage, MetadataFetchTaskStatus.COMPLETED, false);
+        }
 
         return TaskCreateResponse.builder()
                 .taskType(TaskType.ISBN_DISCOVERY)
                 .taskId(taskId)
                 .status(TaskStatus.COMPLETED)
                 .build();
+    }
+
+    private static String buildProgressMessage(Long bookId, IsbnMetadataFillService.IsbnFillOutcome outcome) {
+        return "Book " + bookId + ": " + outcome.status()
+                + (outcome.message() != null ? " — " + outcome.message() : "");
+    }
+
+    private static String buildFinalMessage(int reviewCount, int failedCount, int completed) {
+        if (reviewCount > 0) {
+            return String.format(
+                    "ISBN discovery completed. %d book(s) need review%s.",
+                    reviewCount,
+                    failedCount > 0 ? ", " + failedCount + " failed" : "");
+        }
+        if (failedCount > 0) {
+            return String.format(
+                    "ISBN discovery completed with %d failure(s) of %d. No reviewable proposals were created (often: no ISBN in front matter).",
+                    failedCount, completed);
+        }
+        return "ISBN discovery completed. Metadata applied automatically.";
     }
 
     private void sendProgress(String taskId, int completed, int total, String message,

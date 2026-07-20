@@ -16,9 +16,10 @@ import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookMetadataEntity;
 import org.fable.model.enums.MetadataProvider;
 import org.fable.model.enums.MetadataReplaceMode;
+import org.fable.model.websocket.Topic;
 import org.fable.repository.BookRepository;
 import org.fable.service.appsettings.AppSettingService;
-import org.fable.service.event.aop.BroadcastBookUpdate;
+import org.fable.service.NotificationService;
 import org.fable.service.metadata.parser.BookParser;
 import org.fable.service.metadata.parser.ParserUtils;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class IsbnMetadataFillService {
     private final BookMetadataService bookMetadataService;
     private final BookMetadataUpdater bookMetadataUpdater;
     private final IsbnDiscoveryService isbnDiscoveryService;
+    private final NotificationService notificationService;
     private final Map<MetadataProvider, BookParser> parserMap;
 
     /**
@@ -111,9 +113,9 @@ public class IsbnMetadataFillService {
     /**
      * Discover ISBN if needed, multi-pass fetch, clear-unlocked when MULTI_PASS,
      * then auto-apply or return metadata for review based on ISBN-scoped setting.
+     * Ambiguous discoveries that still have a best candidate are fetched and always staged.
      */
     @Transactional
-    @BroadcastBookUpdate
     public IsbnFillOutcome fillBookFromIsbn(long bookId) {
         AppSettings settings = appSettingService.getAppSettings();
         if (!settings.isIsbnDiscoveryEnabled()) {
@@ -135,28 +137,47 @@ public class IsbnMetadataFillService {
                 existing != null ? existing.getIsbn10() : null);
 
         boolean discovered = false;
+        boolean forceReview = false;
         IsbnDiscoveryResult discovery = null;
         if (isbn == null || !ParserUtils.isValidIsbnChecksum(isbn)) {
             Path path = book.getFullFilePath();
             if (path == null) {
-                return IsbnFillOutcome.needsReview(bookId, null, "No ISBN and no resolvable file path");
+                return IsbnFillOutcome.error(bookId, "No ISBN on file and no resolvable file path for discovery");
             }
             discovery = isbnDiscoveryService.discoverFromFile(path.toFile(), existing);
-            if (!discovery.hasResolvedIsbn()) {
-                return IsbnFillOutcome.needsReview(bookId, discovery, discovery.getMessage());
+            if (discovery.hasResolvedIsbn()) {
+                isbn = firstNonBlank(discovery.getIsbn13(), discovery.getIsbn10());
+                discovered = true;
+            } else if (discovery.getStatus() == IsbnDiscoveryResult.Status.AMBIGUOUS
+                    && firstNonBlank(discovery.getIsbn13(), discovery.getIsbn10()) != null) {
+                // Best candidate present but not verified — fetch and always require human review.
+                isbn = firstNonBlank(discovery.getIsbn13(), discovery.getIsbn10());
+                discovered = true;
+                forceReview = true;
+            } else {
+                return IsbnFillOutcome.error(bookId,
+                        discovery.getMessage() != null ? discovery.getMessage() : "No checksum-valid ISBN found");
             }
-            isbn = firstNonBlank(discovery.getIsbn13(), discovery.getIsbn10());
-            discovered = true;
         }
 
         BookMetadata merged = mergeByIsbn(isbn, existing);
         if (merged == null) {
-            return IsbnFillOutcome.needsReview(bookId, discovery, "Provider fetch returned no metadata for ISBN " + isbn);
+            BookMetadata stub = existing != null ? existing.toBuilder().build() : BookMetadata.builder().build();
+            stub.setIsbn13(ParserUtils.toIsbn13(isbn));
+            stub.setIsbn10(ParserUtils.toIsbn10(isbn));
+            stub.setIsbnVerified(Boolean.FALSE);
+            return IsbnFillOutcome.needsReview(bookId, discovery,
+                            "Providers returned no metadata for ISBN " + isbn)
+                    .withMetadata(stub);
         }
 
-        boolean requireReview = settings.isIsbnFetchReviewBeforeApply();
+        boolean requireReview = forceReview || settings.isIsbnFetchReviewBeforeApply();
         if (requireReview) {
-            return IsbnFillOutcome.needsReview(bookId, discovery, "ISBN fetch staged for review")
+            if (forceReview) {
+                merged.setIsbnVerified(Boolean.FALSE);
+            }
+            return IsbnFillOutcome.needsReview(bookId, discovery,
+                            forceReview ? "Ambiguous ISBN staged for review" : "ISBN fetch staged for review")
                     .withMetadata(merged);
         }
 
@@ -191,6 +212,7 @@ public class IsbnMetadataFillService {
         bookMetadataUpdater.setBookMetadata(context);
 
         Book updated = bookMapper.toBookWithDescription(book, true);
+        notificationService.sendMessage(Topic.BOOK_METADATA_UPDATE, updated);
         return IsbnFillOutcome.applied(bookId, updated.getMetadata(), discovered);
     }
 
