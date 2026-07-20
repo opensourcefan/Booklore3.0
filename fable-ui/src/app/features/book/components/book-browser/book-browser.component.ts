@@ -96,6 +96,7 @@ import {
   GridViewportContext,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
+import {filterBooksByStagingTriage} from './staging-triage.filter';
 import { ProgressBar } from 'primeng/progressbar';
 import { AiSearchDialogService } from '../ai-search-dialog/ai-search-dialog.component';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
@@ -1692,7 +1693,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const pagedEntity = this.getPagedPilotEntity();
 
     if (pagedEntity) {
-      if (pagedEntity === 'ALL_BOOKS' || pagedEntity === 'NOT_SHELFED' || pagedEntity === 'STAGING') {
+      // Staging triage tabs (Staging/Completed/Review) require the full staged set.
+      // Paged mode only loads staged pages and skipped the client ID filter, so tabs
+      // appeared active while the grid still showed every staged book.
+      if (pagedEntity === 'STAGING') {
+        this.pagedGridPilotService.resetActiveQuery();
+        this.bookState$ = this.entityService.fetchStagedBooks(primarySort).pipe(
+          map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
+          switchMap(bookState => this.applyBookFilters(bookState)),
+        );
+      } else if (pagedEntity === 'ALL_BOOKS' || pagedEntity === 'NOT_SHELFED') {
         this.bookState$ = this.pagedGridPilotService.connect({
           entity: pagedEntity,
           entityId: null,
@@ -1705,9 +1715,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           searchTerm: this.searchTerm$.getValue(),
         }, () => (pagedEntity === 'NOT_SHELFED'
           ? this.entityService.fetchNotShelfedBooks(primarySort)
-          : pagedEntity === 'STAGING'
-            ? this.entityService.fetchStagedBooks(primarySort)
-            : this.entityService.fetchAllBooks(primarySort)
+          : this.entityService.fetchAllBooks(primarySort)
         ).pipe(
           map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
           switchMap(bookState => this.applyBookFilters(bookState))
@@ -2783,26 +2791,29 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       forceExpandSeries,
       primarySort
     ).pipe(
-      map(filtered => {
-        if (this.entityType !== EntityType.STAGING) {
-          return filtered;
-        }
-        const allowedIds = this.stagingTriageMode === 'review'
-          ? this.pendingReviewBookIds
-          : this.stagingTriageMode === 'completed'
-            ? this.stagingCompletedBookIds
-            : this.stagingInboxBookIds;
-        // Until triage loads, keep the full staged set visible for the default Staging tab.
-        if (this.stagingTriageMode === 'staging'
-          && this.stagingInboxBookIds.size === 0
-          && this.stagingCompletedBookIds.size === 0
-          && this.pendingReviewBookIds.size === 0) {
-          return filtered;
-        }
-        const books = (filtered.books || []).filter(book => allowedIds.has(book.id));
-        return {...filtered, books};
-      })
+      map(filtered => this.applyStagingTriageToState(filtered))
     );
+  }
+
+  /**
+   * Exclusive Staging triage filter. Safe no-op outside Staging.
+   * Staging browse uses legacy full-state so these IDs can filter the whole inbox.
+   */
+  private applyStagingTriageToState(bookState: BookState): BookState {
+    if (this.entityType !== EntityType.STAGING) {
+      return bookState;
+    }
+
+    return {
+      ...bookState,
+      books: filterBooksByStagingTriage(
+        bookState.books,
+        this.stagingTriageMode,
+        this.stagingInboxBookIds,
+        this.stagingCompletedBookIds,
+        this.pendingReviewBookIds,
+      ),
+    };
   }
 
   private syncActiveDirectoryFilter(): void {
