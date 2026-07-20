@@ -31,6 +31,7 @@ public class TaskCreateRequest {
             @JsonSubTypes.Type(value = DirectoryTagTaskOptions.class, name = "DIRECTORY_TAGGING"),
             @JsonSubTypes.Type(value = MetadataRefreshRequest.class, name = "REFRESH_METADATA_MANUAL"),
             @JsonSubTypes.Type(value = MetadataFlushOptions.class, name = "FLUSH_METADATA_TO_FILES"),
+            @JsonSubTypes.Type(value = IsbnDiscoveryRequest.class, name = "ISBN_DISCOVERY"),
     })
     private Object options;
 
