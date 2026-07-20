@@ -179,6 +179,16 @@
       border-color: #f59e0b;
       color: #b45309;
     }
+
+    &:disabled {
+      border-color: var(--p-content-border-color);
+      color: color-mix(in srgb, var(--text-color, #888) 45%, transparent);
+
+      .staging-triage-badge {
+        background: color-mix(in srgb, var(--text-color, #888) 35%, transparent);
+        color: color-mix(in srgb, var(--text-color, #fff) 55%, transparent);
+      }
+    }
   }
 
   &--completed,
@@ -199,6 +209,16 @@
       background: color-mix(in srgb, #22c55e 22%, transparent);
       border-color: #22c55e;
       color: #15803d;
+    }
+  }
+
+  &--completed:disabled {
+    border-color: var(--p-content-border-color);
+    color: color-mix(in srgb, var(--text-color, #888) 45%, transparent);
+
+    .staging-triage-badge {
+      background: color-mix(in srgb, var(--text-color, #888) 35%, transparent);
+      color: color-mix(in srgb, var(--text-color, #fff) 55%, transparent);
     }
   }
 

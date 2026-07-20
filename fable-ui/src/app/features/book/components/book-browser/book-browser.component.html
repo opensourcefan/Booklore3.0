@@ -68,6 +68,7 @@
                       class="staging-triage-tab staging-triage-tab--review"
                       [class.staging-triage-tab--active]="stagingTriageMode === 'review'"
                       [attr.aria-selected]="stagingTriageMode === 'review'"
+                      [disabled]="pendingReviewCount === 0"
                       (click)="setStagingTriageMode('review')">
                       <span class="staging-triage-label">{{ t('labels.reviewTab') }}</span>
                       <span class="staging-triage-badge">{{ pendingReviewCount }}</span>
@@ -79,6 +80,7 @@
                       class="staging-triage-tab staging-triage-tab--completed"
                       [class.staging-triage-tab--active]="stagingTriageMode === 'completed'"
                       [attr.aria-selected]="stagingTriageMode === 'completed'"
+                      [disabled]="stagingCompletedCount === 0"
                       (click)="setStagingTriageMode('completed')">
                       <span class="staging-triage-label">{{ t('labels.completedTab') }}</span>
                       <span class="staging-triage-badge">{{ stagingCompletedCount }}</span>

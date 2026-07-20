@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
-import {KeyValuePipe} from '@angular/common';
+import {KeyValuePipe, NgClass} from '@angular/common';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {ButtonModule} from 'primeng/button';
 import {Divider} from 'primeng/divider';
@@ -9,7 +9,11 @@ import {Tooltip} from 'primeng/tooltip';
 import {MessageService} from 'primeng/api';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
-import {MetadataBatchProgressNotification, MetadataBatchStatus} from '../../model/metadata-batch-progress.model';
+import {
+  MetadataBatchPhase,
+  MetadataBatchProgressNotification,
+  MetadataBatchStatus
+} from '../../model/metadata-batch-progress.model';
 import {MetadataProgressService} from '../../service/metadata-progress.service';
 import {MetadataTaskService} from '../../../features/book/service/metadata-task';
 import {Tag} from 'primeng/tag';
@@ -22,10 +26,15 @@ import {FailureNotificationService} from '../../service/failure-notification.ser
   templateUrl: './metadata-progress-widget-component.html',
   styleUrls: ['./metadata-progress-widget-component.scss'],
   standalone: true,
-  imports: [KeyValuePipe, ProgressBarModule, ButtonModule, Divider, Tooltip, Tag, TranslocoDirective]
+  imports: [KeyValuePipe, NgClass, ProgressBarModule, ButtonModule, Divider, Tooltip, Tag, TranslocoDirective]
 })
 export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   activeTasks: Record<string, MetadataBatchProgressNotification> = {};
+
+  /** Phase used for title/colors; ISBN_FAILED can lag behind the raw task for a brief flash. */
+  displayPhases: Record<string, string | null | undefined> = {};
+
+  private static readonly ISBN_FAILED_FLASH_MS = 2500;
 
   private destroy$ = new Subject<void>();
   private dialogLauncherService = inject(DialogLauncherService);
@@ -35,12 +44,15 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private notificationEventService = inject(NotificationEventService);
+  private readonly isbnFailedTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly isbnFailedLockedUntil = new Map<string, number>();
 
   ngOnInit(): void {
     this.metadataProgressService.activeTasks$
       .pipe(takeUntil(this.destroy$))
       .subscribe(tasks => {
         this.activeTasks = tasks;
+        this.syncDisplayPhases(tasks);
       });
   }
 
@@ -53,6 +65,7 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   clearTask(taskId: string): void {
     this.metadataTaskService.deleteTask(taskId).subscribe({
       next: () => {
+        this.clearPhaseState(taskId);
         this.metadataProgressService.clearTask(taskId);
         this.notificationEventService.clearNotification();
       },
@@ -116,6 +129,11 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    for (const timer of this.isbnFailedTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.isbnFailedTimers.clear();
+    this.isbnFailedLockedUntil.clear();
   }
 
   getTagSeverity(status: 'IN_PROGRESS' | 'COMPLETED' | 'ERROR' | 'CANCELLED'): 'info' | 'success' | 'danger' | 'warn' {
@@ -144,6 +162,41 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
     return key ? this.t.translate(key) : status;
   }
 
+  getTaskTitle(taskId: string, task: MetadataBatchProgressNotification): string {
+    const phase = this.getDisplayPhase(taskId, task);
+    switch (phase) {
+      case MetadataBatchPhase.ISBN_DISCOVERY:
+        return this.t.translate('shared.metadataProgress.taskTitleIsbnDiscovery');
+      case MetadataBatchPhase.METADATA_FETCH:
+        return this.t.translate('shared.metadataProgress.taskTitleMetadataFetch');
+      case MetadataBatchPhase.ISBN_FAILED:
+        return this.t.translate('shared.metadataProgress.taskTitleIsbnFailed');
+      default:
+        return this.t.translate('shared.metadataProgress.taskTitle');
+    }
+  }
+
+  getPhaseToneClass(taskId: string, task: MetadataBatchProgressNotification): Record<string, boolean> {
+    const phase = this.getDisplayPhase(taskId, task);
+    return {
+      'task-card--phase-isbn': phase === MetadataBatchPhase.ISBN_DISCOVERY,
+      'task-card--phase-metadata': phase === MetadataBatchPhase.METADATA_FETCH,
+      'task-card--phase-isbn-failed': phase === MetadataBatchPhase.ISBN_FAILED,
+    };
+  }
+
+  /**
+   * Package-visible for unit tests: resolves the phase used for styling/title,
+   * honoring the ISBN_FAILED flash lock.
+   */
+  getDisplayPhase(taskId: string, task: MetadataBatchProgressNotification): string | null | undefined {
+    const lockedUntil = this.isbnFailedLockedUntil.get(taskId);
+    if (lockedUntil != null && Date.now() < lockedUntil) {
+      return MetadataBatchPhase.ISBN_FAILED;
+    }
+    return this.displayPhases[taskId] ?? task.phase ?? null;
+  }
+
   isCancellationRequested(task: MetadataBatchProgressNotification): boolean {
     return task.status === MetadataBatchStatus.IN_PROGRESS && !!task.cancellationRequested;
   }
@@ -165,6 +218,72 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   }
 
   protected readonly Object = Object;
+
+  private syncDisplayPhases(tasks: Record<string, MetadataBatchProgressNotification>): void {
+    const next: Record<string, string | null | undefined> = {};
+    for (const [taskId, task] of Object.entries(tasks)) {
+      const incomingPhase = task.phase ?? null;
+      const lockedUntil = this.isbnFailedLockedUntil.get(taskId);
+
+      if (incomingPhase === MetadataBatchPhase.ISBN_FAILED) {
+        this.lockIsbnFailedFlash(taskId);
+        next[taskId] = MetadataBatchPhase.ISBN_FAILED;
+        continue;
+      }
+
+      if (lockedUntil != null && Date.now() < lockedUntil) {
+        next[taskId] = MetadataBatchPhase.ISBN_FAILED;
+        continue;
+      }
+
+      this.clearIsbnFailedLock(taskId);
+      next[taskId] = incomingPhase;
+    }
+
+    for (const taskId of [...this.isbnFailedTimers.keys()]) {
+      if (!(taskId in tasks)) {
+        this.clearPhaseState(taskId);
+      }
+    }
+
+    this.displayPhases = next;
+  }
+
+  private lockIsbnFailedFlash(taskId: string): void {
+    const until = Date.now() + MetadataProgressWidgetComponent.ISBN_FAILED_FLASH_MS;
+    this.isbnFailedLockedUntil.set(taskId, until);
+    const existing = this.isbnFailedTimers.get(taskId);
+    if (existing) {
+      clearTimeout(existing);
+    }
+    this.isbnFailedTimers.set(taskId, setTimeout(() => {
+      this.isbnFailedTimers.delete(taskId);
+      this.isbnFailedLockedUntil.delete(taskId);
+      const task = this.activeTasks[taskId];
+      if (!task) {
+        delete this.displayPhases[taskId];
+        return;
+      }
+      this.displayPhases = {
+        ...this.displayPhases,
+        [taskId]: task.phase ?? null,
+      };
+    }, MetadataProgressWidgetComponent.ISBN_FAILED_FLASH_MS));
+  }
+
+  private clearIsbnFailedLock(taskId: string): void {
+    const timer = this.isbnFailedTimers.get(taskId);
+    if (timer) {
+      clearTimeout(timer);
+      this.isbnFailedTimers.delete(taskId);
+    }
+    this.isbnFailedLockedUntil.delete(taskId);
+  }
+
+  private clearPhaseState(taskId: string): void {
+    this.clearIsbnFailedLock(taskId);
+    delete this.displayPhases[taskId];
+  }
 
   private toastError(summary: string, detail: string, life?: number): void {
     this.failureNotifications.reportSafe(summary, detail);

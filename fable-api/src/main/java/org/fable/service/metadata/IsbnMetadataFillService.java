@@ -8,12 +8,14 @@ import org.fable.model.MetadataUpdateContext;
 import org.fable.model.MetadataUpdateWrapper;
 import org.fable.model.dto.Book;
 import org.fable.model.dto.BookMetadata;
+import org.fable.model.dto.MetadataBatchProgressNotification;
 import org.fable.model.dto.metadata.IsbnDiscoveryResult;
 import org.fable.model.dto.request.FetchMetadataRequest;
 import org.fable.model.dto.request.MetadataRefreshOptions;
 import org.fable.model.dto.settings.AppSettings;
 import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookMetadataEntity;
+import org.fable.model.enums.MetadataFetchTaskStatus;
 import org.fable.model.enums.MetadataProvider;
 import org.fable.model.enums.MetadataReplaceMode;
 import org.fable.model.websocket.Topic;
@@ -143,8 +145,12 @@ public class IsbnMetadataFillService {
         if (isbn == null || !ParserUtils.isValidIsbnChecksum(isbn)) {
             Path path = book.getFullFilePath();
             if (path == null) {
-                return IsbnFillOutcome.error(bookId, "No ISBN on file and no resolvable file path for discovery");
+                String failMessage = "No ISBN on file and no resolvable file path for discovery";
+                emitPhaseProgress(MetadataBatchProgressNotification.PHASE_ISBN_FAILED, failMessage);
+                return IsbnFillOutcome.error(bookId, failMessage);
             }
+            emitPhaseProgress(MetadataBatchProgressNotification.PHASE_ISBN_DISCOVERY,
+                    "ISBN fetch — book " + bookProgressLabel() + "…");
             discovery = isbnDiscoveryService.discoverFromFile(path.toFile(), existing);
             if (discovery.hasResolvedIsbn()) {
                 isbn = firstNonBlank(discovery.getIsbn13(), discovery.getIsbn10());
@@ -156,11 +162,16 @@ public class IsbnMetadataFillService {
                 discovered = true;
                 forceReview = true;
             } else {
-                return IsbnFillOutcome.error(bookId,
-                        discovery.getMessage() != null ? discovery.getMessage() : "No checksum-valid ISBN found");
+                String failMessage = discovery.getMessage() != null
+                        ? discovery.getMessage()
+                        : "No checksum-valid ISBN found";
+                emitPhaseProgress(MetadataBatchProgressNotification.PHASE_ISBN_FAILED, failMessage);
+                return IsbnFillOutcome.error(bookId, failMessage);
             }
         }
 
+        emitPhaseProgress(MetadataBatchProgressNotification.PHASE_METADATA_FETCH,
+                "Metadata fetch — book " + bookProgressLabel() + "…");
         BookMetadata merged = mergeByIsbn(isbn, existing);
         if (merged == null) {
             // Verified ISBN with no provider hits: still clear unlocked fields and apply the ISBN.
@@ -344,6 +355,39 @@ public class IsbnMetadataFillService {
             }
         }
         return null;
+    }
+
+    private String bookProgressLabel() {
+        MetadataTaskContext.TaskContext ctx = MetadataTaskContext.get();
+        if (ctx == null || ctx.total() <= 0) {
+            return "?";
+        }
+        return (ctx.completed() + 1) + " of " + ctx.total();
+    }
+
+    /**
+     * Emits a mid-book phase update for the Tasks progress widget when running under
+     * {@link IsbnDiscoveryTask} (MetadataTaskContext set). No-op outside a task.
+     */
+    void emitPhaseProgress(String phase, String message) {
+        MetadataTaskContext.TaskContext ctx = MetadataTaskContext.get();
+        if (ctx == null || phase == null || phase.isBlank()) {
+            return;
+        }
+        notificationService.sendMessage(
+                Topic.BOOK_METADATA_BATCH_PROGRESS,
+                new MetadataBatchProgressNotification(
+                        ctx.taskId(),
+                        ctx.completed(),
+                        ctx.total(),
+                        message,
+                        MetadataFetchTaskStatus.IN_PROGRESS.name(),
+                        ctx.review(),
+                        false,
+                        null,
+                        phase
+                )
+        );
     }
 
     public record IsbnFillOutcome(

@@ -2,11 +2,11 @@
 <div class="task-border">
   @if (Object.keys(activeTasks).length > 0) {
     @for (task of activeTasks | keyvalue; track task; let idx = $index) {
-      <div class="task-card">
+      <div class="task-card" [ngClass]="getPhaseToneClass(task.key, task.value)">
 
         <div class="task-header-row">
           <div class="task-title-group">
-            <p class="task-title">{{ t('taskTitle') }}</p>
+            <p class="task-title">{{ getTaskTitle(task.key, task.value) }}</p>
           </div>
           <div class="task-tags">
             @if (hasReviewItems(task.value)) {

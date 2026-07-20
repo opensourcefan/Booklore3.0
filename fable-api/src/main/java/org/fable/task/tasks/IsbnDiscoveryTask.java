@@ -85,7 +85,8 @@ public class IsbnDiscoveryTask implements Task {
                         ? "Starting ISBN discovery…"
                         : "Starting ISBN discovery for " + total + " book(s)…",
                 MetadataFetchTaskStatus.IN_PROGRESS,
-                false);
+                false,
+                MetadataBatchProgressNotification.PHASE_ISBN_DISCOVERY);
 
         int completed = 0;
         int reviewCount = 0;
@@ -96,7 +97,7 @@ public class IsbnDiscoveryTask implements Task {
                 job.setCompletedAt(Instant.now());
                 job.setStatusMessage("Task cancelled by user");
                 metadataFetchJobRepository.save(job);
-                sendProgress(taskId, completed, total, "Cancelled", MetadataFetchTaskStatus.CANCELLED, reviewCount > 0);
+                sendProgress(taskId, completed, total, "Cancelled", MetadataFetchTaskStatus.CANCELLED, reviewCount > 0, null);
                 cancellationManager.clearCancellation(taskId);
                 return TaskCreateResponse.builder()
                         .taskType(TaskType.ISBN_DISCOVERY)
@@ -109,7 +110,6 @@ public class IsbnDiscoveryTask implements Task {
                     + (completed + 1) + " of " + total + "…";
             job.setStatusMessage(inProgressMessage);
             metadataFetchJobRepository.save(job);
-            sendProgress(taskId, completed, total, inProgressMessage, MetadataFetchTaskStatus.IN_PROGRESS, reviewCount > 0);
 
             MetadataTaskContext.set(taskId, completed, total, reviewCount > 0);
             try {
@@ -135,10 +135,15 @@ public class IsbnDiscoveryTask implements Task {
                 job.setCompletedBooks(completed);
                 job.setStatusMessage(buildProgressMessage(bookId, outcome));
                 metadataFetchJobRepository.save(job);
+                String postPhase = outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.ERROR
+                        || outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.DISABLED
+                        ? MetadataBatchProgressNotification.PHASE_ISBN_FAILED
+                        : MetadataBatchProgressNotification.PHASE_METADATA_FETCH;
                 sendProgress(taskId, completed, total,
                         job.getStatusMessage(),
                         MetadataFetchTaskStatus.IN_PROGRESS,
-                        reviewCount > 0);
+                        reviewCount > 0,
+                        postPhase);
             } catch (Exception e) {
                 log.error("ISBN discovery failed for book {}", bookId, e);
                 completed++;
@@ -148,7 +153,8 @@ public class IsbnDiscoveryTask implements Task {
                 sendProgress(taskId, completed, total,
                         "Failed book " + bookId + ": " + e.getMessage(),
                         MetadataFetchTaskStatus.IN_PROGRESS,
-                        reviewCount > 0);
+                        reviewCount > 0,
+                        MetadataBatchProgressNotification.PHASE_ISBN_FAILED);
             } finally {
                 MetadataTaskContext.clear();
             }
@@ -164,9 +170,9 @@ public class IsbnDiscoveryTask implements Task {
         // Mirror MetadataTaskService.getActiveTasks semantics so the Review button stays visible:
         // completed = accepted count (0), total = pending FETCHED proposals.
         if (reviewCount > 0) {
-            sendProgress(taskId, 0, reviewCount, finalMessage, MetadataFetchTaskStatus.COMPLETED, true);
+            sendProgress(taskId, 0, reviewCount, finalMessage, MetadataFetchTaskStatus.COMPLETED, true, null);
         } else {
-            sendProgress(taskId, completed, total, finalMessage, MetadataFetchTaskStatus.COMPLETED, false);
+            sendProgress(taskId, completed, total, finalMessage, MetadataFetchTaskStatus.COMPLETED, false, null);
         }
 
         return TaskCreateResponse.builder()
@@ -205,10 +211,11 @@ public class IsbnDiscoveryTask implements Task {
     }
 
     private void sendProgress(String taskId, int completed, int total, String message,
-                              MetadataFetchTaskStatus status, boolean review) {
+                              MetadataFetchTaskStatus status, boolean review, String phase) {
         notificationService.sendMessage(
                 Topic.BOOK_METADATA_BATCH_PROGRESS,
-                new MetadataBatchProgressNotification(taskId, completed, total, message, status.name(), review));
+                new MetadataBatchProgressNotification(
+                        taskId, completed, total, message, status.name(), review, false, null, phase));
     }
 
     @Override

@@ -12,6 +12,13 @@ export const MetadataBatchStatusLabels: Record<MetadataBatchStatus, string> = {
   [MetadataBatchStatus.CANCELLED]: 'Cancelled',
 };
 
+/** Optional ISBN Discovery two-stage progress phases. */
+export enum MetadataBatchPhase {
+  ISBN_DISCOVERY = 'ISBN_DISCOVERY',
+  METADATA_FETCH = 'METADATA_FETCH',
+  ISBN_FAILED = 'ISBN_FAILED',
+}
+
 export interface MetadataBatchProgressNotification {
   taskId: string;
   completed: number;
@@ -22,4 +29,6 @@ export interface MetadataBatchProgressNotification {
   resumable?: boolean;
   pendingCount?: number | null;
   cancellationRequested?: boolean;
+  /** Present for ISBN Discovery tasks; omit for normal metadata refresh. */
+  phase?: MetadataBatchPhase | string | null;
 }

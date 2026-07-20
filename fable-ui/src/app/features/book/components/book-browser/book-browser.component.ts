@@ -1046,6 +1046,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           if (this.stagingTriageMode === 'review' && this.pendingReviewCount === 0) {
             this.stagingTriageMode = 'staging';
           }
+          if (this.stagingTriageMode === 'completed' && this.stagingCompletedCount === 0) {
+            this.stagingTriageMode = 'staging';
+          }
 
           const signature = [
             this.stagingTriageMode,
@@ -1071,6 +1074,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setStagingTriageMode(mode: StagingTriageMode): void {
     if (this.entityType !== EntityType.STAGING) {
+      return;
+    }
+    if (mode === 'review' && this.pendingReviewCount === 0) {
+      return;
+    }
+    if (mode === 'completed' && this.stagingCompletedCount === 0) {
       return;
     }
     if (mode === 'review' && this.stagingTriageMode === 'review' && this.pendingReviewPrimaryTaskId) {

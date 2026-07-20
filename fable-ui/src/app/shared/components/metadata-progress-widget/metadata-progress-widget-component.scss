@@ -11,6 +11,36 @@
   @media (max-width: 768px) {
     padding: 0.65rem 0.75rem;
   }
+
+  &--phase-isbn {
+    .task-title {
+      color: #a855f7;
+    }
+  }
+
+  &--phase-metadata {
+    .task-title {
+      color: #22c55e;
+    }
+  }
+
+  &--phase-isbn-failed {
+    .task-title {
+      color: #ef4444;
+    }
+  }
+}
+
+.task-border:has(.task-card--phase-isbn) {
+  border-color: #a855f7;
+}
+
+.task-border:has(.task-card--phase-metadata) {
+  border-color: #22c55e;
+}
+
+.task-border:has(.task-card--phase-isbn-failed) {
+  border-color: #ef4444;
 }
 
 .task-header-row {
