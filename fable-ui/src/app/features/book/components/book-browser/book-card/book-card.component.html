@@ -82,6 +82,7 @@
       <p-checkbox
         [binary]="true"
         class="select-checkbox"
+        (mousedown)="captureMouseEvent($event)"
         (click)="captureMouseEvent($event)"
         [ngModel]="isSelected"
         (onChange)="toggleSelection($event)">

@@ -1477,7 +1477,20 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onCardClick(event: MouseEvent | KeyboardEvent): void {
-    if (this.isTouchRangeSelectEnabled && this.bookSelectionService.hasSelection()) {
+    if (!this.isCheckboxEnabled) {
+      return;
+    }
+
+    const hasMods = !!(event.shiftKey || event.ctrlKey || event.metaKey);
+    // Touch tap-to-add while a selection is active (phone geometry + touch-digitizer
+    // tablet/desktop). Pure mouse desktop must not steal Shift/Ctrl multi-select.
+    const touchTapSelect =
+      this.isTouchRangeSelectEnabled
+      && this.bookSelectionService.hasSelection()
+      && (this.isMobileInteractionMode || this.isTouchDigitizerChrome)
+      && !hasMods;
+
+    if (touchTapSelect) {
       event.preventDefault();
       event.stopPropagation();
       this.checkboxClick.emit({
@@ -1489,11 +1502,24 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
-    if (!event.ctrlKey) {
+    if (event.shiftKey && this.bookSelectionService.hasSelection()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.lastMouseEvent = event instanceof MouseEvent
+        ? event
+        : {shiftKey: true} as MouseEvent;
+      this.toggleCardSelection(!this.isSelected);
       return;
     }
 
-    this.toggleCardSelection(!this.isSelected)
+    if (!event.ctrlKey && !event.metaKey) {
+      return;
+    }
+
+    if (event instanceof MouseEvent) {
+      this.lastMouseEvent = event;
+    }
+    this.toggleCardSelection(!this.isSelected);
   }
 
   toggleCardSelection(selected: boolean): void {
@@ -1519,7 +1545,15 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onTitleAreaActivate(event: Event): void {
-    if (this.isTouchRangeSelectEnabled && this.bookSelectionService.hasSelection()) {
+    const mouseEvent = event instanceof MouseEvent ? event : null;
+    const hasMods = !!(mouseEvent && (mouseEvent.shiftKey || mouseEvent.ctrlKey || mouseEvent.metaKey));
+    const touchTapSelect =
+      this.isTouchRangeSelectEnabled
+      && this.bookSelectionService.hasSelection()
+      && (this.isMobileInteractionMode || this.isTouchDigitizerChrome)
+      && !hasMods;
+
+    if (touchTapSelect) {
       event.preventDefault();
       event.stopPropagation();
       this.checkboxClick.emit({
@@ -1528,6 +1562,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         selected: !this.isSelected,
         shiftKey: false
       });
+      return;
+    }
+
+    if (mouseEvent?.shiftKey && this.isCheckboxEnabled && this.bookSelectionService.hasSelection()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.lastMouseEvent = mouseEvent;
+      this.toggleCardSelection(!this.isSelected);
       return;
     }
 

@@ -854,4 +854,127 @@ describe('BookCardComponent', () => {
     vi.useRealTimers();
   });
 
+  it('desktop mouse Shift+click ranges when a selection is already active', () => {
+    const component = createComponent();
+    component.screenWidth = 1156;
+    component.screenHeight = 840;
+    component.isCheckboxEnabled = true;
+    component.isSelected = false;
+    component.index = 5;
+    component.book = createBook({id: 55});
+
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(false);
+
+    const selection = TestBed.inject(BookSelectionService);
+    vi.spyOn(selection, 'hasSelection').mockReturnValue(true);
+    const emitSpy = vi.spyOn(component.checkboxClick, 'emit');
+
+    component.onCardClick({
+      shiftKey: true,
+      ctrlKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent);
+
+    expect(emitSpy).toHaveBeenCalledWith(expect.objectContaining({
+      index: 5,
+      book: component.book,
+      selected: true,
+      shiftKey: true,
+    }));
+  });
+
+  it('desktop mouse Ctrl+click still toggles when a selection is already active', () => {
+    const component = createComponent();
+    component.screenWidth = 1156;
+    component.screenHeight = 840;
+    component.isCheckboxEnabled = true;
+    component.isSelected = false;
+    component.index = 6;
+    component.book = createBook({id: 66});
+
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(false);
+
+    const selection = TestBed.inject(BookSelectionService);
+    vi.spyOn(selection, 'hasSelection').mockReturnValue(true);
+    const emitSpy = vi.spyOn(component.checkboxClick, 'emit');
+
+    component.onCardClick({
+      shiftKey: false,
+      ctrlKey: true,
+      metaKey: false,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent);
+
+    expect(emitSpy).toHaveBeenCalledWith(expect.objectContaining({
+      index: 6,
+      selected: true,
+      shiftKey: false,
+    }));
+  });
+
+  it('desktop mouse plain click does not steal selection when not a touch digitizer', () => {
+    const component = createComponent();
+    component.screenWidth = 1156;
+    component.screenHeight = 840;
+    component.isCheckboxEnabled = true;
+    component.isSelected = false;
+    component.index = 7;
+    component.book = createBook({id: 77});
+
+    const mobileUx = TestBed.inject(MobileUxService);
+    vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isTablet', 'get').mockReturnValue(false);
+    vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
+    vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(false);
+
+    const selection = TestBed.inject(BookSelectionService);
+    vi.spyOn(selection, 'hasSelection').mockReturnValue(true);
+    const emitSpy = vi.spyOn(component.checkboxClick, 'emit');
+
+    component.onCardClick({
+      shiftKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent);
+
+    expect(emitSpy).not.toHaveBeenCalled();
+  });
+
+  it('captures shift from checkbox mousedown before onChange', () => {
+    const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
+    const template = readFileSync(templatePath, 'utf8');
+    expect(template).toContain('(mousedown)="captureMouseEvent($event)"');
+    expect(template).toContain('(click)="captureMouseEvent($event)"');
+  });
+
+  it('checkbox toggleSelection preserves shiftKey from captured mouse event', () => {
+    const component = createComponent();
+    component.isCheckboxEnabled = true;
+    component.index = 2;
+    component.book = createBook({id: 22});
+    const emitSpy = vi.spyOn(component.checkboxClick, 'emit');
+
+    component.captureMouseEvent({shiftKey: true} as MouseEvent);
+    component.toggleSelection({checked: true} as never);
+
+    expect(emitSpy).toHaveBeenCalledWith(expect.objectContaining({
+      index: 2,
+      selected: true,
+      shiftKey: true,
+    }));
+  });
+
 });

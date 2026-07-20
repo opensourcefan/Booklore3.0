@@ -17,4 +17,30 @@ describe('BookSelectionService', () => {
 
     expect(service.selectedBooks.size).toBe(2);
   });
+
+  it('shift+click selects the inclusive index range', () => {
+    const service = createService();
+    const books = [
+      {id: 10} as never,
+      {id: 20} as never,
+      {id: 30} as never,
+      {id: 40} as never,
+    ];
+    service.setCurrentBooks(books);
+
+    service.handleCheckboxClick({
+      index: 0,
+      book: books[0],
+      selected: true,
+      shiftKey: false,
+    });
+    service.handleCheckboxClick({
+      index: 3,
+      book: books[3],
+      selected: true,
+      shiftKey: true,
+    });
+
+    expect([...service.selectedBooks].sort((a, b) => a - b)).toEqual([10, 20, 30, 40]);
+  });
 });
