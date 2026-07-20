@@ -437,6 +437,93 @@ public class BookMetadataService {
         bookMetadataUpdater.setBookMetadata(context);
     }
 
+    /**
+     * Clears unlocked metadata fields only. Unlike {@link #wipeBookMetadata(long)}, this
+     * never unlocks locked fields. Used by ISBN multi-pass fill as a safe pre-wipe.
+     */
+    @Transactional
+    @BroadcastBookUpdate
+    public Book clearUnlockedMetadata(long bookId) {
+        BookEntity book = bookRepository.findById(bookId)
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        clearUnlockedMetadata(book);
+        return bookMapper.toBookWithDescription(book, true);
+    }
+
+    void clearUnlockedMetadata(BookEntity book) {
+        BookMetadataEntity metadata = book.getMetadata();
+        if (metadata == null) {
+            return;
+        }
+
+        MetadataClearFlags clearFlags = buildClearUnlockedFlags(metadata);
+        BookMetadata empty = BookMetadata.builder()
+                .bookId(metadata.getBookId())
+                .build();
+
+        MetadataUpdateContext context = MetadataUpdateContext.builder()
+                .bookEntity(book)
+                .metadataUpdateWrapper(MetadataUpdateWrapper.builder()
+                        .metadata(empty)
+                        .clearFlags(clearFlags)
+                        .build())
+                .updateThumbnail(false)
+                .mergeCategories(false)
+                .mergeMoods(false)
+                .mergeTags(false)
+                .replaceMode(org.fable.model.enums.MetadataReplaceMode.REPLACE_ALL)
+                .build();
+
+        bookMetadataUpdater.setBookMetadata(context);
+    }
+
+    static MetadataClearFlags buildClearUnlockedFlags(BookMetadataEntity metadata) {
+        MetadataClearFlags clearFlags = new MetadataClearFlags();
+        clearFlags.setTitle(!Boolean.TRUE.equals(metadata.getTitleLocked()));
+        clearFlags.setSubtitle(!Boolean.TRUE.equals(metadata.getSubtitleLocked()));
+        clearFlags.setPublisher(!Boolean.TRUE.equals(metadata.getPublisherLocked()));
+        clearFlags.setPublishedDate(!Boolean.TRUE.equals(metadata.getPublishedDateLocked()));
+        clearFlags.setDescription(!Boolean.TRUE.equals(metadata.getDescriptionLocked()));
+        clearFlags.setSeriesName(!Boolean.TRUE.equals(metadata.getSeriesNameLocked()));
+        clearFlags.setSeriesNumber(!Boolean.TRUE.equals(metadata.getSeriesNumberLocked()));
+        clearFlags.setSeriesTotal(!Boolean.TRUE.equals(metadata.getSeriesTotalLocked()));
+        clearFlags.setIsbn13(!Boolean.TRUE.equals(metadata.getIsbn13Locked()));
+        clearFlags.setIsbn10(!Boolean.TRUE.equals(metadata.getIsbn10Locked()));
+        clearFlags.setAsin(!Boolean.TRUE.equals(metadata.getAsinLocked()));
+        clearFlags.setGoodreadsId(!Boolean.TRUE.equals(metadata.getGoodreadsIdLocked()));
+        clearFlags.setComicvineId(!Boolean.TRUE.equals(metadata.getComicvineIdLocked()));
+        clearFlags.setHardcoverId(!Boolean.TRUE.equals(metadata.getHardcoverIdLocked()));
+        clearFlags.setHardcoverBookId(!Boolean.TRUE.equals(metadata.getHardcoverBookIdLocked()));
+        clearFlags.setGoogleId(!Boolean.TRUE.equals(metadata.getGoogleIdLocked()));
+        clearFlags.setPageCount(!Boolean.TRUE.equals(metadata.getPageCountLocked()));
+        clearFlags.setLanguage(!Boolean.TRUE.equals(metadata.getLanguageLocked()));
+        clearFlags.setAmazonRating(!Boolean.TRUE.equals(metadata.getAmazonRatingLocked()));
+        clearFlags.setAmazonReviewCount(!Boolean.TRUE.equals(metadata.getAmazonReviewCountLocked()));
+        clearFlags.setGoodreadsRating(!Boolean.TRUE.equals(metadata.getGoodreadsRatingLocked()));
+        clearFlags.setGoodreadsReviewCount(!Boolean.TRUE.equals(metadata.getGoodreadsReviewCountLocked()));
+        clearFlags.setHardcoverRating(!Boolean.TRUE.equals(metadata.getHardcoverRatingLocked()));
+        clearFlags.setHardcoverReviewCount(!Boolean.TRUE.equals(metadata.getHardcoverReviewCountLocked()));
+        clearFlags.setLubimyczytacId(!Boolean.TRUE.equals(metadata.getLubimyczytacIdLocked()));
+        clearFlags.setLubimyczytacRating(!Boolean.TRUE.equals(metadata.getLubimyczytacRatingLocked()));
+        clearFlags.setRanobedbId(!Boolean.TRUE.equals(metadata.getRanobedbIdLocked()));
+        clearFlags.setRanobedbRating(!Boolean.TRUE.equals(metadata.getRanobedbRatingLocked()));
+        clearFlags.setAudibleId(!Boolean.TRUE.equals(metadata.getAudibleIdLocked()));
+        clearFlags.setAudibleRating(!Boolean.TRUE.equals(metadata.getAudibleRatingLocked()));
+        clearFlags.setAudibleReviewCount(!Boolean.TRUE.equals(metadata.getAudibleReviewCountLocked()));
+        clearFlags.setAuthors(!Boolean.TRUE.equals(metadata.getAuthorsLocked()));
+        clearFlags.setCategories(!Boolean.TRUE.equals(metadata.getCategoriesLocked()));
+        clearFlags.setMoods(!Boolean.TRUE.equals(metadata.getMoodsLocked()));
+        clearFlags.setTags(!Boolean.TRUE.equals(metadata.getTagsLocked()));
+        clearFlags.setReviews(!Boolean.TRUE.equals(metadata.getReviewsLocked()));
+        clearFlags.setNarrator(!Boolean.TRUE.equals(metadata.getNarratorLocked()));
+        clearFlags.setAbridged(!Boolean.TRUE.equals(metadata.getAbridgedLocked()));
+        clearFlags.setAgeRating(!Boolean.TRUE.equals(metadata.getAgeRatingLocked()));
+        clearFlags.setContentRating(!Boolean.TRUE.equals(metadata.getContentRatingLocked()));
+        clearFlags.setCover(false);
+        clearFlags.setAudiobookCover(false);
+        return clearFlags;
+    }
+
     private String resolveFilenameFallbackTitle(BookEntity book) {
         var primaryFile = book.getPrimaryBookFile();
         if (primaryFile == null) {

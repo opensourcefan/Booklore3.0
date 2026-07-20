@@ -27,6 +27,10 @@ public class BookMetadata {
     private Integer seriesTotal;
     private String isbn13;
     private String isbn10;
+    /** True when ISBN was checksum-validated and accepted via ISBN discovery / verified fetch. */
+    private Boolean isbnVerified;
+    /** True when ISBN-fetched metadata was written back to the original file. */
+    private Boolean isbnWrittenToFile;
     private Integer pageCount;
     private String language;
     private String narrator;

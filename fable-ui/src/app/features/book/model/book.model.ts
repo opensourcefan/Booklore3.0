@@ -218,6 +218,8 @@ export interface BookMetadata {
   seriesTotal?: number | null;
   isbn13?: string;
   isbn10?: string;
+  isbnVerified?: boolean;
+  isbnWrittenToFile?: boolean;
   asin?: string;
   goodreadsId?: string;
   comicvineId?: string;

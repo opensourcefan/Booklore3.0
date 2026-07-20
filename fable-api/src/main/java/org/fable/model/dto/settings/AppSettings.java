@@ -25,6 +25,15 @@ public class AppSettings {
     private Integer maxFileUploadSizeInMb;
     private boolean remoteAuthEnabled;
     private boolean metadataDownloadOnBookdrop;
+    private boolean isbnDiscoveryEnabled;
+    private boolean isbnDiscoveryOnBookdrop;
+    private boolean isbnDiscoveryOnLibraryScan;
+    private Integer maxFrontMatterPages;
+    private boolean useOcrForIsbnDiscovery;
+    private String isbnAmbiguityPolicy;
+    private boolean isbnFetchReviewBeforeApply;
+    private String isbnFillMode;
+    private boolean isbnFileWriteBackEnabled;
     private boolean oidcEnabled;
     private boolean aiPanelDetectionEnabled;
     private boolean aiSearchEnabled;

@@ -38,6 +38,99 @@
         </div>
       </div>
     </div>
+    <div class="section-divider"><hr></div>
+    <div class="preferences-section isbn-discovery-settings">
+      <div class="settings-card">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="pi pi-barcode"></i>
+            {{ t('isbnDiscovery.sectionTitle') }}
+          </h3>
+          <p class="section-description">
+            <span>{{ t('isbnDiscovery.sectionDesc') }}</span>
+          </p>
+        </div>
+
+        <div class="section-body">
+          <div class="setting-item">
+            <div class="setting-header">
+              <p-toggleswitch
+                [(ngModel)]="isbnDiscoveryEnabled"
+                (onChange)="onIsbnDiscoveryEnabledToggle($event.checked)">
+              </p-toggleswitch>
+              <span class="setting-label">{{ t('isbnDiscovery.enableLabel') }}</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-header">
+              <p-toggleswitch
+                [(ngModel)]="isbnDiscoveryOnBookdrop"
+                [disabled]="!isbnDiscoveryEnabled"
+                (onChange)="onIsbnDiscoveryOnBookdropToggle($event.checked)">
+              </p-toggleswitch>
+              <span class="setting-label">{{ t('isbnDiscovery.onBookdropLabel') }}</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-header">
+              <p-toggleswitch
+                [(ngModel)]="isbnDiscoveryOnLibraryScan"
+                [disabled]="!isbnDiscoveryEnabled"
+                (onChange)="onIsbnDiscoveryOnLibraryScanToggle($event.checked)">
+              </p-toggleswitch>
+              <span class="setting-label">{{ t('isbnDiscovery.onLibraryScanLabel') }}</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-header">
+              <p-toggleswitch
+                [(ngModel)]="useOcrForIsbnDiscovery"
+                [disabled]="!isbnDiscoveryEnabled"
+                (onChange)="onUseOcrForIsbnDiscoveryToggle($event.checked)">
+              </p-toggleswitch>
+              <span class="setting-label">{{ t('isbnDiscovery.ocrLabel') }}</span>
+            </div>
+            <p class="setting-hint">{{ t('isbnDiscovery.ocrHint') }}</p>
+          </div>
+          <div class="setting-item">
+            <div class="setting-header">
+              <p-toggleswitch
+                [(ngModel)]="isbnFetchReviewBeforeApply"
+                [disabled]="!isbnDiscoveryEnabled"
+                (onChange)="onIsbnFetchReviewBeforeApplyToggle($event.checked)">
+              </p-toggleswitch>
+              <span class="setting-label">{{ t('isbnDiscovery.reviewBeforeApplyLabel') }}</span>
+            </div>
+            <p class="setting-hint">{{ t('isbnDiscovery.reviewBeforeApplyHint') }}</p>
+          </div>
+          <div class="setting-item">
+            <div class="setting-header">
+              <p-toggleswitch
+                [(ngModel)]="isbnFileWriteBackEnabled"
+                [disabled]="!isbnDiscoveryEnabled"
+                (onChange)="onIsbnFileWriteBackEnabledToggle($event.checked)">
+              </p-toggleswitch>
+              <span class="setting-label">{{ t('isbnDiscovery.writeBackLabel') }}</span>
+            </div>
+            <p class="setting-hint">{{ t('isbnDiscovery.writeBackHint') }}</p>
+          </div>
+          <div class="setting-item">
+            <div class="setting-header">
+              <span class="setting-label">{{ t('isbnDiscovery.maxPagesLabel') }}</span>
+              <p-inputNumber
+                [(ngModel)]="maxFrontMatterPages"
+                [disabled]="!isbnDiscoveryEnabled"
+                [min]="1"
+                [max]="30"
+                [showButtons]="true"
+                (onBlur)="onMaxFrontMatterPagesChange(maxFrontMatterPages)"
+                (onInput)="onMaxFrontMatterPagesChange($event.value)">
+              </p-inputNumber>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <app-metadata-provider-settings></app-metadata-provider-settings>
     <div class="section-divider"><hr></div>
     <app-metadata-provider-field-selector></app-metadata-provider-field-selector>

@@ -59,6 +59,14 @@ public class BookMetadataEntity {
     @Column(name = "isbn_10", length = 10)
     private String isbn10;
 
+    @Column(name = "isbn_verified")
+    @Builder.Default
+    private Boolean isbnVerified = Boolean.FALSE;
+
+    @Column(name = "isbn_written_to_file")
+    @Builder.Default
+    private Boolean isbnWrittenToFile = Boolean.FALSE;
+
     @Column(name = "page_count")
     private Integer pageCount;
 

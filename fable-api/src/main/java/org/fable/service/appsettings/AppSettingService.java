@@ -440,6 +440,15 @@ public class AppSettingService {
         builder.pdfCacheSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.PDF_CACHE_SIZE_IN_MB, "5120")));
         builder.maxFileUploadSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, "100")));
         builder.metadataDownloadOnBookdrop(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.METADATA_DOWNLOAD_ON_BOOKDROP, "true")));
+        builder.isbnDiscoveryEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_DISCOVERY_ENABLED, "false")));
+        builder.isbnDiscoveryOnBookdrop(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_DISCOVERY_ON_BOOKDROP, "true")));
+        builder.isbnDiscoveryOnLibraryScan(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_DISCOVERY_ON_LIBRARY_SCAN, "false")));
+        builder.maxFrontMatterPages(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.MAX_FRONT_MATTER_PAGES, "8")));
+        builder.useOcrForIsbnDiscovery(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.USE_OCR_FOR_ISBN_DISCOVERY, "true")));
+        builder.isbnAmbiguityPolicy(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_AMBIGUITY_POLICY, "VERIFY_THEN_CONFIDENCE"));
+        builder.isbnFetchReviewBeforeApply(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_FETCH_REVIEW_BEFORE_APPLY, "false")));
+        builder.isbnFillMode(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_FILL_MODE, "MULTI_PASS"));
+        builder.isbnFileWriteBackEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ISBN_FILE_WRITE_BACK_ENABLED, "false")));
         builder.libraryHealthCheckIntervalSeconds(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS, "120")));
         builder.allowFileDeletion(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ALLOW_FILE_DELETION, "false")));
 

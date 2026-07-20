@@ -67,3 +67,14 @@
 .setting-label {
   @include settings.settings-label;
 }
+
+.setting-hint {
+  margin: 0.25rem 0 0 3rem;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+  line-height: 1.4;
+}
+
+.isbn-discovery-settings .setting-item {
+  margin-bottom: 0.85rem;
+}

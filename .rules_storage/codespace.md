@@ -329,6 +329,26 @@ Disabled on all security filter chains — by design. All API endpoints are stat
 - `FileService.downloadImageFromUrlInternal()` — full DNS resolution + internal-IP blocking (loopback, site-local, link-local, IPv4-mapped IPv6, ULA)
 - All metadata parsers use hardcoded API base URLs
 
+## ISBN-First Metadata Import
+
+| Resource | Path |
+|---|---|
+| Cursor rule (locked decisions + mitigations) | `.cursor/rules/isbn-first-metadata-import.mdc` |
+| Feasibility report | `~/Desktop/2026-07-20-AI_Search_Metadata_Import_Feasibility_Report.html` |
+| Regression / Phone Mode investigation | `~/Desktop/2026-07-20-ISBN_Metadata_Regression_and_Mode_Design.html` |
+
+**Status (v4.16.0+):** Core discovery shipped.
+- `ParserUtils` checksum validation + candidate extraction
+- `IsbnDiscoveryService` front-matter scan (PDF/EPUB; CBX OCR soft-fail)
+- Settings keys + Metadata Settings UI section
+- Bookdrop hook when `isbnDiscoveryEnabled` + `isbnDiscoveryOnBookdrop`
+- `isbn_verified` / `isbn_written_to_file` columns (V163)
+- `clearUnlockedMetadata` (does **not** call `wipeBookMetadata`)
+
+**Still upcoming:** multi-pass provider fill + scoped auto-apply, write-back gate, two-phase batch task, exception review queue UX polish.
+
+**Summary:** Discover ISBN from front-matter text (checksum + verify vs title/author), multi-pass provider fill, auto-apply when verified, minimize reviews. No embeddings. Phone Mode frozen — tablet/desktop chrome only. Never reuse `wipeBookMetadata` for multi-pass; scope auto-apply to ISBN path only.
+
 ## Editable Files
 
 Always safe to edit:

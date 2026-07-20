@@ -32,6 +32,15 @@ public enum AppSettingKey {
     MOVE_FILE_PATTERN                   ("move_file_pattern",                    false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
     METADATA_DOWNLOAD_ON_BOOKDROP       ("metadata_download_on_bookdrop",        false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
     METADATA_PROVIDER_SPECIFIC_FIELDS   ("metadata_provider_specific_fields",    true,  false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_DISCOVERY_ENABLED              ("isbn_discovery_enabled",               false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_DISCOVERY_ON_BOOKDROP          ("isbn_discovery_on_bookdrop",           false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_DISCOVERY_ON_LIBRARY_SCAN      ("isbn_discovery_on_library_scan",       false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    MAX_FRONT_MATTER_PAGES              ("max_front_matter_pages",               false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    USE_OCR_FOR_ISBN_DISCOVERY          ("use_ocr_for_isbn_discovery",           false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_AMBIGUITY_POLICY               ("isbn_ambiguity_policy",                false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_FETCH_REVIEW_BEFORE_APPLY      ("isbn_fetch_review_before_apply",       false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_FILL_MODE                      ("isbn_fill_mode",                       false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
+    ISBN_FILE_WRITE_BACK_ENABLED        ("isbn_file_write_back_enabled",         false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_METADATA_CONFIG)),
 
     // ADMIN + MANAGE_GLOBAL_PREFERENCES
     COVER_CROPPING_SETTINGS             ("cover_cropping_settings",              true,  false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),

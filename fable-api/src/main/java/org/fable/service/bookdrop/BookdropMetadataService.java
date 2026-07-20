@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fable.exception.ApiError;
 import org.fable.model.dto.Book;
 import org.fable.model.dto.BookMetadata;
+import org.fable.model.dto.metadata.IsbnDiscoveryResult;
 import org.fable.model.dto.request.MetadataRefreshOptions;
 import org.fable.model.dto.settings.AppSettings;
 import org.fable.model.entity.BookdropFileEntity;
@@ -12,6 +13,7 @@ import org.fable.model.enums.BookFileExtension;
 import org.fable.model.enums.MetadataProvider;
 import org.fable.repository.BookdropFileRepository;
 import org.fable.service.appsettings.AppSettingService;
+import org.fable.service.metadata.IsbnDiscoveryService;
 import org.fable.service.metadata.MetadataRefreshService;
 import org.fable.service.metadata.extractor.MetadataExtractorFactory;
 import org.fable.util.FileService;
@@ -43,6 +45,7 @@ public class BookdropMetadataService {
     private final MetadataExtractorFactory metadataExtractorFactory;
     private final MetadataRefreshService metadataRefreshService;
     private final FileService fileService;
+    private final IsbnDiscoveryService isbnDiscoveryService;
 
     @Transactional
     public BookdropFileEntity attachInitialMetadata(Long bookdropFileId) throws JacksonException {
@@ -54,6 +57,23 @@ public class BookdropMetadataService {
                     .title(FilenameUtils.getBaseName(entity.getFileName()))
                     .build();
         }
+
+        AppSettings appSettings = appSettingService.getAppSettings();
+        if (appSettings.isIsbnDiscoveryEnabled()
+                && appSettings.isIsbnDiscoveryOnBookdrop()
+                && !hasIsbn(initial)) {
+            File file = new File(entity.getFilePath());
+            IsbnDiscoveryResult discovery = isbnDiscoveryService.discoverFromFile(file, initial);
+            if (discovery.hasResolvedIsbn()) {
+                isbnDiscoveryService.applyResolvedIsbn(initial, discovery);
+                log.info("ISBN discovery resolved {} for bookdrop file '{}'", discovery.getIsbn13(), entity.getFileName());
+            } else if (discovery.getStatus() == IsbnDiscoveryResult.Status.AMBIGUOUS) {
+                log.info("ISBN discovery ambiguous for bookdrop file '{}': {}", entity.getFileName(), discovery.getMessage());
+            } else if (discovery.getStatus() == IsbnDiscoveryResult.Status.OCR_UNAVAILABLE) {
+                log.info("ISBN discovery OCR soft-fail for bookdrop file '{}': {}", entity.getFileName(), discovery.getMessage());
+            }
+        }
+
         extractAndSaveCover(entity);
         String initialJson = objectMapper.writeValueAsString(initial);
         entity.setOriginalMetadata(initialJson);
@@ -93,6 +113,15 @@ public class BookdropMetadataService {
 
         Map<MetadataProvider, BookMetadata> metadataMap = metadataRefreshService.fetchMetadataForBook(providers, book);
         BookMetadata fetchedMetadata = metadataRefreshService.buildFetchMetadata(initial, book.getId(), refreshOptions, metadataMap);
+        if (Boolean.TRUE.equals(initial.getIsbnVerified())) {
+            fetchedMetadata.setIsbnVerified(Boolean.TRUE);
+            if (fetchedMetadata.getIsbn13() == null || fetchedMetadata.getIsbn13().isBlank()) {
+                fetchedMetadata.setIsbn13(initial.getIsbn13());
+            }
+            if (fetchedMetadata.getIsbn10() == null || fetchedMetadata.getIsbn10().isBlank()) {
+                fetchedMetadata.setIsbn10(initial.getIsbn10());
+            }
+        }
         String fetchedJson = objectMapper.writeValueAsString(fetchedMetadata);
 
         entity.setFetchedMetadata(fetchedJson);
@@ -100,6 +129,12 @@ public class BookdropMetadataService {
         entity.setUpdatedAt(Instant.now());
 
         return bookdropFileRepository.save(entity);
+    }
+
+    private boolean hasIsbn(BookMetadata metadata) {
+        return metadata != null
+                && ((metadata.getIsbn13() != null && !metadata.getIsbn13().isBlank())
+                || (metadata.getIsbn10() != null && !metadata.getIsbn10().isBlank()));
     }
 
     private boolean hasSearchableMetadata(BookMetadata metadata, BookdropFileEntity entity) {

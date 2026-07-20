@@ -8,6 +8,7 @@ import {Observable} from 'rxjs';
 import {AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
 import {filter, take} from 'rxjs/operators';
 import {ToggleSwitch} from 'primeng/toggleswitch';
+import {InputNumber} from 'primeng/inputnumber';
 import {MetadataMatchWeightsComponent} from '../global-preferences/metadata-match-weights/metadata-match-weights-component';
 import {MetadataPersistenceSettingsComponent} from './metadata-persistence-settings/metadata-persistence-settings-component';
 import {PublicReviewsSettingsComponent} from './public-reviews-settings/public-reviews-settings-component';
@@ -23,6 +24,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
     FormsModule,
     MetadataMatchWeightsComponent,
     ToggleSwitch,
+    InputNumber,
     MetadataPersistenceSettingsComponent,
     PublicReviewsSettingsComponent,
     MetadataProviderFieldSelectorComponent,
@@ -35,6 +37,14 @@ export class MetadataSettingsComponent implements OnInit {
 
   currentMetadataOptions!: MetadataRefreshOptions;
   metadataDownloadOnBookdrop = true;
+
+  isbnDiscoveryEnabled = false;
+  isbnDiscoveryOnBookdrop = true;
+  isbnDiscoveryOnLibraryScan = false;
+  maxFrontMatterPages = 8;
+  useOcrForIsbnDiscovery = true;
+  isbnFetchReviewBeforeApply = false;
+  isbnFileWriteBackEnabled = false;
 
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly settingsHelper = inject(SettingsHelperService);
@@ -49,6 +59,42 @@ export class MetadataSettingsComponent implements OnInit {
   onMetadataDownloadOnBookdropToggle(checked: boolean): void {
     this.metadataDownloadOnBookdrop = checked;
     this.settingsHelper.saveSetting(AppSettingKey.METADATA_DOWNLOAD_ON_BOOKDROP, checked);
+  }
+
+  onIsbnDiscoveryEnabledToggle(checked: boolean): void {
+    this.isbnDiscoveryEnabled = checked;
+    this.settingsHelper.saveSetting(AppSettingKey.ISBN_DISCOVERY_ENABLED, checked);
+  }
+
+  onIsbnDiscoveryOnBookdropToggle(checked: boolean): void {
+    this.isbnDiscoveryOnBookdrop = checked;
+    this.settingsHelper.saveSetting(AppSettingKey.ISBN_DISCOVERY_ON_BOOKDROP, checked);
+  }
+
+  onIsbnDiscoveryOnLibraryScanToggle(checked: boolean): void {
+    this.isbnDiscoveryOnLibraryScan = checked;
+    this.settingsHelper.saveSetting(AppSettingKey.ISBN_DISCOVERY_ON_LIBRARY_SCAN, checked);
+  }
+
+  onUseOcrForIsbnDiscoveryToggle(checked: boolean): void {
+    this.useOcrForIsbnDiscovery = checked;
+    this.settingsHelper.saveSetting(AppSettingKey.USE_OCR_FOR_ISBN_DISCOVERY, checked);
+  }
+
+  onIsbnFetchReviewBeforeApplyToggle(checked: boolean): void {
+    this.isbnFetchReviewBeforeApply = checked;
+    this.settingsHelper.saveSetting(AppSettingKey.ISBN_FETCH_REVIEW_BEFORE_APPLY, checked);
+  }
+
+  onIsbnFileWriteBackEnabledToggle(checked: boolean): void {
+    this.isbnFileWriteBackEnabled = checked;
+    this.settingsHelper.saveSetting(AppSettingKey.ISBN_FILE_WRITE_BACK_ENABLED, checked);
+  }
+
+  onMaxFrontMatterPagesChange(value: number | null): void {
+    const pages = value && value > 0 ? value : 8;
+    this.maxFrontMatterPages = pages;
+    this.settingsHelper.saveSetting(AppSettingKey.MAX_FRONT_MATTER_PAGES, pages);
   }
 
   onMetadataSubmit(metadataRefreshOptions: MetadataRefreshOptions): void {
@@ -75,5 +121,12 @@ export class MetadataSettingsComponent implements OnInit {
     }
 
     this.metadataDownloadOnBookdrop = settings.metadataDownloadOnBookdrop ?? true;
+    this.isbnDiscoveryEnabled = settings.isbnDiscoveryEnabled ?? false;
+    this.isbnDiscoveryOnBookdrop = settings.isbnDiscoveryOnBookdrop ?? true;
+    this.isbnDiscoveryOnLibraryScan = settings.isbnDiscoveryOnLibraryScan ?? false;
+    this.maxFrontMatterPages = settings.maxFrontMatterPages ?? 8;
+    this.useOcrForIsbnDiscovery = settings.useOcrForIsbnDiscovery ?? true;
+    this.isbnFetchReviewBeforeApply = settings.isbnFetchReviewBeforeApply ?? false;
+    this.isbnFileWriteBackEnabled = settings.isbnFileWriteBackEnabled ?? false;
   }
 }

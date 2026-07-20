@@ -7,6 +7,20 @@
     "enableLabel": "Enable automatic metadata download for Bookdrop imports",
     "loadError": "Failed to load settings."
   },
+  "isbnDiscovery": {
+    "sectionTitle": "ISBN Discovery",
+    "sectionDesc": "Scan the first pages of each book for a checksum-valid ISBN, then fetch metadata using that ISBN as ground truth. Designed to fill large libraries with minimal manual review.",
+    "enableLabel": "Enable ISBN discovery",
+    "onBookdropLabel": "Run ISBN discovery on Bookdrop imports",
+    "onLibraryScanLabel": "Run ISBN discovery during library scans (off by default — heavy)",
+    "ocrLabel": "Use OCR for image-only pages",
+    "ocrHint": "Soft-fails if the AI Search sidecar is unavailable. Text-extractable formats still work.",
+    "reviewBeforeApplyLabel": "Require review before applying ISBN-verified fetches",
+    "reviewBeforeApplyHint": "Leave off to auto-apply when ISBN is verified. Ambiguous or failed discoveries still go to review. Does not change the global metadata refresh review default.",
+    "writeBackLabel": "Write ISBN-fetched metadata to original files",
+    "writeBackHint": "Default off. When on, also sets a searchable “written to file” flag. Still requires format write-back to be enabled in Persistence settings.",
+    "maxPagesLabel": "Max front-matter pages to scan"
+  },
   "persistence": {
     "sectionTitle": "Metadata Persistence",
     "sectionDesc": "Configure how metadata is written to original files and how files are moved or renamed when metadata changes.",

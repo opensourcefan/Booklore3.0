@@ -10,6 +10,7 @@ import org.fable.model.enums.MetadataProvider;
 import org.fable.repository.BookdropFileRepository;
 import org.fable.service.appsettings.AppSettingService;
 import org.fable.service.bookdrop.BookdropMetadataService;
+import org.fable.service.metadata.IsbnDiscoveryService;
 import org.fable.service.metadata.MetadataRefreshService;
 import org.fable.service.metadata.extractor.CbxMetadataExtractor;
 import org.fable.service.metadata.extractor.EpubMetadataExtractor;
@@ -57,6 +58,8 @@ class BookdropMetadataServiceTest {
     private FileService fileService;
     @Mock
     private MetadataExtractorFactory metadataExtractorFactory;
+    @Mock
+    private IsbnDiscoveryService isbnDiscoveryService;
 
     @InjectMocks
     private BookdropMetadataService bookdropMetadataService;
@@ -74,8 +77,11 @@ class BookdropMetadataServiceTest {
     @Test
     void attachInitialMetadata_shouldExtractAndSaveMetadata() throws Exception {
         BookMetadata metadata = BookMetadata.builder().title("Test Book").build();
+        AppSettings settings = new AppSettings();
+        settings.setIsbnDiscoveryEnabled(false);
 
         when(bookdropFileRepository.findById(1L)).thenReturn(Optional.of(sampleFile));
+        when(appSettingService.getAppSettings()).thenReturn(settings);
         when(metadataExtractorFactory.extractMetadata(eq(BookFileExtension.EPUB), any(File.class))).thenReturn(metadata);
         when(objectMapper.writeValueAsString(any(BookMetadata.class))).thenReturn("{\"title\":\"Test Book\"}");
         when(bookdropFileRepository.save(any(BookdropFileEntity.class))).thenReturn(sampleFile);
@@ -86,6 +92,7 @@ class BookdropMetadataServiceTest {
         assertThat(result.getOriginalMetadata()).contains("Test Book");
         assertThat(result.getUpdatedAt()).isBeforeOrEqualTo(Instant.now());
         verify(bookdropFileRepository).save(any(BookdropFileEntity.class));
+        verifyNoInteractions(isbnDiscoveryService);
     }
 
     @Test
@@ -120,8 +127,11 @@ class BookdropMetadataServiceTest {
     @Test
     void attachInitialMetadata_shouldHandleNullCoverGracefully() throws Exception {
         BookMetadata metadata = BookMetadata.builder().title("No Cover Book").build();
+        AppSettings settings = new AppSettings();
+        settings.setIsbnDiscoveryEnabled(false);
 
         when(bookdropFileRepository.findById(1L)).thenReturn(Optional.of(sampleFile));
+        when(appSettingService.getAppSettings()).thenReturn(settings);
         when(metadataExtractorFactory.extractMetadata(eq(BookFileExtension.EPUB), any(File.class))).thenReturn(metadata);
         when(objectMapper.writeValueAsString(metadata)).thenReturn("{\"title\":\"No Cover Book\"}");
         when(bookdropFileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

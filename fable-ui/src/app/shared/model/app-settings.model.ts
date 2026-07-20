@@ -194,6 +194,15 @@ export interface AppSettings {
   koboSettings: KoboSettings;
   coverCroppingSettings: CoverCroppingSettings;
   metadataDownloadOnBookdrop: boolean;
+  isbnDiscoveryEnabled: boolean;
+  isbnDiscoveryOnBookdrop: boolean;
+  isbnDiscoveryOnLibraryScan: boolean;
+  maxFrontMatterPages: number;
+  useOcrForIsbnDiscovery: boolean;
+  isbnAmbiguityPolicy: string;
+  isbnFetchReviewBeforeApply: boolean;
+  isbnFillMode: string;
+  isbnFileWriteBackEnabled: boolean;
   metadataProviderSpecificFields: MetadataProviderSpecificFields;
   oidcSessionDurationHours: number | null;
   oidcGroupSyncMode: string | null;
@@ -246,6 +255,15 @@ export enum AppSettingKey {
   METADATA_MATCH_WEIGHTS = 'METADATA_MATCH_WEIGHTS',
   METADATA_PERSISTENCE_SETTINGS = 'METADATA_PERSISTENCE_SETTINGS',
   METADATA_DOWNLOAD_ON_BOOKDROP = 'METADATA_DOWNLOAD_ON_BOOKDROP',
+  ISBN_DISCOVERY_ENABLED = 'ISBN_DISCOVERY_ENABLED',
+  ISBN_DISCOVERY_ON_BOOKDROP = 'ISBN_DISCOVERY_ON_BOOKDROP',
+  ISBN_DISCOVERY_ON_LIBRARY_SCAN = 'ISBN_DISCOVERY_ON_LIBRARY_SCAN',
+  MAX_FRONT_MATTER_PAGES = 'MAX_FRONT_MATTER_PAGES',
+  USE_OCR_FOR_ISBN_DISCOVERY = 'USE_OCR_FOR_ISBN_DISCOVERY',
+  ISBN_AMBIGUITY_POLICY = 'ISBN_AMBIGUITY_POLICY',
+  ISBN_FETCH_REVIEW_BEFORE_APPLY = 'ISBN_FETCH_REVIEW_BEFORE_APPLY',
+  ISBN_FILL_MODE = 'ISBN_FILL_MODE',
+  ISBN_FILE_WRITE_BACK_ENABLED = 'ISBN_FILE_WRITE_BACK_ENABLED',
   METADATA_PUBLIC_REVIEWS_SETTINGS = 'METADATA_PUBLIC_REVIEWS_SETTINGS',
   KOBO_SETTINGS = 'KOBO_SETTINGS',
   COVER_CROPPING_SETTINGS = 'COVER_CROPPING_SETTINGS',
