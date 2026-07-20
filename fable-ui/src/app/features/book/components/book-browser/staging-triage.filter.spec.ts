@@ -27,6 +27,12 @@ describe('filterBooksByStagingTriage', () => {
       .toEqual([3]);
   });
 
+  it('keeps completed books out of the staging inbox filter', () => {
+    const filtered = filterBooksByStagingTriage(books, 'staging', inbox, completed, review).map(b => b.id);
+    expect(filtered).toEqual([1, 2]);
+    expect(filtered).not.toContain(3);
+  });
+
   it('filters review books', () => {
     expect(filterBooksByStagingTriage(books, 'review', inbox, completed, review).map(b => b.id))
       .toEqual([4]);

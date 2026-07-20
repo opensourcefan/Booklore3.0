@@ -1025,7 +1025,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           this.refreshStagingTriage();
         } else if (this.stagingTriageMode !== 'staging') {
           this.stagingTriageMode = 'staging';
-          this.applyEffectiveSortCriteria();
+          this.rebuildStagingBookState();
         }
       });
   }
@@ -1059,7 +1059,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
           if (this.entityType === EntityType.STAGING && signature !== this.lastStagingTriageSignature) {
             this.lastStagingTriageSignature = signature;
-            this.applyEffectiveSortCriteria();
+            this.rebuildStagingBookState();
           }
           this.cdr.markForCheck();
         },
@@ -1082,8 +1082,23 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.stagingTriageMode = mode;
     this.lastStagingTriageSignature = '';
-    this.applyEffectiveSortCriteria();
+    // Must rebuild even when sort is unchanged — applyEffectiveSortCriteria() no-ops then,
+    // which left Completed/Review tabs looking selected while the grid stayed on Staging.
+    this.rebuildStagingBookState();
     this.cdr.markForCheck();
+  }
+
+  /**
+   * Force Staging bookState$ to reconnect so triage mode / ID set changes are applied.
+   */
+  private rebuildStagingBookState(): void {
+    if (this.entityType !== EntityType.STAGING || !this.currentViewMode) {
+      return;
+    }
+    const baseSortCriteria = this.baseSortCriteria.length > 0
+      ? this.baseSortCriteria
+      : this.bookSorter.selectedSortCriteria;
+    this.applySortCriteria(this.getEffectiveSortCriteria(baseSortCriteria));
   }
 
   openPendingMetadataReview(): void {
