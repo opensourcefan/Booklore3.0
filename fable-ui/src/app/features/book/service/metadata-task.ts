@@ -69,6 +69,18 @@ export interface MetadataTaskLog {
   remainingBooks: MetadataTaskLogBook[];
 }
 
+export interface PendingMetadataReviewTask {
+  taskId: string;
+  proposalCount: number;
+  bookIds: number[];
+}
+
+export interface PendingMetadataReview {
+  count: number;
+  bookIds: number[];
+  tasks: PendingMetadataReviewTask[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -82,6 +94,10 @@ export class MetadataTaskService {
       .pipe(
         map(response => response.task)
       );
+  }
+
+  getPendingReviews(): Observable<PendingMetadataReview> {
+    return this.http.get<PendingMetadataReview>(`${this.url}/pending-reviews`);
   }
 
   deleteTask(taskId: string): Observable<void> {

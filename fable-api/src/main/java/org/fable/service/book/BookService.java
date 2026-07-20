@@ -457,6 +457,11 @@ public class BookService {
         return bookUpdateService.releaseFromStaging(bookIds);
     }
 
+    @Transactional
+    public List<Book> stageForReview(Set<Long> bookIds) {
+        return bookUpdateService.stageForReview(bookIds);
+    }
+
     public Resource getBookThumbnail(long bookId) {
         return getBookThumbnail(bookId, false).resource();
     }

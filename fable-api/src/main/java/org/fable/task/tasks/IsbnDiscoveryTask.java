@@ -16,7 +16,9 @@ import org.fable.model.enums.TaskType;
 import org.fable.model.websocket.Topic;
 import org.fable.repository.MetadataFetchJobRepository;
 import org.fable.service.NotificationService;
+import org.fable.service.book.BookUpdateService;
 import org.fable.service.metadata.IsbnMetadataFillService;
+import org.fable.service.metadata.MetadataTaskContext;
 import org.fable.task.TaskCancellationManager;
 import org.fable.task.TaskStatus;
 import org.springframework.stereotype.Component;
@@ -42,6 +44,7 @@ public class IsbnDiscoveryTask implements Task {
 
     private final IsbnMetadataFillService isbnMetadataFillService;
     private final MetadataFetchJobRepository metadataFetchJobRepository;
+    private final BookUpdateService bookUpdateService;
     private final NotificationService notificationService;
     private final AuthenticationService authenticationService;
     private final TaskCancellationManager cancellationManager;
@@ -76,6 +79,14 @@ public class IsbnDiscoveryTask implements Task {
                 .build();
         metadataFetchJobRepository.save(job);
 
+        int total = bookIds.size();
+        sendProgress(taskId, 0, total,
+                total == 1
+                        ? "Starting ISBN discovery…"
+                        : "Starting ISBN discovery for " + total + " book(s)…",
+                MetadataFetchTaskStatus.IN_PROGRESS,
+                false);
+
         int completed = 0;
         int reviewCount = 0;
         int failedCount = 0;
@@ -85,7 +96,7 @@ public class IsbnDiscoveryTask implements Task {
                 job.setCompletedAt(Instant.now());
                 job.setStatusMessage("Task cancelled by user");
                 metadataFetchJobRepository.save(job);
-                sendProgress(taskId, completed, bookIds.size(), "Cancelled", MetadataFetchTaskStatus.CANCELLED, reviewCount > 0);
+                sendProgress(taskId, completed, total, "Cancelled", MetadataFetchTaskStatus.CANCELLED, reviewCount > 0);
                 cancellationManager.clearCancellation(taskId);
                 return TaskCreateResponse.builder()
                         .taskType(TaskType.ISBN_DISCOVERY)
@@ -94,6 +105,13 @@ public class IsbnDiscoveryTask implements Task {
                         .build();
             }
 
+            String inProgressMessage = "ISBN discovery in progress — book "
+                    + (completed + 1) + " of " + total + "…";
+            job.setStatusMessage(inProgressMessage);
+            metadataFetchJobRepository.save(job);
+            sendProgress(taskId, completed, total, inProgressMessage, MetadataFetchTaskStatus.IN_PROGRESS, reviewCount > 0);
+
+            MetadataTaskContext.set(taskId, completed, total, reviewCount > 0);
             try {
                 IsbnMetadataFillService.IsbnFillOutcome outcome = isbnMetadataFillService.fillBookFromIsbn(bookId);
                 if (outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.NEEDS_REVIEW
@@ -107,6 +125,7 @@ public class IsbnDiscoveryTask implements Task {
                             .build();
                     job.getProposals().add(proposal);
                     reviewCount++;
+                    stageBookForReview(bookId);
                 } else if (outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.ERROR
                         || outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.DISABLED) {
                     failedCount++;
@@ -116,7 +135,7 @@ public class IsbnDiscoveryTask implements Task {
                 job.setCompletedBooks(completed);
                 job.setStatusMessage(buildProgressMessage(bookId, outcome));
                 metadataFetchJobRepository.save(job);
-                sendProgress(taskId, completed, bookIds.size(),
+                sendProgress(taskId, completed, total,
                         job.getStatusMessage(),
                         MetadataFetchTaskStatus.IN_PROGRESS,
                         reviewCount > 0);
@@ -124,10 +143,14 @@ public class IsbnDiscoveryTask implements Task {
                 log.error("ISBN discovery failed for book {}", bookId, e);
                 completed++;
                 failedCount++;
-                sendProgress(taskId, completed, bookIds.size(),
+                job.setCompletedBooks(completed);
+                metadataFetchJobRepository.save(job);
+                sendProgress(taskId, completed, total,
                         "Failed book " + bookId + ": " + e.getMessage(),
                         MetadataFetchTaskStatus.IN_PROGRESS,
                         reviewCount > 0);
+            } finally {
+                MetadataTaskContext.clear();
             }
         }
 
@@ -143,7 +166,7 @@ public class IsbnDiscoveryTask implements Task {
         if (reviewCount > 0) {
             sendProgress(taskId, 0, reviewCount, finalMessage, MetadataFetchTaskStatus.COMPLETED, true);
         } else {
-            sendProgress(taskId, completed, bookIds.size(), finalMessage, MetadataFetchTaskStatus.COMPLETED, false);
+            sendProgress(taskId, completed, total, finalMessage, MetadataFetchTaskStatus.COMPLETED, false);
         }
 
         return TaskCreateResponse.builder()
@@ -151,6 +174,14 @@ public class IsbnDiscoveryTask implements Task {
                 .taskId(taskId)
                 .status(TaskStatus.COMPLETED)
                 .build();
+    }
+
+    private void stageBookForReview(Long bookId) {
+        try {
+            bookUpdateService.stageForReview(Set.of(bookId));
+        } catch (Exception e) {
+            log.warn("Failed to stage book {} for metadata review: {}", bookId, e.getMessage());
+        }
     }
 
     private static String buildProgressMessage(Long bookId, IsbnMetadataFillService.IsbnFillOutcome outcome) {

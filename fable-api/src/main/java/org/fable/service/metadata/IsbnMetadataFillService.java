@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -162,13 +163,26 @@ public class IsbnMetadataFillService {
 
         BookMetadata merged = mergeByIsbn(isbn, existing);
         if (merged == null) {
-            BookMetadata stub = existing != null ? existing.toBuilder().build() : BookMetadata.builder().build();
-            stub.setIsbn13(ParserUtils.toIsbn13(isbn));
-            stub.setIsbn10(ParserUtils.toIsbn10(isbn));
-            stub.setIsbnVerified(Boolean.FALSE);
-            return IsbnFillOutcome.needsReview(bookId, discovery,
-                            "Providers returned no metadata for ISBN " + isbn)
-                    .withMetadata(stub);
+            // Verified ISBN with no provider hits: still clear unlocked fields and apply the ISBN.
+            // Ambiguous (forceReview) discoveries stay in the review queue.
+            if (forceReview || settings.isIsbnFetchReviewBeforeApply()) {
+                BookMetadata stub = existing != null ? existing.toBuilder().build() : BookMetadata.builder().build();
+                stub.setIsbn13(ParserUtils.toIsbn13(isbn));
+                stub.setIsbn10(ParserUtils.toIsbn10(isbn));
+                stub.setIsbnVerified(Boolean.FALSE);
+                return IsbnFillOutcome.needsReview(bookId, discovery,
+                                forceReview
+                                        ? "Ambiguous ISBN staged for review (providers returned no metadata)"
+                                        : "ISBN fetch staged for review (providers returned no metadata)")
+                        .withMetadata(stub);
+            }
+
+            BookMetadata isbnOnly = BookMetadata.builder()
+                    .isbn13(ParserUtils.toIsbn13(isbn))
+                    .isbn10(ParserUtils.toIsbn10(isbn))
+                    .isbnVerified(Boolean.TRUE)
+                    .build();
+            return applyMergedMetadata(bookId, book, isbnOnly, discovered, settings, false);
         }
 
         boolean requireReview = forceReview || settings.isIsbnFetchReviewBeforeApply();
@@ -181,6 +195,16 @@ public class IsbnMetadataFillService {
                     .withMetadata(merged);
         }
 
+        return applyMergedMetadata(bookId, book, merged, discovered, settings, true);
+    }
+
+    private IsbnFillOutcome applyMergedMetadata(
+            long bookId,
+            BookEntity book,
+            BookMetadata merged,
+            boolean discovered,
+            AppSettings settings,
+            boolean updateThumbnail) {
         boolean multiPass = settings.getIsbnFillMode() == null
                 || "MULTI_PASS".equalsIgnoreCase(settings.getIsbnFillMode());
         if (multiPass) {
@@ -202,7 +226,7 @@ public class IsbnMetadataFillService {
         MetadataUpdateContext context = MetadataUpdateContext.builder()
                 .bookEntity(book)
                 .metadataUpdateWrapper(MetadataUpdateWrapper.builder().metadata(merged).build())
-                .updateThumbnail(true)
+                .updateThumbnail(updateThumbnail)
                 .mergeCategories(true)
                 .mergeMoods(true)
                 .mergeTags(true)
@@ -219,15 +243,24 @@ public class IsbnMetadataFillService {
     private List<MetadataProvider> deriveProviderChain() {
         try {
             MetadataRefreshOptions options = appSettingService.getAppSettings().getDefaultMetadataRefreshOptions();
-            if (options != null && options.getFieldOptions() != null
-                    && options.getFieldOptions().getTitle() != null) {
-                MetadataRefreshOptions.FieldProvider titleProvider = options.getFieldOptions().getTitle();
-                List<MetadataProvider> chain = Stream.of(
-                                titleProvider.getP1(), titleProvider.getP2(),
-                                titleProvider.getP3(), titleProvider.getP4())
+            if (options != null && options.getFieldOptions() != null) {
+                MetadataRefreshOptions.FieldOptions fieldOptions = options.getFieldOptions();
+                LinkedHashSet<MetadataProvider> chain = new LinkedHashSet<>();
+                Stream.of(
+                                fieldOptions.getTitle(), fieldOptions.getSubtitle(), fieldOptions.getDescription(),
+                                fieldOptions.getAuthors(), fieldOptions.getPublisher(), fieldOptions.getPublishedDate(),
+                                fieldOptions.getSeriesName(), fieldOptions.getIsbn13(), fieldOptions.getIsbn10(),
+                                fieldOptions.getCover(), fieldOptions.getCategories(), fieldOptions.getPageCount()
+                        )
                         .filter(Objects::nonNull)
-                        .distinct()
-                        .toList();
+                        .forEach(fp -> {
+                            if (fp.getP1() != null) chain.add(fp.getP1());
+                            if (fp.getP2() != null) chain.add(fp.getP2());
+                            if (fp.getP3() != null) chain.add(fp.getP3());
+                            if (fp.getP4() != null) chain.add(fp.getP4());
+                        });
+                // Always try Google as a dense ISBN fallback when configured providers miss.
+                chain.add(MetadataProvider.Google);
                 if (!chain.isEmpty()) {
                     return new ArrayList<>(chain);
                 }
@@ -235,7 +268,7 @@ public class IsbnMetadataFillService {
         } catch (Exception e) {
             log.warn("Failed to derive ISBN fill provider chain: {}", e.getMessage());
         }
-        return List.of(MetadataProvider.Google);
+        return List.of(MetadataProvider.Google, MetadataProvider.Hardcover, MetadataProvider.Amazon);
     }
 
     static void fillMissingFields(BookMetadata target, BookMetadata source) {

@@ -4,6 +4,7 @@ import org.fable.model.dto.MetadataBatchProgressNotification;
 import org.fable.model.dto.response.MetadataResumableTaskResponse;
 import org.fable.model.dto.response.MetadataTaskDetailsResponse;
 import org.fable.model.dto.response.MetadataTaskLogResponse;
+import org.fable.model.dto.response.PendingMetadataReviewResponse;
 import org.fable.model.dto.response.TaskCancelResponse;
 import org.fable.model.dto.response.TaskCreateResponse;
 import org.fable.service.metadata.MetadataTaskService;
@@ -43,6 +44,14 @@ public class MetadataTaskController {
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<List<MetadataBatchProgressNotification>> getActiveTasks() {
         return ResponseEntity.ok(metadataTaskService.getActiveTasks());
+    }
+
+    @Operation(summary = "Get pending metadata reviews", description = "List books with FETCHED proposals awaiting review. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Pending reviews returned successfully")
+    @GetMapping("/pending-reviews")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<PendingMetadataReviewResponse> getPendingReviews() {
+        return ResponseEntity.ok(metadataTaskService.getPendingReviews());
     }
 
     @Operation(summary = "Get metadata task log", description = "Retrieve the current status plus fetched and remaining books for a metadata batch task. Requires metadata edit permission or admin.")

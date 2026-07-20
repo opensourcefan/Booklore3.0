@@ -45,7 +45,11 @@
                   } @else if (entityType === EntityType.NOT_SHELFED) {
                     {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
                   } @else if (entityType === EntityType.STAGING) {
-                    {{ (isFilterActive || hasSearchTerm) ? t('labels.stagingBooksFiltered') : t('labels.stagingBooks') }}
+                    @if (forReviewMode) {
+                      {{ t('labels.stagingForReview', { count: pendingReviewCount }) }}
+                    } @else {
+                      {{ (isFilterActive || hasSearchTerm) ? t('labels.stagingBooksFiltered') : t('labels.stagingBooks') }}
+                    }
                   } @else {
                     {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
                   }
@@ -122,6 +126,36 @@
               }
               <i class="pi selection-toggle-chevron" [ngClass]="isSelectionActionPanelOpen ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
             </button>
+
+            @if (canShowStagingReviewChrome) {
+              <button
+                type="button"
+                class="topbar-items topbar-item staging-for-review-toggle"
+                [class.topbar-item--active]="forReviewMode"
+                [disabled]="pendingReviewCount === 0 && !forReviewMode"
+                (click)="toggleForReviewMode()"
+                [pTooltip]="t('tooltip.forReview')"
+                [tooltipDisabled]="isMobile"
+                tooltipPosition="top"
+                [attr.aria-label]="t('labels.forReview', { count: pendingReviewCount })">
+                <i class="pi pi-search"></i>
+                @if (pendingReviewCount > 0) {
+                  <span class="selection-toggle-count">{{ pendingReviewCount }}</span>
+                }
+              </button>
+              @if (pendingReviewCount > 0) {
+                <button
+                  type="button"
+                  class="topbar-items topbar-item"
+                  (click)="openPendingMetadataReview()"
+                  [pTooltip]="t('tooltip.openMetadataReview')"
+                  [tooltipDisabled]="isMobile"
+                  tooltipPosition="top"
+                  [attr.aria-label]="t('tooltip.openMetadataReview')">
+                  <i class="pi pi-list-check"></i>
+                </button>
+              }
+            }
 
             @if (isFilterActive) {
               <button type="button" class="topbar-items topbar-item" (click)="clearFilter()">

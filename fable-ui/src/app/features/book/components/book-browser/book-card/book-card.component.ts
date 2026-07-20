@@ -157,6 +157,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private diskType = 'LOCAL';
   private allowFileDeletion = false;
   protected aiSearchEnabled = false;
+  protected isbnDiscoveryEnabled = false;
   private menuInitialized = false;
   private menuContextBook: Book | null = null;
   private activeTieredMenu: TieredMenu | null = null;
@@ -195,13 +196,18 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.appSettingsService.appSettings$
       .pipe(
         filter(settings => !!settings),
-        take(1),
         takeUntil(this.destroy$)
       )
       .subscribe(settings => {
         this.diskType = settings?.diskType ?? 'LOCAL';
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
         this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        const nextIsbnDiscoveryEnabled = settings?.isbnDiscoveryEnabled ?? false;
+        const isbnDiscoveryChanged = this.isbnDiscoveryEnabled !== nextIsbnDiscoveryEnabled;
+        this.isbnDiscoveryEnabled = nextIsbnDiscoveryEnabled;
+        if (isbnDiscoveryChanged && this.menuInitialized && this.menuContextBook) {
+          this.initMenu(this.menuContextBook);
+        }
         this.cdr.markForCheck();
       });
 
@@ -882,6 +888,30 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               });
             }
           },
+          ...(this.isbnDiscoveryEnabled && !this.mobileUx.isPhone ? [{
+            label: this.t.translate('book.card.menu.isbnDiscovery'),
+            icon: 'pi pi-barcode',
+            command: () => {
+              this.confirmationService.confirm({
+                message: this.t.translate('book.menuService.confirm.isbnDiscoveryMessage', {count: 1}),
+                header: this.t.translate('book.menuService.confirm.isbnDiscoveryHeader'),
+                icon: 'pi pi-barcode',
+                acceptLabel: this.t.translate('common.confirm'),
+                rejectLabel: this.t.translate('common.cancel'),
+                acceptButtonProps: {
+                  label: this.t.translate('common.confirm'),
+                  severity: 'info'
+                },
+                rejectButtonProps: {
+                  label: this.t.translate('common.cancel'),
+                  severity: 'secondary'
+                },
+                accept: () => {
+                  this.taskHelperService.isbnDiscoveryTask([book.id]).subscribe();
+                }
+              });
+            }
+          }] : []),
           {
             label: this.t.translate('book.card.menu.customFetch'),
             icon: 'pi pi-sync',

@@ -57,6 +57,9 @@ import {MagicShelf} from '../../../magic-shelf/service/magic-shelf.service';
 import {SidebarFilterTogglePrefService} from './filters/sidebar-filter-toggle-pref.service';
 import {MetadataRefreshType} from '../../../metadata/model/request/metadata-refresh-type.enum';
 import {TaskHelperService} from '../../../settings/task-management/task-helper.service';
+import {MetadataTaskService, PendingMetadataReview} from '../../service/metadata-task';
+import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
+import {MetadataProgressService} from '../../../../shared/service/metadata-progress.service';
 import {FilterLabelHelper} from './filter-label.helper';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {WriteProgressService} from '../../../../shared/service/write-progress.service';
@@ -146,6 +149,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected seriesCollapseFilter = inject(SeriesCollapseFilter);
   protected confirmationService = inject(ConfirmationService);
   protected taskHelperService = inject(TaskHelperService);
+  private metadataTaskService = inject(MetadataTaskService);
+  private dialogLauncherService = inject(DialogLauncherService);
+  private metadataProgressService = inject(MetadataProgressService);
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected bookSelectionService = inject(BookSelectionService);
   protected appSettingsService = inject(AppSettingsService);
@@ -222,6 +228,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private visibleBookIds = new Set<number>();
   allowFileDeletion = false;
   aiSearchEnabled = false;
+  isbnDiscoveryEnabled = false;
+  forReviewMode = false;
+  pendingReviewCount = 0;
+  private pendingReviewBookIds = new Set<number>();
+  private pendingReviewPrimaryTaskId: string | null = null;
   aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isAiSearchActive = false;
   isAiSearchError = false;
@@ -659,6 +670,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupSearchTermSubscription();
     this.setupScrollPositionTracking();
     this.setupSelectionSubscription();
+    this.setupPendingReviewSubscription();
   }
 
   ngAfterViewInit(): void {
@@ -939,19 +951,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(userState => {
         this.useDistractionLoadingScreen = userState.user?.userSettings?.useDistractionLoadingScreen ?? false;
-        this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
-          () => this.autoFetchMetadata(),
-          () => this.fetchMetadata(),
-          () => this.bulkEditMetadata(),
-          () => this.multiBookEditMetadata(),
-          () => this.restoreTitlesFromFilenamesForSelected(),
-          () => this.regenerateCoversForSelected(),
-          () => this.generateCustomCoversForSelected(),
-          userState.user,
-          () => this.isbnDiscoveryFill(),
-          !this.mobileUx.isPhone
-        );
-
+        this.rebuildMetadataMenuItems(userState.user);
         this.updateEntityOptions();
       });
 
@@ -986,12 +986,106 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     ];
   }
 
+  private rebuildMetadataMenuItems(user = this.user()): void {
+    this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
+      () => this.autoFetchMetadata(),
+      () => this.fetchMetadata(),
+      () => this.bulkEditMetadata(),
+      () => this.multiBookEditMetadata(),
+      () => this.restoreTitlesFromFilenamesForSelected(),
+      () => this.regenerateCoversForSelected(),
+      () => this.generateCustomCoversForSelected(),
+      user,
+      () => this.isbnDiscoveryFill(),
+      this.isbnDiscoveryEnabled && !this.mobileUx.isPhone
+    );
+  }
+
+  private setupPendingReviewSubscription(): void {
+    this.refreshPendingReviews();
+
+    this.metadataProgressService.progressUpdates$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        if (progress.status === 'COMPLETED' || progress.status === 'ERROR' || progress.status === 'CANCELLED') {
+          this.refreshPendingReviews();
+        }
+      });
+
+    this.entityType$
+      ?.pipe(takeUntil(this.destroy$))
+      .subscribe(entityType => {
+        if (entityType === EntityType.STAGING && !this.mobileUx.isPhone) {
+          this.refreshPendingReviews();
+        } else if (entityType !== EntityType.STAGING && this.forReviewMode) {
+          this.forReviewMode = false;
+          this.applyEffectiveSortCriteria();
+        }
+      });
+  }
+
+  private refreshPendingReviews(): void {
+    if (this.mobileUx.isPhone) {
+      return;
+    }
+    this.metadataTaskService.getPendingReviews()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (pending: PendingMetadataReview) => {
+          const previousIds = this.pendingReviewBookIds;
+          this.pendingReviewCount = pending.count ?? 0;
+          this.pendingReviewBookIds = new Set(pending.bookIds ?? []);
+          this.pendingReviewPrimaryTaskId = pending.tasks?.[0]?.taskId ?? null;
+          if (this.forReviewMode && this.pendingReviewCount === 0) {
+            this.forReviewMode = false;
+          }
+          const idsChanged = previousIds.size !== this.pendingReviewBookIds.size
+            || [...this.pendingReviewBookIds].some(id => !previousIds.has(id));
+          if (this.forReviewMode && idsChanged) {
+            this.applyEffectiveSortCriteria();
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          // Non-fatal: staging review chrome stays hidden/stale until next refresh.
+        }
+      });
+  }
+
+  toggleForReviewMode(): void {
+    if (this.mobileUx.isPhone || this.entityType !== EntityType.STAGING) {
+      return;
+    }
+    if (this.pendingReviewCount === 0 && !this.forReviewMode) {
+      return;
+    }
+    this.forReviewMode = !this.forReviewMode;
+    if (this.forReviewMode) {
+      this.refreshPendingReviews();
+    }
+    this.applyEffectiveSortCriteria();
+    this.cdr.markForCheck();
+  }
+
+  openPendingMetadataReview(): void {
+    if (this.mobileUx.isPhone || !this.pendingReviewPrimaryTaskId) {
+      return;
+    }
+    this.dialogLauncherService.openMetadataReviewDialog(this.pendingReviewPrimaryTaskId);
+  }
+
+  get canShowStagingReviewChrome(): boolean {
+    return this.entityType === EntityType.STAGING && !this.mobileUx.isPhone;
+  }
+
   private setupAppSettingsSubscription(): void {
     this.appSettingsService.appSettings$
       .pipe(takeUntil(this.destroy$))
       .subscribe(settings => {
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
         this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        this.isbnDiscoveryEnabled = settings?.isbnDiscoveryEnabled ?? false;
+        this.rebuildMetadataMenuItems();
         if (this.aiSearchEnabled) {
           this.startAiStatusPolling();
         } else {
@@ -2669,6 +2763,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.seriesCollapseFilter,
       forceExpandSeries,
       primarySort
+    ).pipe(
+      map(filtered => {
+        if (!this.forReviewMode || this.entityType !== EntityType.STAGING || this.mobileUx.isPhone) {
+          return filtered;
+        }
+        const books = (filtered.books || []).filter(book => this.pendingReviewBookIds.has(book.id));
+        return {...filtered, books};
+      })
     );
   }
 

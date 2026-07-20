@@ -10,6 +10,7 @@ import org.fable.model.dto.response.MetadataTaskLogBookResponse;
 import org.fable.model.dto.response.MetadataTaskLogResponse;
 import org.fable.model.dto.response.MetadataTaskDetailsResponse;
 import org.fable.model.dto.response.MetadataResumableTaskResponse;
+import org.fable.model.dto.response.PendingMetadataReviewResponse;
 import org.fable.model.dto.response.TaskCancelResponse;
 import org.fable.model.dto.response.TaskCreateResponse;
 import org.fable.model.dto.request.MetadataRefreshRequest;
@@ -35,6 +36,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -63,6 +65,42 @@ public class MetadataTaskService {
     public Optional<MetadataTaskDetailsResponse> getTaskWithProposals(String taskId) {
         return metadataFetchTaskRepository.findById(taskId)
                 .map(this::buildTaskDetailsResponse);
+    }
+
+    /**
+     * Distinct books with FETCHED proposals across all jobs, grouped by task for review dialog launch.
+     */
+    @Transactional(readOnly = true)
+    public PendingMetadataReviewResponse getPendingReviews() {
+        List<MetadataFetchProposalEntity> proposals =
+                proposalRepository.findAllByStatusWithJob(FetchedMetadataProposalStatus.FETCHED);
+
+        LinkedHashSet<Long> bookIds = new LinkedHashSet<>();
+        Map<String, LinkedHashSet<Long>> taskBookIds = new LinkedHashMap<>();
+
+        for (MetadataFetchProposalEntity proposal : proposals) {
+            if (proposal.getBookId() == null || proposal.getJob() == null) {
+                continue;
+            }
+            String taskId = proposal.getJob().getTaskId();
+            bookIds.add(proposal.getBookId());
+            taskBookIds.computeIfAbsent(taskId, ignored -> new LinkedHashSet<>()).add(proposal.getBookId());
+        }
+
+        List<PendingMetadataReviewResponse.PendingReviewTask> tasks = new ArrayList<>();
+        for (Map.Entry<String, LinkedHashSet<Long>> entry : taskBookIds.entrySet()) {
+            tasks.add(PendingMetadataReviewResponse.PendingReviewTask.builder()
+                    .taskId(entry.getKey())
+                    .bookIds(new ArrayList<>(entry.getValue()))
+                    .proposalCount(entry.getValue().size())
+                    .build());
+        }
+
+        return PendingMetadataReviewResponse.builder()
+                .count(bookIds.size())
+                .bookIds(new ArrayList<>(bookIds))
+                .tasks(tasks)
+                .build();
     }
 
     public Optional<TaskCancelResponse> cancelMetadataTask(String taskId) {

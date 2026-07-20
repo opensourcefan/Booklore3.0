@@ -151,6 +151,29 @@ public class BookUpdateService {
         return buildBooksWithProgress(bookEntities, user.getId());
     }
 
+    @BroadcastBookUpdate
+    @Transactional
+    public List<Book> stageForReview(Set<Long> bookIds) {
+        FableUser user = authenticationService.getAuthenticatedUser();
+        List<BookEntity> bookEntities = bookQueryService.findAllWithMetadataByIds(bookIds);
+        List<BookEntity> changed = new ArrayList<>();
+        for (BookEntity bookEntity : bookEntities) {
+            if (Boolean.TRUE.equals(bookEntity.getStaged())) {
+                continue;
+            }
+            bookEntity.setStaged(true);
+            changed.add(bookEntity);
+        }
+        if (changed.isEmpty()) {
+            return List.of();
+        }
+        bookRepository.saveAll(changed);
+        if (user == null) {
+            return changed.stream().map(bookMapper::toBook).collect(Collectors.toList());
+        }
+        return buildBooksWithProgress(changed, user.getId());
+    }
+
     private void updatePdfViewerSettings(long bookId, Long userId, BookViewerSettings settings) {
         if (settings.getPdfSettings() != null) {
             PdfViewerPreferencesEntity prefs = findOrCreatePdfPreferences(bookId, userId);
