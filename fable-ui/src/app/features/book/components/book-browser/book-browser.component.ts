@@ -1022,7 +1022,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(entityType => {
         if (entityType === EntityType.STAGING) {
           this.refreshStagingTriage();
-        } else if (entityType !== EntityType.STAGING && this.stagingTriageMode !== 'staging') {
+        } else if (this.stagingTriageMode !== 'staging') {
           this.stagingTriageMode = 'staging';
           this.applyEffectiveSortCriteria();
         }
