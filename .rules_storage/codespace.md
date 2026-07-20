@@ -337,14 +337,14 @@ Disabled on all security filter chains — by design. All API endpoints are stat
 | Feasibility report | `~/Desktop/2026-07-20-AI_Search_Metadata_Import_Feasibility_Report.html` |
 | Regression / Phone Mode investigation | `~/Desktop/2026-07-20-ISBN_Metadata_Regression_and_Mode_Design.html` |
 
-**Status (v4.16.4+):** Core discovery + multi-pass fill shipped.
+**Status (v4.16.5+):** Core discovery + multi-pass fill shipped.
 - `ParserUtils` checksum validation + candidate extraction
 - `IsbnDiscoveryService` front-matter scan (PDF/EPUB; CBX OCR soft-fail)
 - `IsbnMetadataFillService` multi-pass merge + scoped auto-apply + write-back gate
 - Verified ISBN with empty providers: clear unlocked fields and apply ISBN (no phantom review)
 - Broader ISBN provider chain (all configured field providers + Google fallback)
 - `IsbnDiscoveryTask` live progress from start, proposal review queue, auto-stage for review
-- Staging tablet/desktop **For Review** count toggle + open-review control (`GET /api/metadata/tasks/pending-reviews`)
+- Staging header triage tabs: **Staging / Completed / Review** (`GET /api/metadata/tasks/staging-triage`)
 - Settings keys + Metadata Settings UI section
 - Bookdrop hook when `isbnDiscoveryEnabled` + `isbnDiscoveryOnBookdrop`
 - Tablet/desktop card + bulk menu: “ISBN Discovery & Fill” (hidden in Phone Mode)

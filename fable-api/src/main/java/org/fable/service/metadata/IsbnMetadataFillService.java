@@ -234,6 +234,8 @@ public class IsbnMetadataFillService {
                 .forceFileWrite(writeBack)
                 .build();
         bookMetadataUpdater.setBookMetadata(context);
+        book.setLastMetadataFetchAt(java.time.Instant.now());
+        bookRepository.save(book);
 
         Book updated = bookMapper.toBookWithDescription(book, true);
         notificationService.sendMessage(Topic.BOOK_METADATA_UPDATE, updated);

@@ -81,6 +81,18 @@ export interface PendingMetadataReview {
   tasks: PendingMetadataReviewTask[];
 }
 
+export interface StagingTriage {
+  stagingCount: number;
+  completedCount: number;
+  reviewCount: number;
+  stagingBookIds: number[];
+  completedBookIds: number[];
+  reviewBookIds: number[];
+  reviewTasks: PendingMetadataReviewTask[];
+}
+
+export type StagingTriageMode = 'staging' | 'completed' | 'review';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -98,6 +110,10 @@ export class MetadataTaskService {
 
   getPendingReviews(): Observable<PendingMetadataReview> {
     return this.http.get<PendingMetadataReview>(`${this.url}/pending-reviews`);
+  }
+
+  getStagingTriage(): Observable<StagingTriage> {
+    return this.http.get<StagingTriage>(`${this.url}/staging-triage`);
   }
 
   deleteTask(taskId: string): Observable<void> {

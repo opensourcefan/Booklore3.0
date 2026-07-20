@@ -45,16 +45,46 @@
                   } @else if (entityType === EntityType.NOT_SHELFED) {
                     {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
                   } @else if (entityType === EntityType.STAGING) {
-                    @if (forReviewMode) {
-                      {{ t('labels.stagingForReview', { count: pendingReviewCount }) }}
-                    } @else {
-                      {{ (isFilterActive || hasSearchTerm) ? t('labels.stagingBooksFiltered') : t('labels.stagingBooks') }}
-                    }
+                    {{ t('labels.stagingBooks') }}
                   } @else {
                     {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
                   }
                 </p>
-                @if (entityOptions && entityOptions.length > 0) {
+                @if (canShowStagingTriageChrome) {
+                  <div class="staging-triage-tabs" role="tablist" [attr.aria-label]="t('labels.stagingTriage')">
+                    <button
+                      type="button"
+                      role="tab"
+                      class="staging-triage-tab"
+                      [class.staging-triage-tab--active]="stagingTriageMode === 'staging'"
+                      [attr.aria-selected]="stagingTriageMode === 'staging'"
+                      (click)="setStagingTriageMode('staging')">
+                      <span class="staging-triage-label">{{ t('labels.stagingTab') }}</span>
+                      <span class="staging-triage-badge">{{ stagingInboxCount }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      class="staging-triage-tab"
+                      [class.staging-triage-tab--active]="stagingTriageMode === 'completed'"
+                      [attr.aria-selected]="stagingTriageMode === 'completed'"
+                      (click)="setStagingTriageMode('completed')">
+                      <span class="staging-triage-label">{{ t('labels.completedTab') }}</span>
+                      <span class="staging-triage-badge">{{ stagingCompletedCount }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      class="staging-triage-tab"
+                      [class.staging-triage-tab--active]="stagingTriageMode === 'review'"
+                      [attr.aria-selected]="stagingTriageMode === 'review'"
+                      (click)="setStagingTriageMode('review')">
+                      <span class="staging-triage-label">{{ t('labels.reviewTab') }}</span>
+                      <span class="staging-triage-badge">{{ pendingReviewCount }}</span>
+                    </button>
+                  </div>
+                }
+                @if (entityType !== EntityType.STAGING && entityOptions && entityOptions.length > 0) {
                   <div class="entity-menu-wrapper">
                     <p-button
                       icon="pi pi-ellipsis-v"
@@ -126,36 +156,6 @@
               }
               <i class="pi selection-toggle-chevron" [ngClass]="isSelectionActionPanelOpen ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
             </button>
-
-            @if (canShowStagingReviewChrome) {
-              <button
-                type="button"
-                class="topbar-items topbar-item staging-for-review-toggle"
-                [class.topbar-item--active]="forReviewMode"
-                [disabled]="pendingReviewCount === 0 && !forReviewMode"
-                (click)="toggleForReviewMode()"
-                [pTooltip]="t('tooltip.forReview')"
-                [tooltipDisabled]="isMobile"
-                tooltipPosition="top"
-                [attr.aria-label]="t('labels.forReview', { count: pendingReviewCount })">
-                <i class="pi pi-search"></i>
-                @if (pendingReviewCount > 0) {
-                  <span class="selection-toggle-count">{{ pendingReviewCount }}</span>
-                }
-              </button>
-              @if (pendingReviewCount > 0) {
-                <button
-                  type="button"
-                  class="topbar-items topbar-item"
-                  (click)="openPendingMetadataReview()"
-                  [pTooltip]="t('tooltip.openMetadataReview')"
-                  [tooltipDisabled]="isMobile"
-                  tooltipPosition="top"
-                  [attr.aria-label]="t('tooltip.openMetadataReview')">
-                  <i class="pi pi-list-check"></i>
-                </button>
-              }
-            }
 
             @if (isFilterActive) {
               <button type="button" class="topbar-items topbar-item" (click)="clearFilter()">

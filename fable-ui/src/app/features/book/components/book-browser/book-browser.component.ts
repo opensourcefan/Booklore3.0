@@ -57,7 +57,7 @@ import {MagicShelf} from '../../../magic-shelf/service/magic-shelf.service';
 import {SidebarFilterTogglePrefService} from './filters/sidebar-filter-toggle-pref.service';
 import {MetadataRefreshType} from '../../../metadata/model/request/metadata-refresh-type.enum';
 import {TaskHelperService} from '../../../settings/task-management/task-helper.service';
-import {MetadataTaskService, PendingMetadataReview} from '../../service/metadata-task';
+import {MetadataTaskService, StagingTriage, StagingTriageMode} from '../../service/metadata-task';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {MetadataProgressService} from '../../../../shared/service/metadata-progress.service';
 import {FilterLabelHelper} from './filter-label.helper';
@@ -229,10 +229,15 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   allowFileDeletion = false;
   aiSearchEnabled = false;
   isbnDiscoveryEnabled = false;
-  forReviewMode = false;
+  stagingTriageMode: StagingTriageMode = 'staging';
+  stagingInboxCount = 0;
+  stagingCompletedCount = 0;
   pendingReviewCount = 0;
+  private stagingInboxBookIds = new Set<number>();
+  private stagingCompletedBookIds = new Set<number>();
   private pendingReviewBookIds = new Set<number>();
   private pendingReviewPrimaryTaskId: string | null = null;
+  private lastStagingTriageSignature = '';
   aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isAiSearchActive = false;
   isAiSearchError = false;
@@ -906,7 +911,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const canScan = user?.permissions?.admin || user?.permissions?.canManageLibrary;
     const canConfigure = user?.permissions?.admin || user?.permissions?.canManageGlobalPreferences;
 
-    if (this.aiSearchEnabled && (canScan || canConfigure)) {
+    if (this.aiSearchEnabled && (canScan || canConfigure) && this.entityType !== EntityType.STAGING) {
       const aiItems: MenuItem[] = [];
       if (canScan) {
         aiItems.push({
@@ -931,7 +936,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    this.entityOptions = baseItems;
+    this.entityOptions = this.entityType === EntityType.STAGING ? [] : baseItems;
     this.cdr.markForCheck();
   }
 
@@ -1002,80 +1007,93 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupPendingReviewSubscription(): void {
-    this.refreshPendingReviews();
+    this.refreshStagingTriage();
 
     this.metadataProgressService.progressUpdates$
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
         if (progress.status === 'COMPLETED' || progress.status === 'ERROR' || progress.status === 'CANCELLED') {
-          this.refreshPendingReviews();
+          this.refreshStagingTriage();
         }
       });
 
     this.entityType$
       ?.pipe(takeUntil(this.destroy$))
       .subscribe(entityType => {
-        if (entityType === EntityType.STAGING && !this.mobileUx.isPhone) {
-          this.refreshPendingReviews();
-        } else if (entityType !== EntityType.STAGING && this.forReviewMode) {
-          this.forReviewMode = false;
+        if (entityType === EntityType.STAGING) {
+          this.refreshStagingTriage();
+        } else if (entityType !== EntityType.STAGING && this.stagingTriageMode !== 'staging') {
+          this.stagingTriageMode = 'staging';
           this.applyEffectiveSortCriteria();
         }
       });
   }
 
-  private refreshPendingReviews(): void {
-    if (this.mobileUx.isPhone) {
-      return;
-    }
-    this.metadataTaskService.getPendingReviews()
+  private refreshStagingTriage(): void {
+    this.metadataTaskService.getStagingTriage()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (pending: PendingMetadataReview) => {
-          const previousIds = this.pendingReviewBookIds;
-          this.pendingReviewCount = pending.count ?? 0;
-          this.pendingReviewBookIds = new Set(pending.bookIds ?? []);
-          this.pendingReviewPrimaryTaskId = pending.tasks?.[0]?.taskId ?? null;
-          if (this.forReviewMode && this.pendingReviewCount === 0) {
-            this.forReviewMode = false;
+        next: (triage: StagingTriage) => {
+          this.stagingInboxCount = triage.stagingCount ?? 0;
+          this.stagingCompletedCount = triage.completedCount ?? 0;
+          this.pendingReviewCount = triage.reviewCount ?? 0;
+          this.stagingInboxBookIds = new Set(triage.stagingBookIds ?? []);
+          this.stagingCompletedBookIds = new Set(triage.completedBookIds ?? []);
+          this.pendingReviewBookIds = new Set(triage.reviewBookIds ?? []);
+          this.pendingReviewPrimaryTaskId = triage.reviewTasks?.[0]?.taskId ?? null;
+
+          if (this.stagingTriageMode === 'review' && this.pendingReviewCount === 0) {
+            this.stagingTriageMode = 'staging';
           }
-          const idsChanged = previousIds.size !== this.pendingReviewBookIds.size
-            || [...this.pendingReviewBookIds].some(id => !previousIds.has(id));
-          if (this.forReviewMode && idsChanged) {
+
+          const signature = [
+            this.stagingTriageMode,
+            this.stagingInboxCount,
+            this.stagingCompletedCount,
+            this.pendingReviewCount,
+            [...this.stagingInboxBookIds].join(','),
+            [...this.stagingCompletedBookIds].join(','),
+            [...this.pendingReviewBookIds].join(','),
+          ].join('|');
+
+          if (this.entityType === EntityType.STAGING && signature !== this.lastStagingTriageSignature) {
+            this.lastStagingTriageSignature = signature;
             this.applyEffectiveSortCriteria();
           }
           this.cdr.markForCheck();
         },
         error: () => {
-          // Non-fatal: staging review chrome stays hidden/stale until next refresh.
+          // Non-fatal: triage badges stay stale until next refresh.
         }
       });
   }
 
-  toggleForReviewMode(): void {
-    if (this.mobileUx.isPhone || this.entityType !== EntityType.STAGING) {
+  setStagingTriageMode(mode: StagingTriageMode): void {
+    if (this.entityType !== EntityType.STAGING) {
       return;
     }
-    if (this.pendingReviewCount === 0 && !this.forReviewMode) {
+    if (mode === 'review' && this.stagingTriageMode === 'review' && this.pendingReviewPrimaryTaskId) {
+      this.openPendingMetadataReview();
       return;
     }
-    this.forReviewMode = !this.forReviewMode;
-    if (this.forReviewMode) {
-      this.refreshPendingReviews();
+    if (this.stagingTriageMode === mode) {
+      return;
     }
+    this.stagingTriageMode = mode;
+    this.lastStagingTriageSignature = '';
     this.applyEffectiveSortCriteria();
     this.cdr.markForCheck();
   }
 
   openPendingMetadataReview(): void {
-    if (this.mobileUx.isPhone || !this.pendingReviewPrimaryTaskId) {
+    if (!this.pendingReviewPrimaryTaskId) {
       return;
     }
     this.dialogLauncherService.openMetadataReviewDialog(this.pendingReviewPrimaryTaskId);
   }
 
-  get canShowStagingReviewChrome(): boolean {
-    return this.entityType === EntityType.STAGING && !this.mobileUx.isPhone;
+  get canShowStagingTriageChrome(): boolean {
+    return this.entityType === EntityType.STAGING;
   }
 
   private setupAppSettingsSubscription(): void {
@@ -2259,6 +2277,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           this.pagedBookBrowserStateService.invalidateEntity('STAGING');
           void this.bookService.refreshBooks().subscribe();
           this.bookSelectionService.deselectAll();
+          this.refreshStagingTriage();
           this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
         },
         error: () => {
@@ -2765,10 +2784,22 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       primarySort
     ).pipe(
       map(filtered => {
-        if (!this.forReviewMode || this.entityType !== EntityType.STAGING || this.mobileUx.isPhone) {
+        if (this.entityType !== EntityType.STAGING) {
           return filtered;
         }
-        const books = (filtered.books || []).filter(book => this.pendingReviewBookIds.has(book.id));
+        const allowedIds = this.stagingTriageMode === 'review'
+          ? this.pendingReviewBookIds
+          : this.stagingTriageMode === 'completed'
+            ? this.stagingCompletedBookIds
+            : this.stagingInboxBookIds;
+        // Until triage loads, keep the full staged set visible for the default Staging tab.
+        if (this.stagingTriageMode === 'staging'
+          && this.stagingInboxBookIds.size === 0
+          && this.stagingCompletedBookIds.size === 0
+          && this.pendingReviewBookIds.size === 0) {
+          return filtered;
+        }
+        const books = (filtered.books || []).filter(book => allowedIds.has(book.id));
         return {...filtered, books};
       })
     );

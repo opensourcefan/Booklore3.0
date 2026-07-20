@@ -11,12 +11,14 @@ import org.fable.model.dto.response.MetadataTaskLogResponse;
 import org.fable.model.dto.response.MetadataTaskDetailsResponse;
 import org.fable.model.dto.response.MetadataResumableTaskResponse;
 import org.fable.model.dto.response.PendingMetadataReviewResponse;
+import org.fable.model.dto.response.StagingTriageResponse;
 import org.fable.model.dto.response.TaskCancelResponse;
 import org.fable.model.dto.response.TaskCreateResponse;
 import org.fable.model.dto.request.MetadataRefreshRequest;
 import org.fable.model.dto.request.TaskCreateRequest;
 import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookFileEntity;
+import org.fable.model.entity.BookMetadataEntity;
 import org.fable.model.entity.MetadataFetchJobEntity;
 import org.fable.model.entity.MetadataFetchProposalEntity;
 import org.fable.model.entity.TaskHistoryEntity;
@@ -101,6 +103,55 @@ public class MetadataTaskService {
                 .bookIds(new ArrayList<>(bookIds))
                 .tasks(tasks)
                 .build();
+    }
+
+    /**
+     * Exclusive Staging triage buckets: inbox (Staging), Completed, Review.
+     * Review (FETCHED proposals) wins; Completed = metadata applied/fetched; else Staging inbox.
+     */
+    @Transactional(readOnly = true)
+    public StagingTriageResponse getStagingTriage() {
+        PendingMetadataReviewResponse pending = getPendingReviews();
+        LinkedHashSet<Long> reviewIds = new LinkedHashSet<>(pending.getBookIds());
+
+        List<Long> stagingIds = new ArrayList<>();
+        List<Long> completedIds = new ArrayList<>();
+
+        for (BookEntity book : bookRepository.findAllStagedWithMetadata()) {
+            Long id = book.getId();
+            if (id == null) {
+                continue;
+            }
+            if (reviewIds.contains(id)) {
+                continue;
+            }
+            if (isStagingCompleted(book)) {
+                completedIds.add(id);
+            } else {
+                stagingIds.add(id);
+            }
+        }
+
+        // Include review books that are not currently staged so the Review tab still lists them.
+        List<Long> reviewBookIds = new ArrayList<>(reviewIds);
+
+        return StagingTriageResponse.builder()
+                .stagingCount(stagingIds.size())
+                .completedCount(completedIds.size())
+                .reviewCount(reviewBookIds.size())
+                .stagingBookIds(stagingIds)
+                .completedBookIds(completedIds)
+                .reviewBookIds(reviewBookIds)
+                .reviewTasks(pending.getTasks())
+                .build();
+    }
+
+    private static boolean isStagingCompleted(BookEntity book) {
+        if (book.getLastMetadataFetchAt() != null) {
+            return true;
+        }
+        BookMetadataEntity metadata = book.getMetadata();
+        return metadata != null && Boolean.TRUE.equals(metadata.getIsbnVerified());
     }
 
     public Optional<TaskCancelResponse> cancelMetadataTask(String taskId) {
