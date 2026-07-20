@@ -136,6 +136,42 @@ class IsbnDiscoveryServiceTest {
     }
 
     @Test
+    void discoverFromFile_findsIsbnOnPdfBackCover_whenMissingFromFront() throws Exception {
+        AppSettings settings = new AppSettings();
+        settings.setIsbnDiscoveryEnabled(true);
+        settings.setMaxFrontMatterPages(2);
+        settings.setUseOcrForIsbnDiscovery(false);
+        when(appSettingService.getAppSettings()).thenReturn(settings);
+
+        java.io.File pdf = java.io.File.createTempFile("isbn-back-cover-", ".pdf");
+        pdf.deleteOnExit();
+        try (org.apache.pdfbox.pdmodel.PDDocument doc = new org.apache.pdfbox.pdmodel.PDDocument()) {
+            // 6 pages: front window is 1–2; back window is 5–6. ISBN only on last page.
+            for (int i = 0; i < 6; i++) {
+                org.apache.pdfbox.pdmodel.PDPage page = new org.apache.pdfbox.pdmodel.PDPage();
+                doc.addPage(page);
+                if (i == 5) {
+                    try (org.apache.pdfbox.pdmodel.PDPageContentStream cs =
+                                 new org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)) {
+                        cs.beginText();
+                        cs.setFont(new org.apache.pdfbox.pdmodel.font.PDType1Font(
+                                org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA), 12);
+                        cs.newLineAtOffset(50, 700);
+                        cs.showText("ISBN-13: 978-0-306-40615-7");
+                        cs.endText();
+                    }
+                }
+            }
+            doc.save(pdf);
+        }
+
+        IsbnDiscoveryResult result = service.discoverFromFile(pdf, BookMetadata.builder().title("T").build());
+
+        assertThat(result.getStatus()).isEqualTo(IsbnDiscoveryResult.Status.FOUND);
+        assertThat(result.getIsbn13()).isEqualTo("9780306406157");
+    }
+
+    @Test
     void buildClearUnlockedFlags_skipsLockedFields() {
         org.fable.model.entity.BookMetadataEntity entity = new org.fable.model.entity.BookMetadataEntity();
         entity.setTitleLocked(true);

@@ -31,11 +31,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * Discovers ISBN identifiers from front-matter text (first N pages/spine items).
+ * Discovers ISBN identifiers from front and back matter (first/last N pages or spine items).
  * Does not use vector embeddings. OCR soft-fails when the AI Search sidecar is unavailable.
  */
 @Slf4j
@@ -190,32 +192,77 @@ public class IsbnDiscoveryService {
     }
 
     private FrontMatterExtract extractPdfFrontMatter(File file, int maxPages, boolean useOcr) throws Exception {
+        try (PDDocument document = Loader.loadPDF(file)) {
+            int totalPages = document.getNumberOfPages();
+            if (totalPages <= 0) {
+                return new FrontMatterExtract("", false, false);
+            }
+
+            Set<Integer> frontPages = pageIndexRange(0, Math.min(totalPages, maxPages));
+            PageScanResult front = scanPdfPages(document, frontPages, useOcr, file.getName());
+            if (!ParserUtils.findIsbnCandidates(front.text()).isEmpty()) {
+                return toExtract(front);
+            }
+
+            // Copyright / barcode ISBN is often on the last page (back cover) or trailing pages.
+            int backStart = Math.max(0, totalPages - maxPages);
+            Set<Integer> backPages = pageIndexRange(backStart, totalPages);
+            backPages.removeAll(frontPages);
+            if (backPages.isEmpty()) {
+                log.info("ISBN discovery: no ISBN in first {} page(s) of {} (book has only {} page(s))",
+                        frontPages.size(), file.getName(), totalPages);
+                return toExtract(front);
+            }
+
+            log.info("ISBN discovery: no ISBN in first {} page(s) of {}; scanning last {} page(s) (incl. back cover)",
+                    frontPages.size(), file.getName(), backPages.size());
+            PageScanResult back = scanPdfPages(document, backPages, useOcr, file.getName());
+            return new FrontMatterExtract(
+                    front.text() + '\n' + back.text(),
+                    front.ocrAttempted() || back.ocrAttempted(),
+                    front.ocrSucceeded() || back.ocrSucceeded());
+        }
+    }
+
+    private PageScanResult scanPdfPages(PDDocument document, Set<Integer> pageIndices, boolean useOcr, String fileName)
+            throws Exception {
         StringBuilder text = new StringBuilder();
         boolean ocrAttempted = false;
         boolean ocrSucceeded = false;
+        PDFTextStripper stripper = new PDFTextStripper();
+        Map<Integer, String> pageTexts = new LinkedHashMap<>();
 
-        try (PDDocument document = Loader.loadPDF(file)) {
-            int pageCount = Math.min(document.getNumberOfPages(), maxPages);
-            PDFTextStripper stripper = new PDFTextStripper();
-            String[] pageTexts = new String[pageCount];
+        for (int pageIndex : pageIndices) {
+            int pageNumber = pageIndex + 1;
+            stripper.setStartPage(pageNumber);
+            stripper.setEndPage(pageNumber);
+            String pageText = stripper.getText(document);
+            pageTexts.put(pageIndex, pageText != null ? pageText : "");
+            if (!pageTexts.get(pageIndex).isBlank()) {
+                text.append(pageTexts.get(pageIndex)).append('\n');
+            }
+        }
 
-            for (int page = 1; page <= pageCount; page++) {
-                stripper.setStartPage(page);
-                stripper.setEndPage(page);
-                String pageText = stripper.getText(document);
-                pageTexts[page - 1] = pageText != null ? pageText : "";
-                if (!pageTexts[page - 1].isBlank()) {
-                    text.append(pageTexts[page - 1]).append('\n');
+        List<ParserUtils.IsbnCandidate> textCandidates = ParserUtils.findIsbnCandidates(text.toString());
+        if (textCandidates.isEmpty() && useOcr) {
+            for (int pageIndex : pageIndices) {
+                if (!pageNeedsOcrForIsbn(pageTexts.get(pageIndex))) {
+                    continue;
+                }
+                ocrAttempted = true;
+                String ocrText = softOcrPdfPage(document, pageIndex);
+                if (ocrText != null && !ocrText.isBlank()) {
+                    ocrSucceeded = true;
+                    text.append(ocrText).append('\n');
+                    log.info("ISBN OCR succeeded on page {} of {}", pageIndex + 1, fileName);
+                } else {
+                    log.debug("ISBN OCR returned empty/failed on page {} of {}", pageIndex + 1, fileName);
                 }
             }
 
-            // Text layer alone is enough when it already yields a checksum-valid ISBN.
-            // Otherwise OCR pages that lack ISBN-like signals (blank, page numbers only,
-            // or body text with the ISBN only in an embedded image — common on scanned PDFs).
-            List<ParserUtils.IsbnCandidate> textCandidates = ParserUtils.findIsbnCandidates(text.toString());
-            if (textCandidates.isEmpty() && useOcr) {
-                for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
-                    if (!pageNeedsOcrForIsbn(pageTexts[pageIndex])) {
+            if (ParserUtils.findIsbnCandidates(text.toString()).isEmpty()) {
+                for (int pageIndex : pageIndices) {
+                    if (pageNeedsOcrForIsbn(pageTexts.get(pageIndex))) {
                         continue;
                     }
                     ocrAttempted = true;
@@ -223,36 +270,27 @@ public class IsbnDiscoveryService {
                     if (ocrText != null && !ocrText.isBlank()) {
                         ocrSucceeded = true;
                         text.append(ocrText).append('\n');
-                        log.info("ISBN OCR succeeded on page {} of {}", pageIndex + 1, file.getName());
-                    } else {
-                        log.debug("ISBN OCR returned empty/failed on page {} of {}", pageIndex + 1, file.getName());
+                        log.info("ISBN OCR fallback succeeded on page {} of {}", pageIndex + 1, fileName);
                     }
                 }
-
-                // If selective OCR still found nothing ISBN-like, OCR remaining pages once.
-                // Covers the case where the text layer had a false ISBN-like signal (e.g. order id)
-                // that blocked OCR on the real copyright page.
-                if (ParserUtils.findIsbnCandidates(text.toString()).isEmpty()) {
-                    for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
-                        if (pageNeedsOcrForIsbn(pageTexts[pageIndex])) {
-                            continue; // already attempted above
-                        }
-                        ocrAttempted = true;
-                        String ocrText = softOcrPdfPage(document, pageIndex);
-                        if (ocrText != null && !ocrText.isBlank()) {
-                            ocrSucceeded = true;
-                            text.append(ocrText).append('\n');
-                            log.info("ISBN OCR fallback succeeded on page {} of {}", pageIndex + 1, file.getName());
-                        }
-                    }
-                }
-            } else if (textCandidates.isEmpty() && !useOcr) {
-                log.info("ISBN discovery: no text-layer ISBN in first {} page(s) of {} and OCR is disabled",
-                        pageCount, file.getName());
             }
+        } else if (textCandidates.isEmpty() && !useOcr) {
+            log.info("ISBN discovery: no text-layer ISBN in scanned page(s) of {} and OCR is disabled", fileName);
         }
 
-        return new FrontMatterExtract(text.toString(), ocrAttempted, ocrSucceeded);
+        return new PageScanResult(text.toString(), ocrAttempted, ocrSucceeded);
+    }
+
+    private static Set<Integer> pageIndexRange(int startInclusive, int endExclusive) {
+        Set<Integer> pages = new LinkedHashSet<>();
+        for (int i = startInclusive; i < endExclusive; i++) {
+            pages.add(i);
+        }
+        return pages;
+    }
+
+    private static FrontMatterExtract toExtract(PageScanResult result) {
+        return new FrontMatterExtract(result.text(), result.ocrAttempted(), result.ocrSucceeded());
     }
 
     /**
@@ -272,18 +310,42 @@ public class IsbnDiscoveryService {
         StringBuilder text = new StringBuilder();
         try {
             int spineSize = EpubContentReader.getSpineSize(file);
-            int limit = Math.min(spineSize, maxPages);
-            for (int i = 0; i < limit; i++) {
-                String html = EpubContentReader.getSpineItemContent(file, i);
-                String pageText = Jsoup.parse(html).text();
-                if (pageText != null && !pageText.isBlank()) {
-                    text.append(pageText).append('\n');
-                }
+            if (spineSize <= 0) {
+                return new FrontMatterExtract("", false, false);
+            }
+
+            Set<Integer> frontItems = pageIndexRange(0, Math.min(spineSize, maxPages));
+            appendEpubSpineText(file, frontItems, text);
+            if (!ParserUtils.findIsbnCandidates(text.toString()).isEmpty()) {
+                return new FrontMatterExtract(text.toString(), false, false);
+            }
+
+            int backStart = Math.max(0, spineSize - maxPages);
+            Set<Integer> backItems = pageIndexRange(backStart, spineSize);
+            backItems.removeAll(frontItems);
+            if (!backItems.isEmpty()) {
+                log.info("ISBN discovery: no ISBN in first {} EPUB spine item(s) of {}; scanning last {} item(s)",
+                        frontItems.size(), file.getName(), backItems.size());
+                appendEpubSpineText(file, backItems, text);
             }
         } catch (Exception e) {
             log.debug("EPUB front-matter extract failed for {}: {}", file.getName(), e.getMessage());
         }
         return new FrontMatterExtract(text.toString(), false, false);
+    }
+
+    private static void appendEpubSpineText(File file, Set<Integer> spineIndices, StringBuilder text) {
+        for (int i : spineIndices) {
+            try {
+                String html = EpubContentReader.getSpineItemContent(file, i);
+                String pageText = Jsoup.parse(html).text();
+                if (pageText != null && !pageText.isBlank()) {
+                    text.append(pageText).append('\n');
+                }
+            } catch (Exception e) {
+                // Skip unreadable spine items; discovery continues with other pages.
+            }
+        }
     }
 
     /**
@@ -357,6 +419,9 @@ public class IsbnDiscoveryService {
     }
 
     private record FrontMatterExtract(String text, boolean ocrAttempted, boolean ocrSucceeded) {
+    }
+
+    private record PageScanResult(String text, boolean ocrAttempted, boolean ocrSucceeded) {
     }
 
     private record ScoredCandidate(ParserUtils.IsbnCandidate candidate, int score) {

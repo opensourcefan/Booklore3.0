@@ -416,6 +416,12 @@ public class BookMetadataService {
             return;
         }
 
+        // Completed Staging triage keys off lastMetadataFetchAt / isbnVerified.
+        // A full wipe should return the book to the Staged inbox.
+        book.setLastMetadataFetchAt(null);
+        metadata.setIsbnVerified(Boolean.FALSE);
+        metadata.setIsbnWrittenToFile(Boolean.FALSE);
+
         String fallbackTitle = resolveFilenameFallbackTitle(book);
 
         metadata.applyLockToAllFields(false);

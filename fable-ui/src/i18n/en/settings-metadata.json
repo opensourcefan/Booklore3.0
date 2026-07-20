@@ -9,7 +9,7 @@
   },
   "isbnDiscovery": {
     "sectionTitle": "ISBN Discovery",
-    "sectionDesc": "Scan the first pages of each book for a checksum-valid ISBN, then fetch metadata using that ISBN as ground truth. Designed to fill large libraries with minimal manual review.",
+    "sectionDesc": "Scan the first and last pages of each book for a checksum-valid ISBN (copyright page or back cover), then fetch metadata using that ISBN as ground truth. Designed to fill large libraries with minimal manual review.",
     "enableLabel": "Enable ISBN discovery",
     "onBookdropLabel": "Run ISBN discovery on Bookdrop imports",
     "onLibraryScanLabel": "Run ISBN discovery during library scans (off by default — heavy)",
@@ -19,7 +19,8 @@
     "reviewBeforeApplyHint": "Leave off to auto-apply when ISBN is verified. Ambiguous or failed discoveries still go to review. Does not change the global metadata refresh review default.",
     "writeBackLabel": "Write ISBN-fetched metadata to original files",
     "writeBackHint": "Default off. When on, also sets a searchable “written to file” flag. Still requires format write-back to be enabled in Persistence settings.",
-    "maxPagesLabel": "Max front-matter pages to scan"
+    "maxPagesLabel": "Max pages to scan (front and back)",
+    "maxPagesHint": "Scans the first N pages, then the last N pages (including the back cover) if no ISBN is found up front."
   },
   "persistence": {
     "sectionTitle": "Metadata Persistence",

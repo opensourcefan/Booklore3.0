@@ -628,19 +628,6 @@
                   <span class="selected-count">{{ selectedCount }}</span>
                   <span class="selected-label">{{ t('labels.selected') }}</span>
                 </div>
-                @if ((entityType$ | async) === EntityType.STAGING) {
-                  <p-button
-                    styleClass="staging-release-action"
-                    icon="pi pi-check"
-                    [label]="t('labels.release')"
-                    severity="success"
-                    [disabled]="selectedCount === 0"
-                    (onClick)="releaseFromStaging()"
-                    [pTooltip]="t('tooltip.releaseFromStaging')"
-                    tooltipPosition="top"
-                    [attr.aria-label]="t('tooltip.releaseFromStaging')">
-                  </p-button>
-                }
               </div>
               @if (hasHiddenSelections) {
                 <div class="selection-visibility-hint">

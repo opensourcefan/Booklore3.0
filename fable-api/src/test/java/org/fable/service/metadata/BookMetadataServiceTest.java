@@ -668,6 +668,39 @@ class BookMetadataServiceTest {
                 }
 
                 @Test
+                void wipeBookMetadata_clearsStagingCompletedFlags() {
+                        BookMetadataEntity metadataEntity = BookMetadataEntity.builder()
+                                        .bookId(1L)
+                                        .title("Title")
+                                        .isbnVerified(Boolean.TRUE)
+                                        .isbnWrittenToFile(Boolean.TRUE)
+                                        .authors(new ArrayList<>())
+                                        .categories(new HashSet<>())
+                                        .moods(new HashSet<>())
+                                        .tags(new HashSet<>())
+                                        .build();
+
+                        BookEntity bookEntity = BookEntity.builder()
+                                        .id(1L)
+                                        .staged(true)
+                                        .lastMetadataFetchAt(java.time.Instant.parse("2026-07-20T12:00:00Z"))
+                                        .metadata(metadataEntity)
+                                        .bookFiles(new ArrayList<>())
+                                        .build();
+                        metadataEntity.setBook(bookEntity);
+
+                        when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(bookEntity));
+                        when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
+
+                        service.wipeBookMetadata(1L);
+
+                        assertThat(bookEntity.getLastMetadataFetchAt()).isNull();
+                        assertThat(metadataEntity.getIsbnVerified()).isFalse();
+                        assertThat(metadataEntity.getIsbnWrittenToFile()).isFalse();
+                        assertThat(bookEntity.getStaged()).isTrue();
+                }
+
+                @Test
                 void wipeBookMetadata_clearsTitleWhenNoFilenameFallbackExists() {
                         BookMetadataEntity metadataEntity = BookMetadataEntity.builder()
                                         .bookId(1L)
