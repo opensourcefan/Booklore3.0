@@ -20,11 +20,9 @@
                 }
                 <span class="notification-timestamp">{{ formatTimestamp(notification.timestamp) }}</span>
               </div>
-              @if (notification.id !== undefined && notification.id !== null) {
-                <button class="notification-close-btn" type="button" (click)="dismissNotification(notification.id)" [attr.aria-label]="t('dismissAria')">
-                  <i class="pi pi-times"></i>
-                </button>
-              }
+              <button class="notification-close-btn" type="button" (click)="dismissNotification(notification)" [attr.aria-label]="t('dismissAria')">
+                <i class="pi pi-times"></i>
+              </button>
             </div>
             <p class="notification-message">{{ notification.message }}</p>
           </div>

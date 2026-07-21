@@ -35,7 +35,7 @@ The workspace root is `/home/michael/fable`. When working with file paths, remem
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
-| Latest documented tag | `v4.16.20` |
+| Latest documented tag | `v4.16.21` |
 | GitHub owner | `opensourcefan` |
 
 ### Branch naming conventions
@@ -218,8 +218,8 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend/frontend version: `4.16.20` (in `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest documented git tag: `v4.16.20`
+- Backend/frontend version: `4.16.21` (in `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest documented git tag: `v4.16.21`
 
 ### Documentation Parity
 
@@ -294,6 +294,10 @@ The app has a dedicated mobile UX system built around three services:
 **Desktop-touch overlay dismiss** (`shared/util/overlay-dismiss.util.ts`)
 - `GhostClickGuard` + `shouldDismissOverlay()` ignore synthetic follow-up pointer/click events for ~400ms after a reader overlay opens
 - Used by CBX/ebook quick settings, header menus, sidebars, note/shortcuts/settings dialogs, PDF bookmark dialog, and selection popup — prevents flash-closed menus on Linux/Chromium tablets that emulate a mouse under touch
+
+**Desktop-touch book-card TieredMenu** (`book-card.component`)
+- On tablet/desktop touch digitizers (`isTouchDigitizerChrome`), `autoDisplay` is false so Delete/Metadata/More Actions open on click
+- Avoids PrimeNG hover-open + synthetic-click collapse race; Phone Mode keeps hover `autoDisplay` (≤960px accordion path unchanged)
 
 ### Key DTOs
 

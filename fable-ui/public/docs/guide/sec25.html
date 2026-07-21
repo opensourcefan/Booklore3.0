@@ -736,10 +736,11 @@
 <p>Background work uses the same topbar bell described in Section 4. Quick reminder of how Tasks settings interact with it:</p>
 <ul>
   <li><strong>Bell &rarr; Tasks</strong> &mdash; Live progress for metadata jobs, AI Search scans, BookDrop pending files, and system jobs while they are running</li>
-  <li><strong>Notifications tab</strong> &mdash; Durable <strong>WARN</strong>/<strong>ERROR</strong> failure inbox only (not success chatter). Failures persist across restarts until you dismiss them</li>
+  <li><strong>Notifications tab</strong> &mdash; Durable <strong>WARN</strong>/<strong>ERROR</strong> failure inbox only (not success chatter). Failures persist across restarts until you dismiss them (dismiss deletes the stored row so a reload does not bring them back)</li>
   <li><strong>Error notifications</strong> toggle (per scheduled task) &mdash; When on, scheduled task failures appear in the Notifications inbox. Successful runs are recorded under <strong>Recent runs</strong> only</li>
   <li><strong>Recent runs</strong> &mdash; Expand this on a task card in Settings &rarr; Tasks for the detailed history of scheduled and manual runs with status and messages</li>
   <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do, Fable usually suppresses a bell entry so you only see actionable results</li>
+  <li><strong>Dismiss</strong> on a Tasks-tab metadata card &mdash; Hides that task notification without discarding Staging review proposals; the hide survives browser reload while the task still exists</li>
   <li><strong>Dismiss All</strong> &mdash; Clears the failure inbox from the Notifications tab</li>
 </ul>
 

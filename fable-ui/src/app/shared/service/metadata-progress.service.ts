@@ -3,6 +3,7 @@ import {BehaviorSubject, Subject, Subscription, timer} from 'rxjs';
 import {MetadataBatchProgressNotification} from '../model/metadata-batch-progress.model';
 import {MetadataTaskService} from '../../features/book/service/metadata-task';
 import {UserService} from '../../features/settings/user-management/user.service';
+import {LocalStorageService} from './local-storage.service';
 import {filter, switchMap, take} from 'rxjs/operators';
 
 export function mergeMetadataTaskProgress(
@@ -26,6 +27,8 @@ export function mergeMetadataTaskProgress(
   };
 }
 
+const DISMISSED_TASKS_STORAGE_KEY = 'bl-dismissed-metadata-task-ids';
+
 @Injectable({providedIn: 'root'})
 export class MetadataProgressService implements OnDestroy {
   private progressMap = new Map<string, BehaviorSubject<MetadataBatchProgressNotification>>();
@@ -39,10 +42,13 @@ export class MetadataProgressService implements OnDestroy {
 
   private metadataTaskService = inject(MetadataTaskService);
   private userService = inject(UserService);
+  private localStorageService = inject(LocalStorageService);
 
   private subscriptions = new Subscription();
 
   constructor() {
+    this.restoreDismissedTaskIds();
+
     const sub = this.userService.userState$
       .pipe(
         filter(userState => !!userState?.user),
@@ -101,6 +107,7 @@ export class MetadataProgressService implements OnDestroy {
 
   clearTask(taskId: string): void {
     this.dismissedTaskIds.delete(taskId);
+    this.persistDismissedTaskIds();
     this.progressMap.delete(taskId);
     this.activeTasksSubject.next(this.getActiveTasks());
   }
@@ -108,6 +115,7 @@ export class MetadataProgressService implements OnDestroy {
   /** Hide a notification locally without deleting its task or review proposals. */
   dismissTask(taskId: string): void {
     this.dismissedTaskIds.add(taskId);
+    this.persistDismissedTaskIds();
     this.progressMap.delete(taskId);
     this.activeTasksSubject.next(this.getActiveTasks());
   }
@@ -132,6 +140,7 @@ export class MetadataProgressService implements OnDestroy {
         this.dismissedTaskIds.delete(taskId);
       }
     }
+    this.persistDismissedTaskIds();
 
     for (const taskId of this.progressMap.keys()) {
       if (!incomingTaskIds.has(taskId)) {
@@ -154,6 +163,22 @@ export class MetadataProgressService implements OnDestroy {
       this.progressUpdatesSubject.next(mergedTask);
     }
     this.activeTasksSubject.next(this.getActiveTasks());
+  }
+
+  private restoreDismissedTaskIds(): void {
+    const saved = this.localStorageService.get<string[]>(DISMISSED_TASKS_STORAGE_KEY);
+    if (!Array.isArray(saved)) {
+      return;
+    }
+    for (const taskId of saved) {
+      if (typeof taskId === 'string' && taskId.length > 0) {
+        this.dismissedTaskIds.add(taskId);
+      }
+    }
+  }
+
+  private persistDismissedTaskIds(): void {
+    this.localStorageService.trySet(DISMISSED_TASKS_STORAGE_KEY, [...this.dismissedTaskIds]);
   }
 
   ngOnDestroy(): void {

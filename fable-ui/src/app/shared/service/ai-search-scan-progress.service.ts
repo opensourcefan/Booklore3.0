@@ -1,9 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {filter} from 'rxjs/operators';
-import {MessageService} from 'primeng/api';
-import {NotificationEventService} from '../websocket/notification-event.service';
-import {Severity} from '../websocket/model/log-notification.model';
+import {FailureNotificationService} from './failure-notification.service';
 import {RxStompService} from '../websocket/rx-stomp.service';
 import {RxStompState} from '@stomp/rx-stomp';
 
@@ -20,8 +18,7 @@ export interface AiSearchProgressPayload {
 
 @Injectable({providedIn: 'root'})
 export class AiSearchScanProgressService {
-  private readonly messageService = inject(MessageService);
-  private readonly notificationService = inject(NotificationEventService);
+  private readonly failureNotifications = inject(FailureNotificationService);
   private readonly rxStompService = inject(RxStompService);
   private readonly progressSubject = new BehaviorSubject<AiSearchProgressPayload | null>(null);
   private readonly embeddingBookIdsSubject = new BehaviorSubject<Set<number>>(new Set());
@@ -68,23 +65,14 @@ export class AiSearchScanProgressService {
       }, 5000);
     }
 
-    // Instead of toast notifications, log to the system notification button dropdown
-    const detail = this.buildStatusText(progress);
-    const completionSummary = this.buildCompletionSummary(progress);
-    const messageText = completionSummary || detail;
-
-    let severity: Severity = Severity.INFO;
+    // Persist terminal failures into the durable Notifications inbox (with id)
+    // so dismiss survives reload. Ephemeral progress stays on the Tasks tab.
+    // Intentional STOPPED stays Tasks-only (not a failure).
     if (progress.event === 'FAILED') {
-      severity = Severity.ERROR;
-    } else if (progress.event === 'STOPPED') {
-      severity = Severity.WARN;
+      const detail = this.buildStatusText(progress);
+      const completionSummary = this.buildCompletionSummary(progress);
+      this.failureNotifications.reportSafe('AI Search failed', completionSummary || detail);
     }
-
-    this.notificationService.handleNewNotification({
-      timestamp: new Date().toLocaleTimeString(),
-      message: messageText,
-      severity
-    });
 
     this.updateReaderToast(progress);
   }

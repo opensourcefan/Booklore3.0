@@ -917,9 +917,11 @@ describe('BookCardComponent', () => {
     vi.spyOn(mobileUx, 'isDesktop', 'get').mockReturnValue(true);
     vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(true);
     expect(component.isTouchDigitizerChrome).toBe(true);
+    expect(component.tieredMenuAutoDisplay).toBe(false);
 
     vi.spyOn(mobileUx, 'hasTouchInput', 'get').mockReturnValue(false);
     expect(component.isTouchDigitizerChrome).toBe(false);
+    expect(component.tieredMenuAutoDisplay).toBe(true);
 
     component.screenWidth = 390;
     component.screenHeight = 844;
@@ -927,6 +929,14 @@ describe('BookCardComponent', () => {
     vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(true);
     expect(component.isMobileInteractionMode).toBe(true);
     expect(component.isTouchDigitizerChrome).toBe(false);
+    expect(component.tieredMenuAutoDisplay).toBe(true);
+  });
+
+  it('templates TieredMenu autoDisplay from tieredMenuAutoDisplay (desktop-touch click open)', () => {
+    const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
+    const template = readFileSync(templatePath, 'utf8');
+    expect(template).toContain('[autoDisplay]="tieredMenuAutoDisplay"');
+    expect(template).not.toMatch(/\[autoDisplay\]="true"/);
   });
 
   it('emits cover preview on touch pointerdown when touch-digitizer chrome is active', () => {

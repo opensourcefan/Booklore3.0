@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {filter, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {catchError, filter, map} from 'rxjs/operators';
 import {
   formatNotificationTime,
   isInboxSeverity,
@@ -32,6 +32,9 @@ export class NotificationEventService {
   private unreadFailureCountSubject = new BehaviorSubject<number>(0);
   unreadFailureCount$ = this.unreadFailureCountSubject.asObservable();
 
+  /** Ignores stale GET /recent responses that race with deletes. */
+  private fetchGeneration = 0;
+
   handleNewNotification(notification: LogNotification, highlight = true): void {
     const normalized: LogNotification = {
       ...notification,
@@ -58,13 +61,18 @@ export class NotificationEventService {
   }
 
   fetchHistoricalNotifications(): void {
+    const generation = ++this.fetchGeneration;
     this.http.get<LogNotification[]>(`${API_CONFIG.BASE_URL}/api/v1/notifications/recent?limit=50`)
       .subscribe({
         next: (notifications) => {
+          if (generation !== this.fetchGeneration) {
+            return;
+          }
           const mapped = (notifications ?? [])
             .filter(n => isInboxSeverity(n.severity))
             .map(n => ({
               ...n,
+              id: n.id != null ? Number(n.id) : undefined,
               message: this.stripHtml(n.message),
               timestamp: n.timestamp ?? undefined
             }));
@@ -78,37 +86,77 @@ export class NotificationEventService {
   }
 
   deleteNotification(id: number): Observable<void> {
-    return this.http.delete<void>(`${API_CONFIG.BASE_URL}/api/v1/notifications/${id}`).pipe(
-      tap(() => {
-        const remaining = this.historicalNotificationsSubject.value.filter(n => n.id !== id);
-        this.historicalNotificationsSubject.next(remaining);
-        this.unreadFailureCountSubject.next(remaining.length);
-        const active = this.latestNotificationSubject.value;
-        if (active?.id === id) {
-          this.clearNotification();
-        }
+    const numericId = Number(id);
+    this.removeHistoricalById(numericId);
+    return this.http.delete(`${API_CONFIG.BASE_URL}/api/v1/notifications/${numericId}`, {
+      responseType: 'text'
+    }).pipe(
+      map(() => undefined),
+      catchError(err => {
+        console.warn('Failed to delete notification', err);
+        this.fetchHistoricalNotifications();
+        return of(undefined);
       })
     );
   }
 
   deleteAllNotifications(): Observable<void> {
-    return this.http.delete<void>(`${API_CONFIG.BASE_URL}/api/v1/notifications`).pipe(
-      tap(() => {
-        this.historicalNotificationsSubject.next([]);
-        this.latestNotificationSubject.next(null);
-        this.notificationHighlightSubject.next(false);
-        this.unreadFailureCountSubject.next(0);
+    this.fetchGeneration++;
+    this.historicalNotificationsSubject.next([]);
+    this.latestNotificationSubject.next(null);
+    this.notificationHighlightSubject.next(false);
+    this.unreadFailureCountSubject.next(0);
+    return this.http.delete(`${API_CONFIG.BASE_URL}/api/v1/notifications`, {
+      responseType: 'text'
+    }).pipe(
+      map(() => undefined),
+      catchError(err => {
+        this.fetchHistoricalNotifications();
+        console.warn('Failed to delete all notifications', err);
+        return of(undefined);
       })
     );
+  }
+
+  /** Remove a client-only (no id) inbox row without a backend round-trip. */
+  dismissLocalNotification(notification: LogNotification): void {
+    if (notification.id != null) {
+      this.deleteNotification(Number(notification.id)).subscribe();
+      return;
+    }
+    const remaining = this.historicalNotificationsSubject.value.filter(n => n !== notification
+      && !(n.id == null
+        && n.message === notification.message
+        && n.timestamp === notification.timestamp
+        && n.severity === notification.severity));
+    this.historicalNotificationsSubject.next(remaining);
+    this.unreadFailureCountSubject.next(remaining.length);
+    const active = this.latestNotificationSubject.value;
+    if (active && active.id == null
+      && active.message === notification.message
+      && active.timestamp === notification.timestamp) {
+      this.clearNotification();
+    }
   }
 
   formatTimestamp(timestamp?: string): string {
     return formatNotificationTime(timestamp);
   }
 
+  private removeHistoricalById(id: number): void {
+    this.fetchGeneration++;
+    const remaining = this.historicalNotificationsSubject.value.filter(n => Number(n.id) !== id);
+    this.historicalNotificationsSubject.next(remaining);
+    this.unreadFailureCountSubject.next(remaining.length);
+    const active = this.latestNotificationSubject.value;
+    if (active?.id != null && Number(active.id) === id) {
+      this.clearNotification();
+    }
+  }
+
   private prependHistorical(notification: LogNotification): void {
     const current = this.historicalNotificationsSubject.value;
-    if (notification.id != null && current.some(n => n.id === notification.id)) {
+    if (notification.id != null && current.some(n => Number(n.id) === Number(notification.id))) {
       return;
     }
     this.historicalNotificationsSubject.next([notification, ...current].slice(0, 50));

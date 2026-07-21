@@ -419,6 +419,17 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return this.mobileUx.hasTouchInput && (this.mobileUx.isTablet || this.mobileUx.isDesktop);
   }
 
+  /**
+   * PrimeNG TieredMenu with autoDisplay=true opens submenus on mouseenter.
+   * On desktop-touch (fine pointer + maxTouchPoints), that hover opens the
+   * submenu and the synthesized click immediately treats it as selected and
+   * collapses it — Delete / Metadata / More Actions never stay open.
+   * Phone Mode keeps autoDisplay (≤960px uses accordion click path).
+   */
+  get tieredMenuAutoDisplay(): boolean {
+    return !this.isTouchDigitizerChrome;
+  }
+
   get shouldAutoMobileTitlePreview(): boolean {
     return this.isMobileInteractionMode;
   }

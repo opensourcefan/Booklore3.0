@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
-import {afterEach, describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   MetadataBatchPhase,
   MetadataBatchProgressNotification,
@@ -10,6 +10,7 @@ import {mergeMetadataTaskProgress} from './metadata-progress.service';
 import {MetadataProgressService} from './metadata-progress.service';
 import {MetadataTaskService} from '../../features/book/service/metadata-task';
 import {UserService} from '../../features/settings/user-management/user.service';
+import {LocalStorageService} from './local-storage.service';
 
 function progress(
   overrides: Partial<MetadataBatchProgressNotification> = {}
@@ -60,13 +61,18 @@ describe('mergeMetadataTaskProgress', () => {
 
 describe('MetadataProgressService dismissal', () => {
   let service: MetadataProgressService;
+  let localStorageMock: {get: ReturnType<typeof vi.fn>; trySet: ReturnType<typeof vi.fn>};
 
   afterEach(() => {
     service?.ngOnDestroy();
     TestBed.resetTestingModule();
   });
 
-  it('ignores later updates for a dismissed task without deleting backend state', () => {
+  function setup(savedDismissed: string[] | null = null): void {
+    localStorageMock = {
+      get: vi.fn().mockReturnValue(savedDismissed),
+      trySet: vi.fn().mockReturnValue(true),
+    };
     TestBed.configureTestingModule({
       providers: [
         MetadataProgressService,
@@ -82,15 +88,33 @@ describe('MetadataProgressService dismissal', () => {
             }),
           },
         },
+        {
+          provide: LocalStorageService,
+          useValue: localStorageMock,
+        },
       ],
     });
     service = TestBed.inject(MetadataProgressService);
+  }
+
+  it('ignores later updates for a dismissed task without deleting backend state', () => {
+    setup();
     const task = progress({review: true, status: MetadataBatchStatus.COMPLETED});
 
     service.handleIncomingProgress(task);
     service.dismissTask(task.taskId);
     service.handleIncomingProgress({...task, message: 'Polled again'});
 
+    expect(service.getActiveTasks()).toEqual({});
+    expect(localStorageMock.trySet).toHaveBeenCalledWith(
+      'bl-dismissed-metadata-task-ids',
+      [task.taskId]
+    );
+  });
+
+  it('restores dismissed task ids across service recreation so reload keeps them hidden', () => {
+    setup(['persisted-task']);
+    service.handleIncomingProgress(progress({taskId: 'persisted-task'}));
     expect(service.getActiveTasks()).toEqual({});
   });
 });

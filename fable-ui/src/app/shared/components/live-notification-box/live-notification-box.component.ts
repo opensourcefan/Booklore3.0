@@ -3,7 +3,7 @@ import {NotificationEventService} from '../../websocket/notification-event.servi
 import {CommonModule} from '@angular/common';
 import {TagComponent} from '../tag/tag.component';
 import {TranslocoDirective} from '@jsverse/transloco';
-import {formatNotificationTime} from '../../websocket/model/log-notification.model';
+import {formatNotificationTime, LogNotification} from '../../websocket/model/log-notification.model';
 
 @Component({
   selector: 'app-live-notification-box',
@@ -27,12 +27,12 @@ export class LiveNotificationBoxComponent implements OnInit {
     this.notificationService.fetchHistoricalNotifications();
   }
 
-  dismissNotification(id?: number): void {
-    if (id != null) {
-      this.notificationService.deleteNotification(id).subscribe();
+  dismissNotification(notification: LogNotification): void {
+    if (notification.id != null) {
+      this.notificationService.deleteNotification(notification.id).subscribe();
       return;
     }
-    this.notificationService.clearNotification();
+    this.notificationService.dismissLocalNotification(notification);
   }
 
   dismissAllNotifications(): void {
