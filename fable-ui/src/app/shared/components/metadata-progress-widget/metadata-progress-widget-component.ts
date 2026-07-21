@@ -33,6 +33,8 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
 
   /** Phase used for title/colors; ISBN_FAILED can lag behind the raw task for a brief flash. */
   displayPhases: Record<string, string | null | undefined> = {};
+  /** Remember ISBN tasks after their terminal payload drops the optional phase field. */
+  private readonly isbnTaskIds = new Set<string>();
 
   private static readonly ISBN_FAILED_FLASH_MS = 2500;
 
@@ -62,21 +64,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
     return Math.round((task.completed / task.total) * 100);
   }
 
-  clearTask(taskId: string): void {
-    this.metadataTaskService.deleteTask(taskId).subscribe({
-      next: () => {
-        this.clearPhaseState(taskId);
-        this.metadataProgressService.clearTask(taskId);
-        this.notificationEventService.clearNotification();
-      },
-      error: (error) => {
-        console.error('Failed to clear metadata task:', error);
-        this.toastError(
-          'Close Failed',
-          'Unable to close this metadata task notification. Please try again.'
-        );
-      }
-    });
+  dismissTask(taskId: string): void {
+    this.clearPhaseState(taskId);
+    this.metadataProgressService.dismissTask(taskId);
+    this.notificationEventService.clearNotification();
   }
 
   reviewTask(taskId: string): void {
@@ -185,6 +176,28 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
     };
   }
 
+  isIsbnTask(taskId: string, task: MetadataBatchProgressNotification): boolean {
+    return this.isbnTaskIds.has(taskId) || this.isIsbnPhase(task.phase);
+  }
+
+  getIsbnStageClasses(taskId: string, task: MetadataBatchProgressNotification): Record<string, boolean> {
+    const phase = this.getDisplayPhase(taskId, task);
+    return {
+      'isbn-phase-step--active': phase === MetadataBatchPhase.ISBN_DISCOVERY,
+      'isbn-phase-step--complete': phase === MetadataBatchPhase.METADATA_FETCH,
+      'isbn-phase-step--failed': phase === MetadataBatchPhase.ISBN_FAILED,
+    };
+  }
+
+  getMetadataStageClasses(taskId: string, task: MetadataBatchProgressNotification): Record<string, boolean> {
+    const phase = this.getDisplayPhase(taskId, task);
+    return {
+      'metadata-phase-step--active': phase === MetadataBatchPhase.METADATA_FETCH,
+      'metadata-phase-step--pending': phase === MetadataBatchPhase.ISBN_DISCOVERY,
+      'metadata-phase-step--blocked': phase === MetadataBatchPhase.ISBN_FAILED,
+    };
+  }
+
   /**
    * Package-visible for unit tests: resolves the phase used for styling/title,
    * honoring the ISBN_FAILED flash lock.
@@ -225,6 +238,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
       const incomingPhase = task.phase ?? null;
       const lockedUntil = this.isbnFailedLockedUntil.get(taskId);
 
+      if (this.isIsbnPhase(incomingPhase)) {
+        this.isbnTaskIds.add(taskId);
+      }
+
       if (incomingPhase === MetadataBatchPhase.ISBN_FAILED) {
         this.lockIsbnFailedFlash(taskId);
         next[taskId] = MetadataBatchPhase.ISBN_FAILED;
@@ -237,10 +254,16 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
       }
 
       this.clearIsbnFailedLock(taskId);
-      next[taskId] = incomingPhase;
+      // Final task payloads intentionally omit phase. Retain the latest ISBN phase
+      // so the two-stage path remains visible instead of flashing back to generic.
+      next[taskId] = incomingPhase ?? this.displayPhases[taskId] ?? null;
     }
 
-    for (const taskId of [...this.isbnFailedTimers.keys()]) {
+    const knownIsbnTaskIds = new Set([
+      ...this.isbnTaskIds,
+      ...this.isbnFailedTimers.keys(),
+    ]);
+    for (const taskId of knownIsbnTaskIds) {
       if (!(taskId in tasks)) {
         this.clearPhaseState(taskId);
       }
@@ -282,7 +305,14 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
 
   private clearPhaseState(taskId: string): void {
     this.clearIsbnFailedLock(taskId);
+    this.isbnTaskIds.delete(taskId);
     delete this.displayPhases[taskId];
+  }
+
+  private isIsbnPhase(phase: string | null | undefined): boolean {
+    return phase === MetadataBatchPhase.ISBN_DISCOVERY
+      || phase === MetadataBatchPhase.METADATA_FETCH
+      || phase === MetadataBatchPhase.ISBN_FAILED;
   }
 
   private toastError(summary: string, detail: string, life?: number): void {

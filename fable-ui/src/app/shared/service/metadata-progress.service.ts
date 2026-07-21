@@ -5,9 +5,31 @@ import {MetadataTaskService} from '../../features/book/service/metadata-task';
 import {UserService} from '../../features/settings/user-management/user.service';
 import {filter, switchMap, take} from 'rxjs/operators';
 
+export function mergeMetadataTaskProgress(
+  existing: MetadataBatchProgressNotification | undefined,
+  incoming: MetadataBatchProgressNotification
+): MetadataBatchProgressNotification {
+  const retainedPhase = incoming.phase ?? existing?.phase ?? null;
+
+  if (incoming.status !== 'IN_PROGRESS') {
+    return {
+      ...incoming,
+      phase: retainedPhase,
+      cancellationRequested: false,
+    };
+  }
+
+  return {
+    ...incoming,
+    phase: retainedPhase,
+    cancellationRequested: existing?.cancellationRequested ?? false,
+  };
+}
+
 @Injectable({providedIn: 'root'})
 export class MetadataProgressService implements OnDestroy {
   private progressMap = new Map<string, BehaviorSubject<MetadataBatchProgressNotification>>();
+  private dismissedTaskIds = new Set<string>();
 
   private progressUpdatesSubject = new Subject<MetadataBatchProgressNotification>();
   progressUpdates$ = this.progressUpdatesSubject.asObservable();
@@ -44,8 +66,11 @@ export class MetadataProgressService implements OnDestroy {
 
   handleIncomingProgress(progress: MetadataBatchProgressNotification): void {
     const {taskId} = progress;
+    if (this.dismissedTaskIds.has(taskId)) {
+      return;
+    }
     const existing = this.progressMap.get(taskId)?.getValue();
-    const mergedProgress = this.mergeTaskProgress(existing, progress);
+    const mergedProgress = mergeMetadataTaskProgress(existing, progress);
 
     if (!this.progressMap.has(taskId)) {
       this.progressMap.set(taskId, new BehaviorSubject(mergedProgress));
@@ -75,6 +100,14 @@ export class MetadataProgressService implements OnDestroy {
   }
 
   clearTask(taskId: string): void {
+    this.dismissedTaskIds.delete(taskId);
+    this.progressMap.delete(taskId);
+    this.activeTasksSubject.next(this.getActiveTasks());
+  }
+
+  /** Hide a notification locally without deleting its task or review proposals. */
+  dismissTask(taskId: string): void {
+    this.dismissedTaskIds.add(taskId);
     this.progressMap.delete(taskId);
     this.activeTasksSubject.next(this.getActiveTasks());
   }
@@ -94,6 +127,12 @@ export class MetadataProgressService implements OnDestroy {
   private syncActiveTasks(tasks: MetadataBatchProgressNotification[]): void {
     const incomingTaskIds = new Set(tasks.map(task => task.taskId));
 
+    for (const taskId of this.dismissedTaskIds) {
+      if (!incomingTaskIds.has(taskId)) {
+        this.dismissedTaskIds.delete(taskId);
+      }
+    }
+
     for (const taskId of this.progressMap.keys()) {
       if (!incomingTaskIds.has(taskId)) {
         this.progressMap.delete(taskId);
@@ -101,8 +140,11 @@ export class MetadataProgressService implements OnDestroy {
     }
 
     for (const task of tasks) {
+      if (this.dismissedTaskIds.has(task.taskId)) {
+        continue;
+      }
       const existing = this.progressMap.get(task.taskId)?.getValue();
-      const mergedTask = this.mergeTaskProgress(existing, task);
+      const mergedTask = mergeMetadataTaskProgress(existing, task);
 
       if (!this.progressMap.has(task.taskId)) {
         this.progressMap.set(task.taskId, new BehaviorSubject(mergedTask));
@@ -112,20 +154,6 @@ export class MetadataProgressService implements OnDestroy {
       this.progressUpdatesSubject.next(mergedTask);
     }
     this.activeTasksSubject.next(this.getActiveTasks());
-  }
-
-  private mergeTaskProgress(
-    existing: MetadataBatchProgressNotification | undefined,
-    incoming: MetadataBatchProgressNotification
-  ): MetadataBatchProgressNotification {
-    if (incoming.status !== 'IN_PROGRESS') {
-      return {...incoming, cancellationRequested: false};
-    }
-
-    return {
-      ...incoming,
-      cancellationRequested: existing?.cancellationRequested ?? false,
-    };
   }
 
   ngOnDestroy(): void {

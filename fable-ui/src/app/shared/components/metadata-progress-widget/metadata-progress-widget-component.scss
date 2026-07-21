@@ -13,18 +13,27 @@
   }
 
   &--phase-isbn {
+    background: color-mix(in srgb, #a855f7 12%, transparent);
+    box-shadow: inset 4px 0 0 #a855f7;
+
     .task-title {
       color: #a855f7;
     }
   }
 
   &--phase-metadata {
+    background: color-mix(in srgb, #22c55e 10%, transparent);
+    box-shadow: inset 4px 0 0 #22c55e;
+
     .task-title {
       color: #22c55e;
     }
   }
 
   &--phase-isbn-failed {
+    background: color-mix(in srgb, #ef4444 12%, transparent);
+    box-shadow: inset 4px 0 0 #ef4444;
+
     .task-title {
       color: #ef4444;
     }
@@ -92,6 +101,65 @@
   font-size: 1rem;
   color: #e5e7eb;
   margin-bottom: 0.5rem;
+}
+
+.isbn-phase-track {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.65rem 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.isbn-phase-step,
+.metadata-phase-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  color: var(--text-color-secondary);
+  opacity: 0.55;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.isbn-phase-step--active {
+  color: #d8b4fe;
+  background: color-mix(in srgb, #a855f7 20%, transparent);
+  border-color: #a855f7;
+  opacity: 1;
+}
+
+.isbn-phase-step--complete {
+  color: #c084fc;
+  border-color: #a855f7;
+  opacity: 1;
+}
+
+.isbn-phase-step--failed {
+  color: #fecaca;
+  background: color-mix(in srgb, #ef4444 20%, transparent);
+  border-color: #ef4444;
+  opacity: 1;
+}
+
+.metadata-phase-step--active {
+  color: #bbf7d0;
+  background: color-mix(in srgb, #22c55e 20%, transparent);
+  border-color: #22c55e;
+  opacity: 1;
+}
+
+.metadata-phase-step--pending,
+.metadata-phase-step--blocked {
+  opacity: 0.4;
+}
+
+.isbn-phase-arrow {
+  color: var(--text-color-secondary);
+  font-size: 0.75rem;
 }
 
 .task-progress-info {

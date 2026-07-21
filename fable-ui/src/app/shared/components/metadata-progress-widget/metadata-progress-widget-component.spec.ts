@@ -18,9 +18,11 @@ import {FailureNotificationService} from '../../service/failure-notification.ser
 
 describe('MetadataProgressWidgetComponent', () => {
   let activeTasksSubject: BehaviorSubject<Record<string, MetadataBatchProgressNotification>>;
+  let dismissTask: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     activeTasksSubject = new BehaviorSubject<Record<string, MetadataBatchProgressNotification>>({});
+    dismissTask = vi.fn();
 
     await TestBed.configureTestingModule({
       imports: [MetadataProgressWidgetComponent],
@@ -30,6 +32,7 @@ describe('MetadataProgressWidgetComponent', () => {
           useValue: {
             activeTasks$: activeTasksSubject.asObservable(),
             clearTask: vi.fn(),
+            dismissTask,
             markCancellationRequested: vi.fn(),
           },
         },
@@ -107,6 +110,17 @@ describe('MetadataProgressWidgetComponent', () => {
     })).toBe(true);
   });
 
+  it('dismisses the notification without deleting review proposals', () => {
+    const fixture = TestBed.createComponent(MetadataProgressWidgetComponent);
+    const component = fixture.componentInstance;
+    const taskService = TestBed.inject(MetadataTaskService);
+
+    component.dismissTask('review-task');
+
+    expect(dismissTask).toHaveBeenCalledWith('review-task');
+    expect(taskService.deleteTask).not.toHaveBeenCalled();
+  });
+
   it('maps ISBN phases to titles and tone classes', () => {
     const fixture = TestBed.createComponent(MetadataProgressWidgetComponent);
     const component = fixture.componentInstance;
@@ -141,6 +155,39 @@ describe('MetadataProgressWidgetComponent', () => {
     expect(component.getTaskTitle('isbn-1', metadata))
       .toBe('shared.metadataProgress.taskTitleMetadataFetch');
     expect(component.getPhaseToneClass('isbn-1', metadata)['task-card--phase-metadata']).toBe(true);
+    expect(component.getIsbnStageClasses('isbn-1', metadata)['isbn-phase-step--complete']).toBe(true);
+    expect(component.getMetadataStageClasses('isbn-1', metadata)['metadata-phase-step--active']).toBe(true);
+  });
+
+  it('retains the two-stage ISBN track when the terminal payload omits phase', () => {
+    const fixture = TestBed.createComponent(MetadataProgressWidgetComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    const metadata: MetadataBatchProgressNotification = {
+      taskId: 'isbn-1',
+      completed: 0,
+      total: 1,
+      message: 'Metadata fetch',
+      status: MetadataBatchStatus.IN_PROGRESS,
+      review: false,
+      phase: MetadataBatchPhase.METADATA_FETCH,
+    };
+    activeTasksSubject.next({'isbn-1': metadata});
+
+    const completed: MetadataBatchProgressNotification = {
+      ...metadata,
+      completed: 1,
+      message: 'Done',
+      status: MetadataBatchStatus.COMPLETED,
+      phase: null,
+    };
+    activeTasksSubject.next({'isbn-1': completed});
+
+    expect(component.isIsbnTask('isbn-1', completed)).toBe(true);
+    expect(component.getDisplayPhase('isbn-1', completed)).toBe(MetadataBatchPhase.METADATA_FETCH);
+    expect(component.getTaskTitle('isbn-1', completed))
+      .toBe('shared.metadataProgress.taskTitleMetadataFetch');
   });
 
   it('keeps ISBN_FAILED flash for 2.5s even if a later phase arrives', () => {

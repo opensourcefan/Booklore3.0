@@ -77,6 +77,7 @@ import {SortService} from '../../service/sort.service';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {PagedGridPilotService} from '../../service/paged-grid-pilot.service';
 import {PagedBookBrowserStateService} from '../../service/paged-book-browser-state.service';
+import {BookSocketService} from '../../service/book-socket.service';
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
@@ -187,6 +188,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected mobileUx = inject(MobileUxService);
   private pagedGridPilotService = inject(PagedGridPilotService);
   private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
+  private bookSocketService = inject(BookSocketService);
   readonly pagedGridPilotStatus$ = this.pagedGridPilotService.status$;
 
   bookState$: Observable<BookState> | undefined;
@@ -1009,6 +1011,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private setupPendingReviewSubscription(): void {
     this.refreshStagingTriage();
+
+    // Metadata wipes, ISBN fills, and review staging arrive as book updates.
+    // Refresh the triage buckets while Staging is open so books move immediately
+    // without requiring a browser reload. Debounce batch websocket bursts.
+    this.bookSocketService.bookUpdates$
+      .pipe(debounceTime(100), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.entityType === EntityType.STAGING) {
+          this.refreshStagingTriage();
+        }
+      });
 
     this.metadataProgressService.progressUpdates$
       .pipe(takeUntil(this.destroy$))

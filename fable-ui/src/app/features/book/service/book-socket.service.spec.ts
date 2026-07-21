@@ -166,6 +166,21 @@ describe('BookSocketService', () => {
     expect(state.books?.[0].staged).toBe(true);
   });
 
+  it('emits full book updates for consumers that refresh derived views', () => {
+    const {socketService} = createServices();
+    const received: Book[][] = [];
+    const subscription = socketService.bookUpdates$.subscribe(books => received.push(books));
+
+    const single = createBook(44, 'Updated', 1);
+    const batch = [createBook(55, 'Batch One', 1), createBook(66, 'Batch Two', 1)];
+
+    socketService.handleBookUpdate(single);
+    socketService.handleMultipleBookUpdates(batch);
+
+    expect(received).toEqual([[single], batch]);
+    subscription.unsubscribe();
+  });
+
   it('invalidates staging cache when staged flag changes', () => {
     const {socketService, bookStateService} = createServices();
 

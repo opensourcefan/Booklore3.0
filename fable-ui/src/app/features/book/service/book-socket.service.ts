@@ -15,6 +15,10 @@ export class BookSocketService {
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
   private injector = inject(Injector);
   private syncGridSubject = new Subject<void>();
+  private bookUpdatesSubject = new Subject<Book[]>();
+
+  /** Full book updates that may change client-side views such as Staging triage. */
+  readonly bookUpdates$ = this.bookUpdatesSubject.asObservable();
 
   constructor() {
     this.syncGridSubject.pipe(debounceTime(150)).subscribe(() => {
@@ -43,6 +47,7 @@ export class BookSocketService {
     }
     
     this.syncPagedGridPilot();
+    this.bookUpdatesSubject.next([updatedBook]);
   }
 
   handleMultipleBookUpdates(updatedBooks: Book[]): void {
@@ -55,6 +60,9 @@ export class BookSocketService {
     }
     
     this.syncPagedGridPilot();
+    if (updatedBooks.length > 0) {
+      this.bookUpdatesSubject.next(updatedBooks);
+    }
   }
 
   handleBookMetadataUpdate(bookId: number, updatedMetadata: BookMetadata): void {

@@ -34,6 +34,20 @@
           {{ task.value.message }}
         </div>
 
+        @if (isIsbnTask(task.key, task.value)) {
+          <div class="isbn-phase-track" aria-label="ISBN and metadata fetch progress">
+            <span class="isbn-phase-step" [ngClass]="getIsbnStageClasses(task.key, task.value)">
+              <i class="pi pi-barcode" aria-hidden="true"></i>
+              {{ t('taskTitleIsbnDiscovery') }}
+            </span>
+            <i class="pi pi-angle-right isbn-phase-arrow" aria-hidden="true"></i>
+            <span class="metadata-phase-step" [ngClass]="getMetadataStageClasses(task.key, task.value)">
+              <i class="pi pi-cloud-download" aria-hidden="true"></i>
+              {{ t('taskTitleMetadataFetch') }}
+            </span>
+          </div>
+        }
+
         <div class="task-progress-info" [innerHTML]="t('bookProgress', { current: task.value.status === 'COMPLETED' || task.value.completed >= task.value.total ? task.value.total : task.value.completed + 1, total: task.value.total })">
         </div>
 
@@ -68,14 +82,14 @@
             }
 
             <p-button
-              [label]="hasReviewItems(task.value) ? t('discardBtn') : t('dismissBtn')"
+              [label]="t('dismissBtn')"
               icon="pi pi-times"
-              [severity]="hasReviewItems(task.value) ? 'danger' : 'secondary'"
+              severity="secondary"
               size="small"
-              [pTooltip]="hasReviewItems(task.value) ? t('discardTooltip') : ''"
-              [tooltipPosition]="hasReviewItems(task.value) ? 'top' : undefined"
+              [pTooltip]="t('dismissTooltip')"
+              tooltipPosition="top"
               outlined
-              (click)="clearTask(task.key)">
+              (click)="dismissTask(task.key)">
             </p-button>
           </div>
         } @else if (task.value.status === 'IN_PROGRESS') {
