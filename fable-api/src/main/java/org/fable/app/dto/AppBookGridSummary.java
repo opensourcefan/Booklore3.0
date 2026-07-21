@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.fable.model.enums.IsbnDiscoveryStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -65,4 +66,7 @@ public class AppBookGridSummary {
     private Instant lastReadTime;
     private Instant addedOn;
     private Boolean staged;
+    private IsbnDiscoveryStatus isbnDiscoveryStatus;
+    private Instant isbnDiscoveryCheckedAt;
+    private String isbnDiscoveryDetail;
 }

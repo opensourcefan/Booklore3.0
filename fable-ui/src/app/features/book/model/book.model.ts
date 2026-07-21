@@ -5,6 +5,11 @@ import type {ZoomType} from 'ngx-extended-pdf-viewer';
 
 export type BookType = "PDF" | "EPUB" | "CBX" | "FB2" | "MOBI" | "AZW3" | "AUDIOBOOK";
 
+export enum IsbnDiscoveryStatus {
+  NOT_FOUND = 'NOT_FOUND',
+  ERROR = 'ERROR'
+}
+
 /** Lightweight DTO returned by GET /api/v1/books/paged (Phase Two optimization) */
 export interface AppBookGridSummary {
   id: number;
@@ -48,6 +53,9 @@ export interface AppBookGridSummary {
   aiSearchEmbeddingModel?: string;
   markedForAiSearch?: boolean;
   staged?: boolean;
+  isbnDiscoveryStatus?: IsbnDiscoveryStatus | null;
+  isbnDiscoveryCheckedAt?: string | null;
+  isbnDiscoveryDetail?: string | null;
   lastReadTime?: string;
   addedOn?: string;
 }
@@ -109,6 +117,9 @@ export interface Book extends FileInfo {
   isPhysical?: boolean;
   isCurrentlyReading?: boolean;
   staged?: boolean;
+  isbnDiscoveryStatus?: IsbnDiscoveryStatus | null;
+  isbnDiscoveryCheckedAt?: string | null;
+  isbnDiscoveryDetail?: string | null;
 
   [key: string]: unknown;
 }

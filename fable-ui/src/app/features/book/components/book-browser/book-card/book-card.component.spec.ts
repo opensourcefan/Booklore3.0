@@ -8,7 +8,7 @@ import {ConfirmationService, MessageService} from 'primeng/api';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookCardComponent} from './book-card.component';
-import {Book} from '../../../model/book.model';
+import {Book, IsbnDiscoveryStatus} from '../../../model/book.model';
 import {BookService} from '../../../service/book.service';
 import {BookFileService} from '../../../service/book-file.service';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
@@ -354,6 +354,60 @@ describe('BookCardComponent', () => {
     expect(component.isReviewActionEnabled).toBe(false);
     expect(fixture.nativeElement.querySelector('.info-btn--review')).toBeNull();
     expect(fixture.nativeElement.querySelector('.info-btn .pi-info')).toBeTruthy();
+    phoneSpy.mockRestore();
+  });
+
+  it('shows the amber ISBN-not-found badge only when enabled by the Staged browser', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    component.book = createBook({
+      id: 83,
+      isbnDiscoveryStatus: IsbnDiscoveryStatus.NOT_FOUND,
+      isbnDiscoveryDetail: 'No checksum-valid ISBN found',
+      isbnDiscoveryCheckedAt: '2026-07-21T06:00:00Z',
+    });
+    component.showStagingIsbnProblem = true;
+
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector(
+      '.staging-isbn-problem-overlay--not-found'
+    ) as HTMLElement;
+    expect(badge).toBeTruthy();
+    expect(badge.querySelector('.pi-barcode')).toBeTruthy();
+    expect(badge.getAttribute('aria-label')).toContain('No checksum-valid ISBN found');
+
+    fixture.componentRef.setInput('showStagingIsbnProblem', false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.staging-isbn-problem-overlay')).toBeNull();
+  });
+
+  it('shows a red ISBN-error badge but suppresses it in Phone Mode', () => {
+    const mobileUx = TestBed.inject(MobileUxService);
+    const phoneSpy = vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(false);
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    component.book = createBook({
+      id: 84,
+      isbnDiscoveryStatus: IsbnDiscoveryStatus.ERROR,
+      isbnDiscoveryDetail: 'OCR sidecar unavailable',
+    });
+    component.showStagingIsbnProblem = true;
+
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector(
+      '.staging-isbn-problem-overlay--error'
+    ) as HTMLElement;
+    expect(badge).toBeTruthy();
+    expect(badge.querySelector('.pi-exclamation-triangle')).toBeTruthy();
+
+    phoneSpy.mockReturnValue(true);
+    fixture.componentRef.setInput('showStagingIsbnProblem', false);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('showStagingIsbnProblem', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.staging-isbn-problem-overlay')).toBeNull();
     phoneSpy.mockRestore();
   });
 

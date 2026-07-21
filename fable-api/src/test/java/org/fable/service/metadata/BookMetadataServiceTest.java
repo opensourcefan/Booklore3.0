@@ -684,6 +684,9 @@ class BookMetadataServiceTest {
                                         .id(1L)
                                         .staged(true)
                                         .lastMetadataFetchAt(java.time.Instant.parse("2026-07-20T12:00:00Z"))
+                                        .isbnDiscoveryStatus(org.fable.model.enums.IsbnDiscoveryStatus.ERROR)
+                                        .isbnDiscoveryCheckedAt(java.time.Instant.parse("2026-07-20T11:00:00Z"))
+                                        .isbnDiscoveryDetail("OCR unavailable")
                                         .metadata(metadataEntity)
                                         .bookFiles(new ArrayList<>())
                                         .build();
@@ -695,6 +698,9 @@ class BookMetadataServiceTest {
                         service.wipeBookMetadata(1L);
 
                         assertThat(bookEntity.getLastMetadataFetchAt()).isNull();
+                        assertThat(bookEntity.getIsbnDiscoveryStatus()).isNull();
+                        assertThat(bookEntity.getIsbnDiscoveryCheckedAt()).isNull();
+                        assertThat(bookEntity.getIsbnDiscoveryDetail()).isNull();
                         assertThat(metadataEntity.getIsbnVerified()).isFalse();
                         assertThat(metadataEntity.getIsbnWrittenToFile()).isFalse();
                         assertThat(bookEntity.getStaged()).isTrue();

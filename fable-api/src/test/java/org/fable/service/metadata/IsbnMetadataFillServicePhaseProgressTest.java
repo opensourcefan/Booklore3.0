@@ -40,6 +40,8 @@ class IsbnMetadataFillServicePhaseProgressTest {
     @Mock
     private IsbnDiscoveryService isbnDiscoveryService;
     @Mock
+    private IsbnDiscoveryStatusService isbnDiscoveryStatusService;
+    @Mock
     private NotificationService notificationService;
 
     private IsbnMetadataFillService service;
@@ -54,6 +56,7 @@ class IsbnMetadataFillServicePhaseProgressTest {
                 bookMetadataService,
                 bookMetadataUpdater,
                 isbnDiscoveryService,
+                isbnDiscoveryStatusService,
                 notificationService,
                 parserMap
         );

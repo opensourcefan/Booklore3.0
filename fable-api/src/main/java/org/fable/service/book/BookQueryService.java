@@ -566,7 +566,10 @@ public class BookQueryService {
                 .isPhysical(bookEntity.getIsPhysical())
                 .addedOn(bookEntity.getAddedOn())
                 .markedForAiSearch(Boolean.TRUE.equals(bookEntity.getMarkedForAiSearch()))
-                .staged(Boolean.TRUE.equals(bookEntity.getStaged()));
+                .staged(Boolean.TRUE.equals(bookEntity.getStaged()))
+                .isbnDiscoveryStatus(bookEntity.getIsbnDiscoveryStatus())
+                .isbnDiscoveryCheckedAt(bookEntity.getIsbnDiscoveryCheckedAt())
+                .isbnDiscoveryDetail(bookEntity.getIsbnDiscoveryDetail());
 
         if (primaryFileDto != null) {
             builder.fileName(primaryFileDto.getFileName())

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 import org.fable.model.dto.progress.*;
+import org.fable.model.enums.IsbnDiscoveryStatus;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +22,9 @@ public class Book {
     private String aiSearchEmbeddingModel;
     private Boolean markedForAiSearch;
     private Boolean staged;
+    private IsbnDiscoveryStatus isbnDiscoveryStatus;
+    private Instant isbnDiscoveryCheckedAt;
+    private String isbnDiscoveryDetail;
     private Long libraryId;
     private String libraryName;
     private BookFile primaryFile;

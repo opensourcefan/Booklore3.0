@@ -27,6 +27,22 @@
       (load)="onImageLoad()"/>
 
     <div class="top-left-overlay-stack">
+      @if (stagingIsbnProblemStatus; as isbnStatus) {
+        <div
+          class="staging-isbn-problem-overlay"
+          [class.staging-isbn-problem-overlay--not-found]="isbnStatus === 'NOT_FOUND'"
+          [class.staging-isbn-problem-overlay--error]="isbnStatus === 'ERROR'"
+          [pTooltip]="stagingIsbnProblemTooltip"
+          tooltipPosition="top"
+          role="img"
+          [attr.aria-label]="stagingIsbnProblemTooltip">
+          <i
+            class="pi"
+            [class.pi-barcode]="isbnStatus === 'NOT_FOUND'"
+            [class.pi-exclamation-triangle]="isbnStatus === 'ERROR'"
+            aria-hidden="true"></i>
+        </div>
+      }
       @if (showBookTypePill && getDisplayFormat(); as displayFormat) {
         <div class="book-type-pill-overlay" [ngClass]="'book-type-' + displayFormat.toLowerCase()">
           {{ displayFormat }}

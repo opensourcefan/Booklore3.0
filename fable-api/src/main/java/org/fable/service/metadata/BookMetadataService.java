@@ -412,13 +412,16 @@ public class BookMetadataService {
 
     private void wipeBookMetadata(BookEntity book) {
         BookMetadataEntity metadata = book.getMetadata();
+        book.setLastMetadataFetchAt(null);
+        book.setIsbnDiscoveryStatus(null);
+        book.setIsbnDiscoveryCheckedAt(null);
+        book.setIsbnDiscoveryDetail(null);
         if (metadata == null) {
             return;
         }
 
         // Completed Staging triage keys off lastMetadataFetchAt / isbnVerified.
         // A full wipe should return the book to the Staged inbox.
-        book.setLastMetadataFetchAt(null);
         metadata.setIsbnVerified(Boolean.FALSE);
         metadata.setIsbnWrittenToFile(Boolean.FALSE);
 

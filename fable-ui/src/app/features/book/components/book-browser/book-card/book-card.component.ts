@@ -1,7 +1,7 @@
 import {AfterViewInit, ApplicationRef, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {CdkPortal, DomPortalOutlet, PortalModule} from '@angular/cdk/portal';
 import {TooltipModule} from "primeng/tooltip";
-import {AdditionalFile, Book, BookType, ReadStatus} from '../../../model/book.model';
+import {AdditionalFile, Book, BookType, IsbnDiscoveryStatus, ReadStatus} from '../../../model/book.model';
 import {Button} from 'primeng/button';
 import {MenuModule} from 'primeng/menu';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
@@ -88,6 +88,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() titleAreaInteractive = false;
   @Input() mobileViewerBooksContext: Book[] | null = null;
   @Input() reviewActionEnabled = false;
+  @Input() showStagingIsbnProblem = false;
 
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
   screenHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
@@ -370,6 +371,29 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   get isReviewActionEnabled(): boolean {
     return this.reviewActionEnabled && !this.mobileUx.isPhone;
+  }
+
+  get stagingIsbnProblemStatus(): IsbnDiscoveryStatus | null {
+    if (!this.showStagingIsbnProblem || this.mobileUx.isPhone) {
+      return null;
+    }
+    return this.book.isbnDiscoveryStatus === IsbnDiscoveryStatus.NOT_FOUND
+      || this.book.isbnDiscoveryStatus === IsbnDiscoveryStatus.ERROR
+      ? this.book.isbnDiscoveryStatus
+      : null;
+  }
+
+  get stagingIsbnProblemTooltip(): string {
+    const status = this.stagingIsbnProblemStatus;
+    const titleKey = status === IsbnDiscoveryStatus.NOT_FOUND
+      ? 'book.card.isbnDiscoveryStatus.notFound'
+      : 'book.card.isbnDiscoveryStatus.error';
+    const title = this.t.translate(titleKey);
+    const detail = this.book.isbnDiscoveryDetail?.trim();
+    const checkedAt = this.book.isbnDiscoveryCheckedAt
+      ? new Date(this.book.isbnDiscoveryCheckedAt).toLocaleString()
+      : null;
+    return [title, detail, checkedAt].filter(Boolean).join(' — ');
   }
 
   /**

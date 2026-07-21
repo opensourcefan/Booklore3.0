@@ -5,6 +5,7 @@ import lombok.*;
 import org.fable.convertor.BookRecommendationIdsListConverter;
 import org.fable.model.dto.BookRecommendationLite;
 import org.fable.model.enums.BookFileType;
+import org.fable.model.enums.IsbnDiscoveryStatus;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,6 +41,16 @@ public class BookEntity {
 
     @Column(name = "last_metadata_fetch_at")
     private Instant lastMetadataFetchAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "isbn_discovery_status", length = 32)
+    private IsbnDiscoveryStatus isbnDiscoveryStatus;
+
+    @Column(name = "isbn_discovery_checked_at")
+    private Instant isbnDiscoveryCheckedAt;
+
+    @Column(name = "isbn_discovery_detail", length = 1000)
+    private String isbnDiscoveryDetail;
 
     @Column(name = "metadata_for_write_updated_at")
     private Instant metadataForWriteUpdatedAt;

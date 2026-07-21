@@ -72,7 +72,7 @@ class IsbnMetadataFillServiceTest {
                 BookMetadata.builder().title("Later Title").description("Filled Later").build()));
 
         IsbnMetadataFillService service = new IsbnMetadataFillService(
-                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null,
                 Map.of(
                         MetadataProvider.Amazon, amazon,
                         MetadataProvider.Google, google,

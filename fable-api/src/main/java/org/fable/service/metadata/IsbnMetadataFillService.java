@@ -51,6 +51,7 @@ public class IsbnMetadataFillService {
     private final BookMetadataService bookMetadataService;
     private final BookMetadataUpdater bookMetadataUpdater;
     private final IsbnDiscoveryService isbnDiscoveryService;
+    private final IsbnDiscoveryStatusService isbnDiscoveryStatusService;
     private final NotificationService notificationService;
     private final Map<MetadataProvider, BookParser> parserMap;
 
@@ -143,7 +144,9 @@ public class IsbnMetadataFillService {
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         BookMetadataEntity entityMeta = book.getMetadata();
         if (entityMeta == null) {
-            return IsbnFillOutcome.error(bookId, "Book has no metadata entity");
+            String failMessage = "Book has no metadata entity";
+            isbnDiscoveryStatusService.recordError(book, failMessage);
+            return IsbnFillOutcome.error(bookId, failMessage);
         }
         if (entityMeta.areAllFieldsLocked()) {
             return IsbnFillOutcome.skipped(bookId, "All metadata fields locked");
@@ -161,6 +164,7 @@ public class IsbnMetadataFillService {
             if (path == null) {
                 String failMessage = "No ISBN on file and no resolvable file path for discovery";
                 emitPhaseProgress(MetadataBatchProgressNotification.PHASE_ISBN_FAILED, failMessage);
+                isbnDiscoveryStatusService.recordError(book, failMessage);
                 return IsbnFillOutcome.error(bookId, failMessage);
             }
             emitPhaseProgress(MetadataBatchProgressNotification.PHASE_ISBN_DISCOVERY,
@@ -180,10 +184,12 @@ public class IsbnMetadataFillService {
                         ? discovery.getMessage()
                         : "No checksum-valid ISBN found";
                 emitPhaseProgress(MetadataBatchProgressNotification.PHASE_ISBN_FAILED, failMessage);
+                recordDiscoveryProblem(book, discovery, failMessage);
                 return IsbnFillOutcome.error(bookId, failMessage);
             }
         }
 
+        isbnDiscoveryStatusService.clearRecordedProblem(book);
         emitPhaseProgress(MetadataBatchProgressNotification.PHASE_METADATA_FETCH,
                 "Metadata fetch — book " + bookProgressLabel() + "…");
         BookMetadata merged = mergeByIsbn(isbn, existing, selectedProviders);
@@ -221,6 +227,23 @@ public class IsbnMetadataFillService {
         }
 
         return applyMergedMetadata(bookId, book, merged, discovered, settings, true);
+    }
+
+    private void recordDiscoveryProblem(
+            BookEntity book,
+            IsbnDiscoveryResult discovery,
+            String failMessage) {
+        if (discovery != null
+                && (discovery.getStatus() == IsbnDiscoveryResult.Status.NOT_FOUND
+                || discovery.getStatus() == IsbnDiscoveryResult.Status.AMBIGUOUS)) {
+            isbnDiscoveryStatusService.recordNotFound(book, failMessage);
+            return;
+        }
+        String safeDetail = discovery != null
+                && discovery.getStatus() == IsbnDiscoveryResult.Status.OCR_UNAVAILABLE
+                ? failMessage
+                : "ISBN discovery could not be completed";
+        isbnDiscoveryStatusService.recordError(book, safeDetail);
     }
 
     private IsbnFillOutcome applyMergedMetadata(

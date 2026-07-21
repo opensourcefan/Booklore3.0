@@ -129,6 +129,10 @@
     }
   },
   "card": {
+    "isbnDiscoveryStatus": {
+      "notFound": "ISBN check completed: no valid ISBN found",
+      "error": "ISBN check failed"
+    },
     "menu": {
       "assignShelf": "Assign Shelf",
       "moveToShelf": "Move to Shelf...",

@@ -663,7 +663,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.133 &mdash; July 20, 2026<br>
+    Version 1.1.134 &mdash; July 20, 2026<br>
     Audience: New users, invited users, and non-technical readers<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -1206,7 +1206,7 @@
 <p>New digital imports and newly created physical-book records begin with <code>staged=true</code>. Staging is a triage flag, not a separate storage location: the book already belongs to its selected library. Use the tabs to decide what still needs attention.</p>
 <table>
   <tr><th>Tab/action</th><th>Meaning and next step</th></tr>
-  <tr><td><strong>Staged</strong></td><td>The staged inbox: books that do not currently have a pending metadata proposal and are not classified as completed. Inspect the book, edit metadata, or start a metadata fetch.</td></tr>
+  <tr><td><strong>Staged</strong></td><td>The staged inbox: books that do not currently have a pending metadata proposal and are not classified as completed. Inspect the book, edit metadata, or start a metadata fetch. On desktop and tablet, an amber barcode badge means ISBN Discovery completed without finding a valid ISBN; a red warning badge means the ISBN check could not be completed. Hover either badge for the recorded reason and check time. Books without either badge have no recorded ISBN problem.</td></tr>
   <tr><td><strong>Review</strong></td><td>Books with fetched metadata proposals awaiting a decision. Open the metadata review, compare proposed and current values, then apply or reject as appropriate. Pending review wins over the other triage buckets; a review item can remain visible even if its staging flag was previously cleared.</td></tr>
   <tr><td><strong>Completed</strong></td><td>Staged books whose metadata fetch has completed or whose ISBN has been verified, with no pending review proposal. Check the result before release.</td></tr>
   <tr><td><strong>Release</strong></td><td>Select one or more books and click <strong>Release</strong>. This changes only <code>staged</code> from <code>true</code> to <code>false</code>. It does <strong>not</strong> move files, alter metadata, change library or shelf membership, or delete anything.</td></tr>
@@ -2569,7 +2569,7 @@
   <li><strong>Write ISBN-fetched metadata to original files</strong> &mdash; Off by default and also requires write-back for that file format under Metadata Persistence.</li>
   <li><strong>Max pages to scan (front and back)</strong> &mdash; Sets how many first pages are searched, followed by the same number of last pages (including the back cover) when no ISBN is found up front.</li>
 </ul>
-<p>When starting ISBN Discovery from selected book actions, the confirmation dialog also lets you choose which currently enabled metadata providers to query. The task indicator shows ISBN Fetch first, then Metadata Fetch, while books needing a decision appear in Staging &rarr; Review.</p>
+<p>When starting ISBN Discovery from selected book actions, the confirmation dialog also lets you choose which currently enabled metadata providers to query. The task indicator shows ISBN Fetch first, then Metadata Fetch, while books needing a decision appear in Staging &rarr; Review. Books left in the Staged inbox retain a compact exception badge on desktop and tablet: amber means the scan completed without a valid ISBN, while red means OCR or another technical problem prevented the check from completing. The badge tooltip records the reason and time; a later successful ISBN run clears the old badge.</p>
 
 <h3>View</h3>
 <h4>Device Layout Mode</h4>
@@ -3069,6 +3069,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-20</td><td>1.1.134</td><td>Documented persistent Staged-inbox ISBN exception badges: amber identifies a completed check with no valid ISBN, red identifies OCR or another technical check failure, and tooltips retain the reason and check time. Successful retries clear prior badges; normal library cards and Phone Mode remain unchanged. App <code>v4.16.17</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.133</td><td>Rebuilt the guide around novice task journeys: Books now owns adding, Staging, Review, Completed, Release, bulk actions, and file management; Metadata Manager now matches vocabulary cleanup; Libraries, BookDrop, Settings, Devices, Accounts, Backup/Restore, and cross-chapter paths reflect the current UI. Added goal-based navigation plus automated modular/single-page link and parity validation.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.132</td><td>Closed the July guide audit gaps: synchronized cover versions; corrected username-change guidance and AI Search links; documented ISBN Discovery settings, all device layout modes, per-browser/touch toolbar and resize behavior, and personal versus shared BookDrop inboxes. Updated both guide formats.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.131</td><td>Book Details return navigation now restores the originating Staging section, accepted reviews leave the Review browser without a page refresh, and the card Review tooltip resolves to translated text. App <code>v4.16.15</code>.</td></tr>

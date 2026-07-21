@@ -344,11 +344,12 @@ Disabled on all security filter chains — by design. All API endpoints are stat
 - Verified ISBN with empty providers: clear unlocked fields and apply ISBN (no phantom review)
 - Broader ISBN provider chain (all configured field providers + Google fallback)
 - `IsbnDiscoveryTask` live progress from start, proposal review queue, auto-stage for review
-- Staging header triage tabs: **Staging / Completed / Review** (`GET /api/metadata/tasks/staging-triage`)
+- Staging header triage tabs: **Staged / Review / Completed** (`GET /api/metadata/tasks/staging-triage`)
 - Settings keys + Metadata Settings UI section
 - Bookdrop hook when `isbnDiscoveryEnabled` + `isbnDiscoveryOnBookdrop`
 - Tablet/desktop card + bulk menu: “ISBN Discovery & Fill” (hidden in Phone Mode)
 - `isbn_verified` / `isbn_written_to_file` columns (V163)
+- Persistent Staged-inbox ISBN exception state on `book` (V164): amber `NOT_FOUND`, red `ERROR`, checked time/detail tooltip; successful retry and full metadata wipe clear prior status. Badge rendering stays Staging-only and is hard-disabled in Phone Mode.
 - `clearUnlockedMetadata` (does **not** call `wipeBookMetadata`)
 
 **Still later:** OpenLibrary provider, LLM OCR assist, unify staging UIs, library-scan auto on by default.
