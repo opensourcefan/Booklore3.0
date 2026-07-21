@@ -376,6 +376,13 @@ describe('BookCardComponent', () => {
     expect(badge).toBeTruthy();
     expect(badge.querySelector('.pi-barcode')).toBeTruthy();
     expect(badge.getAttribute('aria-label')).toContain('No checksum-valid ISBN found');
+    expect(badge.parentElement?.classList.contains('cover-container')).toBe(true);
+    expect(badge.closest('.top-left-overlay-stack')).toBeNull();
+
+    const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toMatch(/\.staging-isbn-problem-overlay\s*\{[\s\S]*left:\s*50%;[\s\S]*bottom:\s*0\.85rem;[\s\S]*border:\s*2px solid #111827;/);
+    expect(scss).toMatch(/&--not-found\s*\{[\s\S]*background:\s*#ff5a00;[\s\S]*border-color:\s*#6b2100;/);
 
     fixture.componentRef.setInput('showStagingIsbnProblem', false);
     fixture.detectChanges();
@@ -401,6 +408,11 @@ describe('BookCardComponent', () => {
     ) as HTMLElement;
     expect(badge).toBeTruthy();
     expect(badge.querySelector('.pi-exclamation-triangle')).toBeTruthy();
+    expect(badge.parentElement?.classList.contains('cover-container')).toBe(true);
+
+    const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toMatch(/&--error\s*\{[\s\S]*background:\s*#e0002b;[\s\S]*border-color:\s*#4c0519;/);
 
     phoneSpy.mockReturnValue(true);
     fixture.componentRef.setInput('showStagingIsbnProblem', false);

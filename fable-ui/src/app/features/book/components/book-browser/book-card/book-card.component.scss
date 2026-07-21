@@ -347,28 +347,37 @@
 }
 
 .staging-isbn-problem-overlay {
-  position: static;
+  position: absolute;
+  left: 50%;
+  bottom: 0.85rem;
+  z-index: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid #111827;
   border-radius: 999px;
   color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.82),
+    0 3px 9px rgba(0, 0, 0, 0.55);
+  transform: translateX(-50%);
   user-select: none;
 
   &--not-found {
-    background: #d97706;
+    background: #ff5a00;
+    border-color: #6b2100;
   }
 
   &--error {
-    background: #dc2626;
+    background: #e0002b;
+    border-color: #4c0519;
   }
 
   i {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
   }
 }
 

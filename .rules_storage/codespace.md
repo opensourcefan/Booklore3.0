@@ -35,7 +35,7 @@ The workspace root is `/home/michael/fable`. When working with file paths, remem
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
-| Latest documented tag | `v4.16.18` |
+| Latest documented tag | `v4.16.19` |
 | GitHub owner | `opensourcefan` |
 
 ### Branch naming conventions
@@ -218,8 +218,8 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend/frontend version: `4.16.18` (in `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest documented git tag: `v4.16.18`
+- Backend/frontend version: `4.16.19` (in `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest documented git tag: `v4.16.19`
 
 ### Documentation Parity
 
