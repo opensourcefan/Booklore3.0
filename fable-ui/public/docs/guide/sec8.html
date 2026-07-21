@@ -638,14 +638,18 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
-    <li><a href="sec8.html">8. Shelves</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
+    <li><a href="sec8.html" class="active">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
@@ -659,54 +663,58 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 8 ==================== -->
 <h2 id="sec8">8. Shelves &mdash; Custom Collections <span class="section-icon"><i class="pi pi-bookmark"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> SHELVES section</p>
 
-<p>Shelves are like playlists for your books. You can create as many as you want and assign any book to one or more shelves.</p>
+<p>Use a shelf when you want to choose membership yourself: a reading list, a favorite-books collection, or a device queue. A book can belong to several shelves without being duplicated.</p>
 
-<h3>What You Can Do</h3>
+<h3>Create and Fill a Shelf</h3>
+<ol>
+  <li>In the <strong>Shelves</strong> sidebar section, create a shelf and choose its name and optional icon.</li>
+  <li>Add books from a book&rsquo;s detail page or cover menu. In a book browser, select several books to assign them together.</li>
+  <li>Open the shelf from the sidebar to check its contents. Removing a book from the shelf does not remove it from its library.</li>
+</ol>
+
+<h3>Choose the Right Organization Tool</h3>
 <table>
-  <tr><th>Action</th><th>Description</th></tr>
-  <tr><td><i class="pi pi-plus"></i> Create a shelf</td><td>Give it a name and optionally a custom display icon or color <i class="pi pi-palette guide-icon-inline"></i></td></tr>
-  <tr><td><i class="pi pi-bookmark"></i> Add books</td><td>Assign books to a shelf from the book detail page or the cover's right-click menu</td></tr>
-  <tr><td><i class="pi pi-times"></i> Remove books</td><td>Take books off a shelf without deleting them from your library</td></tr>
-  <tr><td><i class="pi pi-pencil"></i> Rename a shelf</td><td>Change its name at any time</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Delete a shelf</td><td>Remove the shelf catalog entry (the books inside are not deleted)</td></tr>
-  <tr><td><i class="pi pi-eye"></i> Browse a shelf</td><td>Click a shelf in the sidebar to see only its books</td></tr>
-  <tr><td><i class="pi pi-users"></i> Make a shelf public</td><td>Admins can make shelves visible to all user accounts on the server</td></tr>
-  <tr><td><i class="pi pi-tablet"></i> Kobo device shelf</td><td>Special shelf type that automatically syncs to connected Kobo e-readers (see Section 19 for setup details)</td></tr>
+  <tr><th>Goal</th><th>Use</th></tr>
+  <tr><td>Hand-pick a collection</td><td>This section: <strong>Shelves</strong></td></tr>
+  <tr><td>Keep membership updated by rules</td><td><a href="sec9.html">Magic Shelves</a></td></tr>
+  <tr><td>Follow numbered volumes</td><td><a href="sec13.html">Series</a></td></tr>
+  <tr><td>Build a custom reading order across books or series</td><td><a href="sec14.html">Story Arcs</a></td></tr>
+  <tr><td>Find a temporary result set</td><td><a href="sec17.html">Search and Filtering</a></td></tr>
 </table>
 
-<div class="callout tip">
-  <strong>Tip:</strong> Click <strong>Not Shelved</strong> (listed as <strong>Not Shelfed</strong> in the sidebar menu) to view all books that haven't been assigned to any custom shelf—perfect for sorting newly added files.
-</div>
-
-<h3>What You Can&rsquo;t Do</h3>
+<h3>Maintain the Shelf</h3>
 <ul>
-  <li>Nest shelves inside other shelves (shelves are flat, not hierarchical)</li>
+  <li>Rename, recolor, or change the icon when the shelf&rsquo;s purpose changes.</li>
+  <li>Admins can make a shelf public for other accounts.</li>
+  <li>Use <strong>Not Shelfed</strong> in the sidebar to find books that still need organizing.</li>
+  <li>Keep titles, authors, categories, tags, and series consistent with <a href="sec15.html">book metadata tools</a> and the <a href="sec16.html">Metadata Manager</a>; clean metadata improves filtering and makes it easier to decide what belongs on a shelf.</li>
+  <li>The special Kobo shelf participates in device sync; see <a href="sec20.html">Kobo &amp; KOReader Sync</a>.</li>
 </ul>
 
-<div class="callout info">
-  <strong>Good to Know:</strong> Deleting a shelf does not delete the books inside it. The books remain in your libraries—only the custom shelf group is removed.
+<div class="callout warning">
+  <strong>Be Careful:</strong> Shelves are flat and cannot be nested. Deleting a shelf removes only the shelf; it does not delete its books.
 </div>
 <nav class="section-nav">
   <a href="sec7.html" class="nav-link nav-prev">← Previous: 7. BookDrop</a>

@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html" class="active">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,37 +663,51 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 7 ==================== -->
 <h2 id="sec7">7. BookDrop &mdash; Importing New Books <span class="section-icon"><i class="pi pi-inbox"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> BookDrop <i class="pi pi-inbox"></i></p>
 
-<p>BookDrop is a <strong>watch folder</strong> &mdash; a special folder where you drop new book files, and Fable will detect and import them.</p>
+<p>BookDrop is a watched, pre-import inbox. Files stay outside normal library browsing while you inspect metadata, choose a destination library and subpath, and finalize them. Finalization imports the book into its library; it does not bypass the <a href="sec6.html#staging-lifecycle">Staging lifecycle</a>.</p>
 
-<h3>How It Works</h3>
+<div class="callout info">
+  <strong>Which inbox do I use?</strong> The global BookDrop is the shared/admin inbox inside the container (default <code>/bookdrop</code>, commonly mounted from a host folder such as <code>./bookdrop</code>). Non-admin accounts use private inboxes under <code>/books/_users/{id}/bookdrop/</code>. Fable scopes pending-file access accordingly: admins work with global files, while non-admin users work with files owned by their account.
+</div>
+
+<h3>Put Files into BookDrop</h3>
+<table>
+  <tr><th>Method</th><th>Destination</th></tr>
+  <tr><td><strong>Browser upload</strong></td><td>Open topbar <strong>Upload</strong>, choose <strong>BookDrop</strong>, select files, and upload. An admin upload goes to the global/shared inbox; a non-admin upload goes to that user&rsquo;s personal inbox.</td></tr>
+  <tr><td><strong>Host drop</strong></td><td>Copy files into the host directory mounted as the global BookDrop. This feeds the admin/shared queue.</td></tr>
+  <tr><td><strong>Personal drop</strong></td><td>Place files in the user&rsquo;s <code>/books/_users/{id}/bookdrop/</code> inbox, or use browser upload while signed in as that user. A <code>.ignore</code> marker keeps this inbox out of normal personal-library scans.</td></tr>
+</table>
+<p>Use direct topbar <strong>Upload &rarr; Library</strong> instead when the library and subpath are already known and you do not need BookDrop&rsquo;s pre-import review. The route comparison is in <a href="sec6.html">Section 6</a>.</p>
+
+<h3>Review and Finalize</h3>
 <ol>
-  <li><strong>Place files</strong> in the BookDrop folder (located inside your main Fable installation directory on the host server, typically mapped to <code>./bookdrop</code> in your Docker configuration)</li>
-  <li><strong>Fable detects</strong> the new files automatically (or you can click &ldquo;Rescan&rdquo;)</li>
-  <li><strong>Go to the BookDrop page</strong> in Fable to see pending files</li>
-  <li><strong>Review and edit</strong> &mdash; Adjust metadata, assign to a library, set the destination path</li>
-  <li><strong>Finalize</strong> &mdash; Click to import the files into your library</li>
+  <li><strong>Wait for detection</strong> or click <strong>Rescan</strong>, then open topbar <strong>BookDrop</strong>.</li>
+  <li><strong>Select pending files.</strong> Selection can cover the current page or all pages.</li>
+  <li><strong>Prepare metadata.</strong> Review fetched values, import selected metadata, bulk-edit fields, or extract metadata from filename patterns.</li>
+  <li><strong>Choose a destination.</strong> Assign a permitted library and subpath to every selected file; defaults can be applied to the selection.</li>
+  <li><strong>Finalize.</strong> Fable resolves the library naming pattern, moves each successful file into its destination, creates the library book record, applies the prepared metadata, and removes successful items from BookDrop. Failed items are reported in the import summary.</li>
+  <li><strong>Hand off to Staging.</strong> Open HOME &rarr; <strong>Staging</strong>, resolve any remaining metadata work, and release the new books when ready. See <a href="sec6.html#staging-lifecycle">Section 6: Staging lifecycle</a>.</li>
 </ol>
 
 <h3>What You Can Do</h3>
@@ -701,8 +719,8 @@
   <tr><td><i class="pi pi-pencil"></i> Bulk edit</td><td>Update metadata for multiple files at once</td></tr>
   <tr><td><i class="pi pi-code"></i> Pattern extraction</td><td>Automatically parse filenames to extract title, author, series, etc.</td></tr>
   <tr><td><i class="pi pi-folder"></i> Choose destination</td><td>Pick which library and folder path to import into</td></tr>
-  <tr><td><i class="pi pi-times"></i> Discard files</td><td>Skip files you don&rsquo;t want to import</td></tr>
-  <tr><td><i class="pi pi-check"></i> Finalize import</td><td>Move files from BookDrop into your library</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Delete pending files</td><td>Permanently delete selected files from BookDrop after confirmation</td></tr>
+  <tr><td><i class="pi pi-check"></i> Finalize import</td><td>Move successful files into the chosen library and create staged book records</td></tr>
   <tr><td><i class="pi pi-tag"></i> Directory tagging progress</td><td>If the destination library uses directory-based tags, a separate background task runs after the files are moved to assign tags based on the folders they are placed in</td></tr>
 </table>
 
@@ -717,8 +735,7 @@
   <ul>
     <li><strong>Files are moved, not copied,</strong> during import. After finalization, the original file in BookDrop is removed.</li>
     <li><strong>Pattern extraction is only as good as your filename.</strong> If filenames are messy, you may need to edit metadata manually.</li>
-    <li><strong>Don&rsquo;t put files into BookDrop while a scan is actively running.</strong> Wait for the scan to complete first, then add files and rescan.</li>
-    <li><strong>Import completion vs. directory tagging:</strong> Because directory tagging runs as a separate background task, wait for the **Directory Tags** task to finish before assuming all folder-based tags are completely applied.</li>
+    <li><strong>Import completion vs. directory tagging:</strong> Because directory tagging runs as a separate background task, wait for the <strong>Directory Tags</strong> task to finish before assuming all folder-based tags are completely applied.</li>
   </ul>
 </div>
 <nav class="section-nav">

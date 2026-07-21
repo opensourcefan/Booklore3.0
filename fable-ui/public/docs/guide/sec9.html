@@ -638,15 +638,19 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
-    <li><a href="sec9.html">9. Magic Shelves</a></li>
+    <li><a href="sec9.html" class="active">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,29 +663,41 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 9 ==================== -->
 <h2 id="sec9">9. Magic Shelves &mdash; Smart Filtered Collections <span class="section-icon"><i class="pi pi-sparkles"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> MAGIC SHELVES section</p>
 
-<p>Magic Shelves are <strong>automatic collections</strong> that populate themselves based on rules you define. Unlike regular shelves where you manually add and remove books, Magic Shelves use a powerful rule engine to decide membership automatically. Change a book's metadata, and it may appear or disappear from your Magic Shelves without any manual work.</p>
+<p>Use a Magic Shelf when a collection should maintain itself. You define metadata and progress rules; matching books enter or leave automatically as their data changes.</p>
+
+<h3>Build a Magic Shelf</h3>
+<ol>
+  <li>Create a Magic Shelf from its sidebar section, or start with a template.</li>
+  <li>Add a rule by choosing a field, operator, and value.</li>
+  <li>Use <strong>AND</strong> when every rule must match, <strong>OR</strong> when any rule may match, and nested groups for mixed logic.</li>
+  <li>Watch the live match count, set a result cap if needed, then save and open the shelf to verify the books.</li>
+</ol>
+
+<div class="callout info">
+  <strong>Choose the right tool:</strong> Use <a href="sec8.html">Shelves</a> for hand-picked membership, <a href="sec13.html">Series</a> for numbered volumes, <a href="sec14.html">Story Arcs</a> for a curated reading path, or <a href="sec17.html">Search and Filtering</a> for a temporary query. A Magic Shelf is the reusable, rule-driven option.
+</div>
 
 <h3>The Rule Builder</h3>
 <p>When you create or edit a Magic Shelf, you use a visual rule builder with these components:</p>
@@ -776,6 +792,14 @@
   <li>Manually add or remove specific books from a magic shelf — membership is determined entirely by the filter rules</li>
   <li>Create rules that reference other Magic Shelves (no cross-shelf dependencies)</li>
 </ul>
+
+<h3>Improve Unexpected Results</h3>
+<ol>
+  <li>Open a surprising book and inspect the field used by the rule.</li>
+  <li>Correct that book with <a href="sec15.html">manual or fetched metadata</a>.</li>
+  <li>If several spellings represent the same author, category, tag, series, publisher, or language, standardize them in the <a href="sec16.html">Metadata Manager</a>.</li>
+  <li>Return to the Magic Shelf; membership updates from the corrected data.</li>
+</ol>
 
 <div class="callout">
   <strong>Be Careful:</strong> A magic shelf with very broad rules may include thousands of books, which can slow down loading. Use the <strong>Cap</strong> slider to limit results, and check the live match count before saving.

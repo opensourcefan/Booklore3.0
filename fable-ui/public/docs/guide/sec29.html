@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,23 +663,23 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html" class="active">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 29 ==================== -->
 <h2 id="sec29">29. Glossary <span class="section-icon"><i class="pi pi-book"></i></span></h2>
@@ -685,18 +689,25 @@
   <tr><td><strong><span class="guide-badge guide-badge-aip">AIP</span> &mdash; AI Panel Detection</strong></td><td>AI feature that identifies individual comic panels on a page; when a comic has panel data, an <span class="guide-badge guide-badge-aip">AIP</span> badge appears on the book card</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-ais">AIS</span> &mdash; AI Search</strong></td><td>AI-powered natural language search that lets you find books by themes, characters, concepts, or ask questions about a book&rsquo;s contents; embedded books show an <span class="guide-badge guide-badge-ais">AIS</span> badge on the book card</td></tr>
   <tr><td><strong>Annotation</strong></td><td>A highlight, underline, or note you create while reading</td></tr>
+  <tr><td><strong>App Settings backup</strong></td><td>A JSON export/import of application configuration from Backups; it is not a database, media, reading-progress, or annotation backup</td></tr>
   <tr><td><strong>Audit Log</strong></td><td>A record of actions taken by users in the application</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-audiobook">Audiobook</span></strong></td><td>An audio book format; Fable supports folder-based audiobooks containing <span class="guide-badge guide-badge-mp3">MP3</span>, <span class="guide-badge guide-badge-m4a">M4A</span>, <span class="guide-badge guide-badge-m4b">M4B</span>, <span class="guide-badge guide-badge-ogg">OGG</span>, or <span class="guide-badge guide-badge-opus">OPUS</span> files</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-azw3">AZW3</span></strong></td><td>Amazon Kindle e-book format (KF8)</td></tr>
   <tr><td><strong>BookDrop</strong></td><td>A watch folder where you place new files for Fable to import</td></tr>
+  <tr><td><strong>Browser access</strong></td><td>Using Fable directly in a web browser; this uses Fable&rsquo;s web reader and is distinct from OPDS downloads, emailed files, or native e-reader synchronization</td></tr>
   <tr><td><strong>Bookmark</strong></td><td>A saved position marker in a book</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-cb7">CB7</span></strong></td><td>Comic book archive format using 7-Zip compression</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-cbx">CBX</span></strong></td><td>Fable&rsquo;s unified comic reader that opens <span class="guide-badge guide-badge-cbz">CBZ</span>, <span class="guide-badge guide-badge-cbr">CBR</span>, and <span class="guide-badge guide-badge-cb7">CB7</span> files with panel detection, multiple scroll modes, and a magnifier</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-cbz">CBZ</span> / <span class="guide-badge guide-badge-cbr">CBR</span></strong></td><td>Comic book archive formats (CBZ&nbsp;=&nbsp;ZIP, CBR&nbsp;=&nbsp;RAR) containing image files</td></tr>
   <tr><td><strong>Cron</strong></td><td>A scheduling system for running tasks automatically at set times</td></tr>
+  <tr><td><strong>Completed (Staging tab)</strong></td><td>Books in Staging whose metadata has already been fetched or applied and which do not have a fetched proposal currently taking priority in Review</td></tr>
+  <tr><td><strong>Database preflight</strong></td><td>The admin-only Backups checklist that evaluates entered paths, free-space value, and operator confirmations before enabling Copy Restore Command; it does not inspect the host or run a restore</td></tr>
+  <tr><td><strong>Device sync</strong></td><td>A configured Kobo or KOReader integration that exchanges supported shelf/progress data; it is not the same as opening Fable in a browser</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-epub">EPUB</span></strong></td><td>The most common e-book file format</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-fb2">FB2</span></strong></td><td>FictionBook 2 &mdash; an XML-based e-book format popular in Russian-language publishing</td></tr>
-  <tr><td><strong>Forward Auth</strong></td><td>A method where a reverse proxy handles authentication before requests reach Fable</td></tr>
+  <tr><td><strong>FETCHED</strong></td><td>The metadata-proposal status meaning a candidate has been fetched and is awaiting review; it is not proof that the candidate was applied</td></tr>
+  <tr><td><strong>Forward Auth</strong></td><td>An external reverse-proxy pattern where the proxy authenticates a request first. It is not a configurable Fable login mode in the current UI; Fable supports Local Login and OIDC</td></tr>
+  <tr><td><strong>ISBN Discovery</strong></td><td>A task that scans front matter and, when needed, back pages for checksum-valid ISBNs, verifies candidates, and uses a verified ISBN to fetch metadata; ambiguous or review-required results become metadata proposals</td></tr>
   <tr><td><strong>JWT</strong></td><td>JSON Web Token &mdash; the authentication token used for login sessions</td></tr>
   <tr><td><strong>KEPUB</strong></td><td>Kobo&rsquo;s enhanced EPUB format</td></tr>
   <tr><td><strong>Library</strong></td><td>A connection between Fable and a folder on your server where book files are stored</td></tr>
@@ -706,6 +717,7 @@
   <tr><td><strong>Magic Shelf</strong></td><td>An automatically populated collection based on filter rules</td></tr>
   <tr><td><strong>Media Type</strong></td><td>A category for your books (e-book, PDF, comic, audiobook, or custom); physical placeholders remain a separate dedicated browsing path under <strong>Physical Books</strong></td></tr>
   <tr><td><strong>Metadata</strong></td><td>Information about a book &mdash; title, author, description, cover, ISBN, etc.</td></tr>
+  <tr><td><strong>Metadata Proposal</strong></td><td>A fetched metadata candidate attached to a background task for a specific book; while its status is FETCHED it appears in Staging&rsquo;s Review workflow for an authorized user to inspect</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-mobi">MOBI</span></strong></td><td>Older Amazon Kindle e-book format (predecessor to AZW3)</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-mp3">MP3</span></strong></td><td>The most common compressed audio format; widely used for audiobooks</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-ogg">OGG</span> / <span class="guide-badge guide-badge-opus">OPUS</span></strong></td><td>Open, royalty-free audio formats; OPUS is a modern high-efficiency codec often used in OGG containers</td></tr>
@@ -714,13 +726,20 @@
   <tr><td><strong><span class="guide-badge guide-badge-pdf">PDF</span></strong></td><td>Portable Document Format &mdash; standard document files (books, manuals, magazines)</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-phy">PHY</span> &mdash; Physical</strong></td><td>A catalog entry for a physical book you own; no digital file is required, and the <span class="guide-badge guide-badge-phy">PHY</span> badge appears on the book card</td></tr>
   <tr><td><strong>RAG</strong></td><td>Retrieval-Augmented Generation &mdash; a technique that retrieves relevant text chunks before generating AI responses, improving accuracy</td></tr>
+  <tr><td><strong>Reconcile Library</strong></td><td>A full comparison of a library&rsquo;s catalog records against disk that can remove missing-file entries and purge disallowed formats; use Scan for New Files for additive discovery</td></tr>
+  <tr><td><strong>Release</strong></td><td>The Staging action that clears selected books&rsquo; staged status and removes them from the staging queue; it does not move files, alter metadata, or control All Books visibility</td></tr>
+  <tr><td><strong>Review (Staging tab)</strong></td><td>The Staging triage view for books with FETCHED metadata proposals awaiting an authorized metadata decision; Review takes priority over Staged or Completed classification</td></tr>
   <tr><td><strong>Reverse Proxy</strong></td><td>A server that sits between the internet and Fable, handling security and routing</td></tr>
   <tr><td><strong>Semantic Chunking</strong></td><td>An intelligent text-splitting method that respects natural boundaries (paragraphs, sections) rather than cutting at fixed character counts</td></tr>
   <tr><td><strong>Role preset</strong></td><td>A starting permission pack when creating a user: Reader, Contributor, Librarian, or Admin (Custom means mixed checkboxes)</td></tr>
   <tr><td><strong>Shelf</strong></td><td>A user-created collection for grouping books (like a playlist)</td></tr>
+  <tr><td><strong>Sidecar</strong></td><td>A metadata file stored beside a book file. Backups can manually write supported current database metadata to sidecars for one selected library</td></tr>
   <tr><td><strong>Show library</strong></td><td>Admin toggle: when on, a user&rsquo;s personal library appears under the sidebar <strong>USERS</strong> section for the admin; when off (default), it stays out of the admin catalog</td></tr>
   <tr><td><strong>SMTP</strong></td><td>Simple Mail Transfer Protocol &mdash; the standard for sending email</td></tr>
   <tr><td><strong>Story Arc</strong></td><td>A curated, chapter-based reading path through books you can access (ideal for comic crossovers and shared-universe orders); lists only include books from your visible libraries</td></tr>
+  <tr><td><strong>Staged (Staging tab)</strong></td><td>The staging inbox view for books that have not been classified into Review by a fetched metadata proposal or into Completed by fetched/applied metadata</td></tr>
+  <tr><td><strong>Staging</strong></td><td>The sidebar workspace for triaging imported books through Staged, Review, and Completed views before clearing their staged status with Release; it is a workflow flag, not a separate storage location</td></tr>
+  <tr><td><strong>Task Manager</strong></td><td>The permission-gated <strong>Settings &rarr; Tasks</strong> page for manual runs, schedules, recent history, and error-notification settings; the topbar bell&rsquo;s Tasks view only shows live status</td></tr>
   <tr><td><strong>Tasks / Notifications bell</strong></td><td>Topbar status center: the <strong>Tasks</strong> tab shows live running work; the <strong>Notifications</strong> tab is a durable WARN/ERROR failure inbox you can dismiss</td></tr>
 </table>
 <nav class="section-nav">

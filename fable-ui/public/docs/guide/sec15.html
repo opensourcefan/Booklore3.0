@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,81 +663,77 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html" class="active">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html" class="active">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 15 ==================== -->
 <h2 id="sec15">15. Metadata &mdash; Book Information <span class="section-icon"><i class="pi pi-tag"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Book detail page <i class="pi pi-chevron-right"></i> Metadata tab, or right-click a book <i class="pi pi-chevron-right"></i> Edit Metadata</p>
 
-<p><strong>Metadata</strong> is all the information about a book: title, author, description, cover image, publication date, genre, ISBN, and more.</p>
+<p><strong>Metadata</strong> is the information that identifies and organizes a book. Better titles, authors, series, categories, tags, languages, and identifiers improve <a href="sec17.html">search and filtering</a>, <a href="sec9.html">Magic Shelves</a>, and the browsing tools for <a href="sec13.html">series</a> and <a href="sec14.html">Story Arcs</a>.</p>
 
-<h3>Fetching Metadata from the Internet</h3>
+<h3>Edit One Book Manually</h3>
+<ol>
+  <li>Open the book and choose <strong>Edit Metadata</strong>.</li>
+  <li>Change fields, upload a cover, or restore an empty title from the primary filename.</li>
+  <li>Use field locks when a trusted value must survive later fetches, then save.</li>
+</ol>
+<p>Use <strong>Delete All Metadata</strong> only when you intend to clear the editable fields and start again. The action cannot be undone.</p>
+
+<h3>Fetch Metadata for One Book</h3>
+<ol>
+  <li>Open the book&rsquo;s <strong>Search Metadata</strong> tab or use its quick <strong>Fetch Metadata</strong> action.</li>
+  <li>Search by ISBN when available, or by title and author. A supported provider URL can bias or directly resolve a result; ComicVine volume URLs can be paired with an issue number or range.</li>
+  <li>Choose a result and compare current and fetched values. Copy missing fields or all fields, review covers and edition details, then save.</li>
+</ol>
+
+<h3>Fetch Metadata for Selected Books</h3>
+<ol>
+  <li>In a book browser, select the target books.</li>
+  <li>Use <strong>Auto Fetch Metadata</strong> for configured defaults, or the custom metadata refresh action to choose target books, replacement mode, covers, genre merging, field enablement, and provider priorities.</li>
+  <li>For a custom run, keep <strong>Manual Review</strong> on when you want proposals. Turn it off only when the selected replacement rules are safe to apply automatically.</li>
+  <li>Track the background run from the topbar metadata status. Provider failures do not stop the remaining queue; paused or interrupted batches can be resumed where supported.</li>
+</ol>
+
+<h3>Understand Auto Apply and Proposals</h3>
 <table>
-  <tr><th>Action</th><th>Description</th></tr>
-  <tr><td><i class="pi pi-download"></i> Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
-  <tr><td><i class="pi pi-link"></i> Use provider page URLs</td><td>Paste a provider page URL in metadata search (for example a ComicVine issue or volume page) to bias the match, resolve that item directly when supported, and for ComicVine volumes optionally enter an issue number or issue range (for example 46 or 43-171) to auto-resolve those issue pages</td></tr>
-  <tr><td><i class="pi pi-arrow-right"></i> Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls from the selected-result detail view to move through the group; Fable returns to that book&rsquo;s search results context before switching so you can continue review without losing place</td></tr>
-  <tr><td><i class="pi pi-eye"></i> Preview results</td><td>See what information was found before applying</td></tr>
-  <tr><td><i class="pi pi-check"></i> Apply selectively</td><td>Choose which fields to update</td></tr>
-  <tr><td><i class="pi pi-sync"></i> Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
-  <tr><td><i class="pi pi-plus"></i> Merge</td><td>Keep your edits and fill in only the missing fields</td></tr>
-  <tr><td><i class="pi pi-image"></i> Fetch covers</td><td>Download book cover images</td></tr>
-  <tr><td><i class="pi pi-user"></i> Fetch author info</td><td>Download author biographies and photos</td></tr>
+  <tr><th>Choice or trigger</th><th>Result</th></tr>
+  <tr><td><strong>Manual Review on</strong></td><td>Fetched results become proposals instead of immediately replacing book metadata.</td></tr>
+  <tr><td><strong>Manual Review off</strong></td><td>The fetch applies according to the selected replacement mode and field locks.</td></tr>
+  <tr><td>Verified ISBN discovery configured for auto apply</td><td>Verified matches may apply automatically; ambiguous matches are routed to review. This ISBN-specific behavior does not change the normal Manual Review default.</td></tr>
+  <tr><td>BookDrop automatic metadata download</td><td>New imports can trigger metadata retrieval when enabled in Metadata Settings.</td></tr>
 </table>
 
-<h3>Metadata Review Queue</h3>
+<h3>Process Staging and Review</h3>
+<p>Open <strong>Sidebar &rarr; Home &rarr; Staging</strong>. For the complete intake flow, see <a href="sec6.html#staging-lifecycle">Books: Staging Lifecycle</a>.</p>
 <ul>
-  <li>The fetched-proposal dialog is titled <strong>Metadata Review</strong></li>
-  <li>In Staging &rarr; Review, each card&rsquo;s center Details control becomes an orange <strong>Review</strong> action; it opens the review dialog directly on that book&rsquo;s proposal</li>
-  <li>Staged, Completed, and Review are preserved when Book Details opens as a page, so the return arrow restores the section you entered from. Closing Metadata Review also removes cleared books from Review without a browser refresh.</li>
-  <li>In the Search Metadata detail comparison view, use the always-visible top control rail <i class="pi pi-angle-double-left guide-icon-inline"></i> buttons to copy missing fields or copy all fetched fields into the editable column</li>
-  <li>Use <strong>Skip</strong> to move the current proposal to the end of the current review queue and jump straight to the next proposal</li>
-  <li>Use the orange <strong>Copy All, Save & Next</strong> action in the top comparison header to run the common review routine in one step</li>
-  <li><strong>Accept & Save</strong> waits for the metadata save itself to finish before the proposal is marked accepted, keeping the review queue and saved data in sync</li>
-  <li>Use <strong>Tag & Next</strong> <i class="pi pi-tag guide-icon-inline"></i> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
-  <li>ISBN discovery is shown in both the topbar status pill and the task card: purple <strong>ISBN Fetch</strong> changes to green <strong>Metadata Fetch</strong>, with a brief red <strong>ISBN Failed</strong> state when discovery fails.</li>
-  <li>Before manual ISBN discovery starts, use the provider multi-select to query only sources you trust. The first successful provider supplies the base result; each later selected provider fills metadata fields that remain empty.</li>
-  <li>Use <strong>Dismiss</strong> <i class="pi pi-times guide-icon-inline"></i> to hide a metadata-progress notification. Dismissing never deletes review proposals; review management remains in Staging &rarr; Review.</li>
-  <li>In Search Metadata detail mode, <strong>Lock All</strong> <i class="pi pi-lock guide-icon-inline"></i>, <strong>Unlock All</strong> <i class="pi pi-lock guide-icon-inline"></i>, and <strong>Save Changes</strong> <i class="pi pi-save guide-icon-inline"></i> stay pinned in the top control rail so they remain reachable while scrolling</li>
-  <li><strong>Finish & Close</strong> <i class="pi pi-check guide-icon-inline"></i> clears the matching topbar notification/task state when the review session is complete</li>
+  <li><strong>Staged</strong> is the intake queue for books still awaiting metadata completion.</li>
+  <li><strong>Review</strong> contains books with fetched proposals. Open the orange <strong>Review</strong> action, compare values, then save and accept; use <strong>Skip</strong> to move a proposal to the end or <strong>Tag &amp; Next</strong> to flag follow-up.</li>
+  <li><strong>Completed</strong> contains staged books whose metadata work is complete.</li>
+  <li><strong>Release</strong> clears the selected books&rsquo; staged status and removes them from the Staging queue. It does not move their files or control whether they are visible in All Books.</li>
 </ul>
+<p>Dismissing a progress notification does not delete its proposals. Finish proposal decisions in <strong>Staging &rarr; Review</strong>.</p>
 
-<h3>Editing Metadata Manually</h3>
-<ul>
-  <li>Edit title, author, description, and all other fields by hand</li>
-  <li>Upload a custom cover image</li>
-  <li>Add or change genres, categories, and moods</li>
-  <li>Set or update ISBN, publication date, and language</li>
-  <li>Restore an empty title from the primary filename with a dedicated metadata-editor button</li>
-  <li>Delete all editable metadata directly beside the fetch actions when you want to clear a book and immediately refetch it</li>
-  <li>Delete all editable metadata for a single book from the metadata editor when you want to start over cleanly</li>
-  <li>Create custom media types (Magazines, Textbooks, etc.)</li>
-</ul>
+<h3>Configure Fetching and Persistence</h3>
+<p>Use <a href="sec24.html">Application Settings</a> to configure metadata providers, automatic BookDrop fetching, ISBN discovery, replacement priorities, enabled fields, match weights, and whether supported file formats or sidecars receive metadata writes.</p>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong>
-  <ul>
-    <li><strong>&ldquo;Replace All&rdquo; overwrites everything,</strong> including any manual edits you&rsquo;ve made. Use &ldquo;Merge&rdquo; if you want to keep your changes.</li>
-    <li><strong>Fetched cover images may not match your edition.</strong> Review the cover before applying.</li>
-    <li><strong>ISBN lookup is the most reliable</strong> way to get accurate metadata. Use it when available.</li>
-    <li>You cannot undo a metadata overwrite once applied.</li>
-  </ul>
+  <strong>Be Careful:</strong> Replace-all modes can overwrite unlocked manual values, and fetched covers may represent another edition. Review a small batch before applying the same choices widely.
 </div>
 <nav class="section-nav">
   <a href="sec14.html" class="nav-link nav-prev">← Previous: 14. Story Arcs</a>

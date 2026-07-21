@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,29 +663,29 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html" class="active">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 25 ==================== -->
 <h2 id="sec25">25. Background Tasks <span class="section-icon"><i class="pi pi-clock"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Tasks tab, or Topbar <i class="pi pi-chevron-right"></i> Task Manager <i class="pi pi-list-check"></i></p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar gear <i class="pi pi-chevron-right"></i> Settings <i class="pi pi-chevron-right"></i> Tasks tab (Admin or Access Task Manager permission)</p>
 
-<p>Fable can run jobs in the background to maintain and update your library.</p>
+<p>The <strong>Task Manager</strong> is the <strong>Settings &rarr; Tasks</strong> parent tab. The topbar bell&rsquo;s <strong>Tasks</strong> view is a live status surface, not the scheduling page. A clickable topbar directory-tagging status can take an authorized user to Settings &rarr; Tasks.</p>
 
 <table>
   <tr><th>Task</th><th>What It Does</th></tr>
@@ -698,7 +702,7 @@
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i> (see also <a href="sec4.html">Section 4</a>)</p>
 <p>Background work uses the same topbar bell described in Section 4. Quick reminder of how Tasks settings interact with it:</p>
 <ul>
-  <li><strong>Tasks tab</strong> &mdash; Live progress for metadata jobs, AI Search scans, BookDrop pending files, and system jobs while they are running</li>
+  <li><strong>Bell &rarr; Tasks</strong> &mdash; Live progress for metadata jobs, AI Search scans, BookDrop pending files, and system jobs while they are running</li>
   <li><strong>Notifications tab</strong> &mdash; Durable <strong>WARN</strong>/<strong>ERROR</strong> failure inbox only (not success chatter). Failures persist across restarts until you dismiss them</li>
   <li><strong>Error notifications</strong> toggle (per scheduled task) &mdash; When on, scheduled task failures appear in the Notifications inbox. Successful runs are recorded under <strong>Recent runs</strong> only</li>
   <li><strong>Recent runs</strong> &mdash; Expand this on a task card in Settings &rarr; Tasks for the detailed history of scheduled and manual runs with status and messages</li>
@@ -721,6 +725,15 @@
   <li>Use <strong>Library Maintenance</strong> when you intentionally want to reconcile a library or run library-wide sidecar rewrite/import tools</li>
   <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured; additive scans limit that follow-up to newly imported books, while manual reconcile can still tag the whole library</li>
   <li>Directory-tag rule changes affect future imports only; existing book tags are not retroactively modified</li>
+</ul>
+
+<h3>Related Procedures</h3>
+<ul>
+  <li>Configure tab visibility and permissions in <a href="sec22.html">User Accounts and Permissions</a>.</li>
+  <li>Understand the Tasks parent tab among all settings in <a href="sec24.html">Application Settings</a>.</li>
+  <li>Review the BookDrop staging/finalize workflow in <a href="sec7.html">BookDrop</a>.</li>
+  <li>Monitor AI Panel Detection or AI Search scans using <a href="sec18.html">AI Panel Detection</a> and the AI section of <a href="sec24.html">Application Settings</a>.</li>
+  <li>Back up before risky maintenance using <a href="sec26.html">Backup and Restore</a>, and inspect administrative history in <a href="sec27.html">Audit Logs</a>.</li>
 </ul>
 
 <div class="callout">

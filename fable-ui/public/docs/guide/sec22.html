@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,27 +663,27 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html" class="active">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html" class="active">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 22 ==================== -->
 <h2 id="sec22">22. User Accounts and Permissions <span class="section-icon"><i class="pi pi-users"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> User Management (admins) &nbsp;|&nbsp; your own account anywhere you can sign in</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> User/Profile button (your account) &nbsp;|&nbsp; Settings <i class="pi pi-chevron-right"></i> Users (admins)</p>
 
 <p>Fable can be shared by more than one person on the same server. Each person gets their <strong>own login</strong>, their <strong>own reading progress</strong>, and usually their <strong>own library of books</strong>. What you see depends on which books you are allowed to access&mdash;not on what everyone else has.</p>
 
@@ -717,7 +721,7 @@
   <li>Browse your libraries and open a book to read (see <a href="sec10.html">Reading Books</a>)</li>
   <li>Mark books as reading / finished; keep your own shelves</li>
   <li>Use search and filters inside your collection</li>
-  <li>Change your password later from your account / settings area if the UI offers it</li>
+  <li>Open the topbar <strong>User/Profile</strong> button to edit your username, full name, and email, or to change your password with your current password</li>
 </ul>
 
 <h3>Accounts vs profiles (quick terms)</h3>
@@ -725,6 +729,14 @@
   <li><strong>User account</strong> &mdash; username, password, and what you are allowed to do</li>
   <li><strong>User profile</strong> &mdash; your personal progress, shelves, and preferences that stay with that account</li>
 </ul>
+
+<h3>Update Your Own Profile</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> User/Profile button <i class="pi pi-chevron-right"></i> User Profile</p>
+<ol>
+  <li>Open the user/profile button in the topbar. In compact layouts, open the topbar overflow menu and choose <strong>Profile</strong>.</li>
+  <li>Click <strong>Edit Profile</strong> to change <strong>Username</strong>, <strong>Full Name</strong>, or <strong>Email</strong>, then click <strong>Save Changes</strong>.</li>
+  <li>To change your password, enter <strong>Current Password</strong>, <strong>New Password</strong>, and <strong>Confirm New Password</strong>, then click <strong>Change Password</strong>. Passwords must be at least eight characters.</li>
+</ol>
 
 <h3>Role presets (colored badges on the Users list)</h3>
 <p>When the admin creates or reviews users, Fable shows a clear role badge. Typical presets:</p>
@@ -762,15 +774,32 @@
   <li>Read books in their personal library and any shared libraries they were given</li>
   <li>Create personal shelves and keep their own reading progress</li>
   <li>Use Story Arcs for books they can see</li>
-  <li>Change their own password when prompted</li>
+  <li>Change their own username from the user profile and change their password when prompted</li>
+</ul>
+
+<h3 id="personal-bookdrop">Personal BookDrop and Direct Upload</h3>
+<ul>
+  <li><strong>BookDrop is permission-gated:</strong> the topbar BookDrop action and pending-file feed appear only with <strong>Access BookDrop</strong> (or Admin). For a non-admin, incoming files use that user&rsquo;s personal inbox at <code>/books/_users/{id}/bookdrop/</code>; admins use the shared <code>/bookdrop</code> mount.</li>
+  <li><strong>Direct Upload is separately permission-gated:</strong> the topbar <strong>Upload Book</strong> action appears only with <strong>Upload Books</strong> (or Admin). Do not tell a Reader to use Upload unless that permission was granted.</li>
+  <li>Having one permission does not imply the other. If an action is absent, ask an admin to review the account rather than trying another user&rsquo;s folder.</li>
+  <li>For the review/finalize workflow after a BookDrop import, follow <a href="sec7.html">Section 7</a>.</li>
 </ul>
 
 <h3>What admins can do</h3>
 <ul>
-  <li>Create, edit, and delete user accounts; reset temporary passwords</li>
+  <li>Create, edit, and delete user accounts</li>
+  <li>Set another user&rsquo;s temporary password from <strong>Settings &rarr; Users</strong> with the key button on that user card; the user is forced through the change-password screen on next login</li>
   <li>Choose presets / fine-tune permissions and library mapping</li>
   <li>Toggle <strong>Show personal library</strong> so a guest library appears under <strong>USERS</strong> for the admin</li>
   <li>Manage shared Libraries from the sidebar (⋯ menu on a library → Delete / Edit)</li>
+</ul>
+
+<h3>Password Recovery Boundaries</h3>
+<ul>
+  <li><strong>User knows the current password:</strong> use the topbar User Profile form.</li>
+  <li><strong>User forgot the password:</strong> an admin uses <strong>Settings &rarr; Users</strong>, clicks the key button, and sets a temporary password.</li>
+  <li><strong>OIDC-Only Mode:</strong> <code>/login?local=true</code> exposes local login for admins, but it does not bypass or reset the local password.</li>
+  <li><strong>Sole admin forgot the local password:</strong> the current UI has no supported anonymous reset flow. Try a working linked OIDC login if one exists; otherwise stop and use the project&rsquo;s documented support/recovery process or restore a known-good backup. Do not edit password hashes or run improvised database commands.</li>
 </ul>
 
 <h3>Optional: extra manual libraries</h3>

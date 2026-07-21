@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,41 +663,69 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html" class="active">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html" class="active">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 20 ==================== -->
 <h2 id="sec20">20. Kobo and KoReader Device Sync <span class="section-icon"><i class="pi pi-sync"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Devices tab</p>
 
-<p>Fable can sync reading progress with <strong>Kobo</strong> and <strong>KoReader</strong> compatible devices.</p>
+<p><strong>Choose a sharing route:</strong> use <a href="sec19.html">OPDS</a> for catalog browsing and downloads, this Devices page for supported Kobo/KOReader progress integration, or <a href="sec21.html">Email</a> for an attachment. Reading in Fable through a device browser uses the web reader and needs no device-sync setup; it is separate from native e-reader progress sync.</p>
 
-<h3>What You Can Do</h3>
+<h3>First Use: Kobo</h3>
+<ol>
+  <li>Ask an admin for <strong>Kobo Sync</strong> permission, then open <strong>Settings &rarr; Devices &rarr; Kobo Integration Configuration</strong>.</li>
+  <li>Enable <strong>Kobo Sync</strong>. Copy the generated <strong>Kobo Sync Token</strong> and keep it private.</li>
+  <li>Choose reading/finished thresholds, <strong>Auto-Add New Books to Kobo Shelf</strong>, and optional <strong>Two-Way Reading Progress Sync</strong>. Enabling sync creates the dedicated Kobo shelf; disabling sync warns that it will delete that shelf.</li>
+  <li>Use the external-documentation link beside the Kobo heading for the device-side connection procedure. The current Fable UI supplies and regenerates the token but does not install or patch Kobo software for you.</li>
+  <li>Add a small book to the Kobo shelf (or rely on auto-add), sync the Kobo, open the book, then confirm progress returns to Fable. Position mapping is best-effort and usually chapter-level.</li>
+</ol>
+
+<p>Admins also see server-wide KEPUB conversion, hyphenation, CBX-to-EPUB conversion, image compression, and size-limit controls. These are conversion policy, not per-device credentials.</p>
+
+<h3>First Use: KOReader</h3>
+<ol>
+  <li>Ask an admin for <strong>KOReader Sync</strong> permission, then open <strong>Settings &rarr; Devices &rarr; KOReader Sync Configuration</strong>.</li>
+  <li>Enter a KOReader username and a password of at least six characters, then click <strong>Save</strong>. The sync toggles remain unavailable until credentials are saved.</li>
+  <li>Copy the displayed <strong>KOReader API Path</strong>, username, and password.</li>
+  <li>Use the external-documentation link beside the KOReader heading to configure KOReader&rsquo;s progress-sync service with those values. Fable does not configure the KOReader application remotely.</li>
+  <li>Enable <strong>KOReader Sync</strong>. If desired, also enable <strong>Sync reading progress with Fable eBook Reader</strong> for bidirectional web-reader/KOReader updates.</li>
+  <li>Open the same book in KOReader and Fable and verify a test progress update. Progress is approximate and may resolve at chapter rather than exact-location precision.</li>
+</ol>
+
+<h3>Optional: Send KOReader Progress to Hardcover</h3>
+<ol>
+  <li>Set up KOReader first. Hardcover integration reports KOReader progress; it is not a way to transfer book files.</li>
+  <li>Open <strong>Settings &rarr; Devices &rarr; Hardcover Integration</strong>.</li>
+  <li>Get your personal API key from the linked <code>hardcover.app/account/api</code> page, enter it, and leave the field to save it.</li>
+  <li>Enable <strong>Sync KOReader Reading Progress to Hardcover</strong>, make a KOReader progress update, and verify it in Hardcover.</li>
+</ol>
+
+<h3>Supported Results and Boundaries</h3>
 <ul>
-  <li>Sync reading position between Fable and your device</li>
-  <li>Create a dedicated Kobo device shelf for content management</li>
-  <li>Transfer books to your device and keep progress synchronized</li>
+  <li>Kobo can sync shelf content and, when enabled, best-effort progress in both directions.</li>
+  <li>KOReader can sync progress through the displayed API endpoint; web-reader synchronization is a separate opt-in toggle.</li>
+  <li>Hardcover receives KOReader progress only; it does not browse Fable or receive files.</li>
+  <li>Kindle has no direct device-sync integration; use <a href="sec19.html">OPDS where supported</a> or <a href="sec21.html">email delivery</a>.</li>
 </ul>
 
-<p><strong>What You Can&rsquo;t Do:</strong> Sync with Kindle devices directly (use OPDS or email-to-Kindle instead).</p>
-
 <div class="callout">
-  <strong>Be Careful:</strong> Device sync is experimental. Minor discrepancies in page positioning may occur between the web reader and physical device.
+  <strong>Be Careful:</strong> Regenerating a Kobo token invalidates the old one. Keep device credentials and the Hardcover API key private. Test with one book before enabling automatic shelf additions or broad conversion settings.
 </div>
 <nav class="section-nav">
   <a href="sec19.html" class="nav-link nav-prev">← Previous: 19. OPDS Feeds</a>

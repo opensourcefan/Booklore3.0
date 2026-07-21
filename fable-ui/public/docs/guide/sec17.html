@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,23 +663,23 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html" class="active">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 17 ==================== -->
 <h2 id="sec17">17. Search and Filtering <span class="section-icon"><i class="pi pi-search"></i></span></h2>
@@ -685,15 +689,15 @@
 <p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN. The topbar search pulls lightweight server results as you type, so it stays responsive even before a large browser view has finished warming up.</p>
 
 <h3>AI Search</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> AI Search <i class="pi pi-sparkles"></i> sparkle icon, or Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
-<p>If you have configured Fable with an AI model provider (or are using a built-in Fable Preset) <strong>and</strong> you have embedded books, you can leverage natural language search to find books based on themes, characters, concepts, or general queries. Books must be embedded first — see <a href="#embedding">What Is Embedding?</a> below. For full details on configuring AI providers, models, profiles, and tuning parameters, see <a href="#sec23">Section 23: Application Settings &rarr; AI Search & Embedding Tuning</a>.</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> AI Search <i class="pi pi-sparkles"></i> sparkle icon, or Settings <i class="pi pi-chevron-right"></i> AI Settings <i class="pi pi-chevron-right"></i> AI Search</p>
+<p>If you have configured Fable with an AI model provider (or are using a built-in Fable Preset) <strong>and</strong> you have embedded books, you can leverage natural language search to find books based on themes, characters, concepts, or general queries. Books must be embedded first — see <a href="#embedding">What Is Embedding?</a> below. For full details on configuring AI providers, models, profiles, and tuning parameters, see <a href="sec24.html">Section 24: Application Settings &rarr; AI Search &amp; Embedding Tuning</a>.</p>
 <ul>
   <li><strong>From Search Bars:</strong> Click the sparkly blue <strong>AI Search</strong> <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> located inside the topbar or library search input fields to open the AI Search Dialog and submit your query.</li>
   <li><strong>From Book Cards:</strong> Look for the <strong><span class="guide-badge guide-badge-ais">AIS</span></strong> badge on individual books in your library. Clicking this badge will open AI Search directly on that specific book, allowing you to ask questions about its contents, summarize it, or explore its themes.</li>
   <li><strong>Automatic Metadata Tagging:</strong> When a book is embedded for AI Search, the metadata tag <strong>"<span class="guide-badge guide-badge-ais">AIS</span>"</strong> is automatically applied. This allows you to easily filter, search, or create Magic Shelves for books that have embeddings. The tag is automatically removed if the book's embeddings are deleted.</li>
 </ul>
 
-<h4>What Is Embedding?</h4>
+<h4 id="embedding">What Is Embedding?</h4>
 <p>Think of <strong>embedding</strong> as Fable reading a book and creating a searchable "index card" for it. Just like a library card catalog lets you find books by topic without reading every page, Fable's AI reads your book's text, converts it into a mathematical representation (called a vector), and stores it in a database. When you ask a question like "find books with dragons," Fable compares your question against all those index cards to find the best matches — even if the word "dragon" never appears in the title or author fields. This is what makes AI Search so powerful: it understands <em>meaning</em>, not just keywords.</p>
 
 <p><strong>AIS Badge Color States</strong> — The <span class="guide-badge guide-badge-ais">AIS</span> badge on book cards changes appearance to tell you the embedding status at a glance:</p>
@@ -703,7 +707,7 @@
   <li><span class="guide-badge guide-badge-ais-mismatched">AIS</span> <strong>Orange on black</strong> — Book was embedded with a different AI model than the one currently configured. The embeddings are stale and the book needs to be re-embedded. Click to see which model was used.</li>
 </ul>
 
-<p><strong>Save to Notepad:</strong> When you find a useful AI response, you can click the "Add to Notepad" button to save that snippet into your Fable Notepad for future reference.</p>
+<p><strong>Save to Notepad:</strong> When you find a useful AI response, click <strong>Add to Notepad</strong> to save the snippet for later. See <a href="sec11.html">Bookmarks, Annotations, and the Notebook</a> for the wider note-review workflow.</p>
 
 <p><strong>Sparkle Button Status Indicators</strong> — The sparkle <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> in the search bars uses color and animation to reflect the AI Search service state:</p>
 <ul>
@@ -717,7 +721,7 @@
 <div class="callout info">
   <strong>Zero Configuration Needed:</strong>
   <p>Fable comes with everything you need built-in! The AI search engine runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your <code>.env</code> file and enjoy.</p>
-  <p><strong>Configuration and tuning</strong> (LLM profiles, RAG techniques, embedding models, OCR, search parameters, and advanced retrieval settings) are covered in <a href="#sec23">Section 23: Application Settings &rarr; AI Search & Embedding Tuning</a>.</p>
+  <p><strong>Configuration and tuning</strong> (LLM profiles, RAG techniques, embedding models, OCR, search parameters, and advanced retrieval settings) are covered in <a href="sec24.html">Section 24: Application Settings &rarr; AI Search &amp; Embedding Tuning</a>.</p>
 </div>
 
 <h3>Filters</h3>
@@ -753,6 +757,14 @@
   <li>Clear all filters with one click</li>
 </ul>
 
+<h3>Turn Results into an Organization Workflow</h3>
+<ul>
+  <li>Use the current results temporarily, or create a <a href="sec9.html">Magic Shelf</a> when the same rule should update automatically.</li>
+  <li>Assign selected results to a hand-curated <a href="sec8.html">Shelf</a> or a custom <a href="sec14.html">Story Arc</a>.</li>
+  <li>Open <a href="sec13.html">Series and Authors</a> when the task is browsing a named creator or numbered sequence.</li>
+  <li>If filters show duplicate or missing choices, correct individual books with <a href="sec15.html">Metadata</a> and consolidate repeated vocabulary in the <a href="sec16.html">Metadata Manager</a>.</li>
+</ul>
+
 <div class="callout info">
   <strong>Sidebar Filtering Behavior</strong>
   <ul>
@@ -763,23 +775,8 @@
   </ul>
 </div>
 
-<h3>Duplicate Review</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Library menu <i class="pi pi-chevron-right"></i> Duplicate Review</p>
-<p>Fable&rsquo;s duplicate finder is designed as a <strong>scoped review tool</strong>. Open it from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
-
-<div class="callout tip">
-  <strong>Sidecar Backups:</strong> Manual per-library sidecar backups cover all readable file formats (including EPUB, PDF, CBR, CBZ, and physical placeholders). If the server cannot write to the directory due to filesystem permissions, the error logs report the failed writes and details rather than showing a generic failure message.
-</div>
-
-<div class="callout tip">
-  <strong>Duplicate Review and Manual Plans</strong>
-  <ul>
-    <li><strong>Non-destructive:</strong> The duplicate review screen is intentionally non-destructive. It shows likely duplicate groups, highlights a suggested book to keep, lets you inspect another candidate side-by-side, and can open book details or launch a reader for digital files without deleting or merging anything.</li>
-    <li><strong>Targeted scans:</strong> Using the current filtered view lets you investigate duplicates only inside the slice you are already looking at, such as a single shelf, a search result, a folder, or a filtered library window, without scanning the rest of the collection.</li>
-    <li><strong>Save resolution plans:</strong> You can choose preferred keep actions, save the resolution plan to your account, and resume the review or download the report later. Queued duplicate-resolution plans follow your user account across devices.</li>
-    <li><strong>Custom matching:</strong> Choosing the <strong>Custom</strong> matching preset clears all matching signals first so you can define your scan rules from scratch.</li>
-  </ul>
-</div>
+<h3>Duplicate Review Belongs to Libraries</h3>
+<p>Duplicate Review is launched from a specific library&rsquo;s menu, so its setup and ownership belong with <a href="sec5.html">Libraries</a>. Search and filters can help you inspect a suspected group first, but start the non-destructive duplicate scan from the library menu.</p>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>

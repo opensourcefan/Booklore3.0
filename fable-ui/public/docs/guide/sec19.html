@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,53 +663,58 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html" class="active">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 19 ==================== -->
 <h2 id="sec19">19. OPDS Feeds &mdash; E-Reader Integration <span class="section-icon"><i class="pi pi-wifi"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> OPDS tab</p>
 
-<p><strong>OPDS</strong> (Open Publication Distribution System) lets e-readers browse and download books directly from your Fable library.</p>
+<p><strong>Choose a sharing route:</strong> use OPDS when an e-reader app should browse and download from Fable; use <a href="sec20.html">Devices</a> for Kobo or KOReader progress sync (and optional Hardcover reporting); or use <a href="sec21.html">Email</a> to send one selected file as an attachment. Opening Fable in a device&rsquo;s web browser is ordinary browser access&mdash;it is not OPDS or device sync.</p>
 
-<h3>How to Set Up</h3>
+<p><strong>OPDS</strong> (Open Publication Distribution System) exposes a catalog endpoint to compatible reader apps. It is a pull workflow: the device browses Fable and downloads a book.</p>
+
+<h3>Set Up an OPDS Catalog</h3>
 <ol>
-  <li>Go to <strong>Settings &rarr; OPDS</strong></li>
-  <li>Copy your personal OPDS feed URL</li>
-  <li>Enter the URL in your e-reader&rsquo;s OPDS catalog settings</li>
+  <li>Confirm your account has <strong>Access OPDS</strong> permission; otherwise ask an admin.</li>
+  <li>Open <strong>Settings &rarr; OPDS</strong> and enable <strong>OPDS Server</strong>.</li>
+  <li>Under <strong>Endpoints</strong>, copy the read-only <strong>OPDS Catalog</strong> URL.</li>
+  <li>Under <strong>OPDS Users</strong>, click <strong>Add User</strong>, choose a username, password, and catalog sort order, then create the credential.</li>
+  <li>In the e-reader app, add an OPDS catalog using the copied endpoint and that OPDS username/password. Do not use your normal Fable login unless you deliberately made the credentials identical.</li>
+  <li>Browse the catalog and download a small book to verify the device can reach the Fable server.</li>
 </ol>
 
 <h3>What You Can Do</h3>
 <ul>
   <li>Browse your library from any OPDS-compatible e-reader or app</li>
   <li>Download books directly to your e-reader</li>
-  <li>Search your catalog from the e-reader&rsquo;s search function</li>
-  <li>Access feeds by category: Libraries, Shelves, Magic Shelves, Series, Authors</li>
+  <li>Use the catalog organization and search capabilities exposed to the OPDS client</li>
+  <li>Maintain separate OPDS credentials and choose each credential&rsquo;s sort order</li>
 </ul>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Stream audiobooks via OPDS (downloads only)</li>
-  <li>Use OPDS to upload books to Fable (download only)</li>
+  <li>Use OPDS to upload books to Fable; use the permission-gated <a href="sec22.html#personal-bookdrop">BookDrop or Upload workflow</a> instead</li>
+  <li>Assume an OPDS download synchronizes web-reader progress; configure <a href="sec20.html">Kobo or KOReader</a> for supported progress sync</li>
 </ul>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Keep your OPDS token private. Anyone with the URL can access your library. If you change your token, all connected e-readers will need to be updated.
+  <strong>Be Careful:</strong> Treat the endpoint and OPDS credentials as secrets, use HTTPS outside a trusted LAN, and never expose Fable directly without a secured reverse proxy. Removing or changing an OPDS credential requires updating every client that uses it.
 </div>
 <nav class="section-nav">
   <a href="sec18.html" class="nav-link nav-prev">← Previous: 18. AI Panel Detection</a>

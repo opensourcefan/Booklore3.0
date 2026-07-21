@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -656,30 +660,30 @@
       </ol>
     </li>
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec12.html" class="active">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 12 ==================== -->
 <h2 id="sec12">12. Reading Progress and Statistics <span class="section-icon"><i class="pi pi-chart-bar"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Stats <i class="pi pi-chart-line"></i>, or Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Stats</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Desktop topbar <i class="pi pi-chevron-right"></i> Stats opens Library Statistics; mobile overflow menu <i class="pi pi-chevron-right"></i> Library Stats or Reading Stats</p>
 
 <h3>Reading Progress</h3>
 <ul>
@@ -688,8 +692,10 @@
   <li><strong>Reading status</strong> &mdash; Set to: Not Started, Reading, Completed, or Abandoned</li>
   <li><strong>Sync across devices</strong> &mdash; Read on your phone then your computer; progress stays in sync</li>
 </ul>
+<p>Progress begins in the built-in <a href="sec10.html">readers</a>. Use the <a href="sec11.html">Notebook</a> when you want to revisit notes and marked locations rather than aggregate statistics.</p>
 
-<h3>Reading Statistics Page</h3>
+<h3>Open Reading Statistics</h3>
+<p>In the mobile overflow menu, choose <strong>Reading Stats</strong>. The Reading Statistics route is separate from the desktop topbar Stats button, which currently launches Library Statistics.</p>
 <table>
   <tr><th>Statistic</th><th>What It Shows</th></tr>
   <tr><td><i class="pi pi-check-circle"></i> Books completed</td><td>Total count of finished books</td></tr>
@@ -701,10 +707,10 @@
 </table>
 
 <h3>Library Statistics Page</h3>
-<p>A separate page showing collection-level statistics: total books by format, genre, author, series; books by reading status; collection growth over time; and most recent additions. When AI panel data exists, the page also shows AI-scanned comic totals and stored AI panel-data size for the selected library.</p>
+<p>Select <strong>Stats</strong> in the desktop topbar, or <strong>Library Stats</strong> in the mobile overflow menu. This page shows collection-level statistics: totals by format, genre, author, series and reading status, collection growth, and recent additions. When AI panel data exists, it also shows AI-scanned comic totals and stored panel-data size for the selected library.</p>
 
 <h3>AI Search Statistics</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Stats <i class="pi pi-chart-line"></i> <i class="pi pi-chevron-right"></i> Library Statistics tab, or Settings <i class="pi pi-chevron-right"></i> Stats</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Library Statistics <i class="pi pi-chevron-right"></i> AI Search section</p>
 <p>The Library Statistics page includes a dedicated <strong>AI Search</strong> section showing:</p>
 <ul>
   <li><i class="pi pi-book guide-icon-inline"></i> <strong>Indexed books</strong> &mdash; How many books have been embedded for AI semantic search</li>

@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html" class="active">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,27 +663,58 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 6 ==================== -->
 <h2 id="sec6">6. Books &mdash; Adding, Browsing, and Managing <span class="section-icon"><i class="pi pi-book"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> All Books, or click any library</p>
+
+<p>This section is the canonical workflow for a book&rsquo;s lifecycle: create or import the record, review it in Staging, organize and maintain it, then clear its staged status when triage is finished.</p>
+
+<h3>Choose How to Add Books</h3>
+<table>
+  <tr><th>Route</th><th>What happens</th><th>Use it when</th></tr>
+  <tr><td><strong>Topbar Upload &rarr; Library</strong></td><td>You choose a library and one of its configured subpaths. Fable extracts available file metadata, applies the library naming pattern, and moves the upload directly into that library path. The library watcher then creates a staged book record.</td><td>The destination is already known and no pre-import BookDrop review is needed.</td></tr>
+  <tr><td><strong>Topbar Upload &rarr; BookDrop</strong></td><td>The browser sends the file to the current account&rsquo;s BookDrop inbox: the global/shared inbox for an admin or a personal inbox for a non-admin. It remains pending until finalized.</td><td>You want to review metadata, filenames, library, and subpath before library import. Continue in <a href="sec7.html">Section 7</a>.</td></tr>
+  <tr><td><strong>Host/library folder + Scan for New Files</strong></td><td>You copy files into a configured host or mounted library directory, then open that library&rsquo;s menu and run <strong>Scan for New Files</strong>. Fable creates staged records for supported new files it discovers.</td><td>You are importing files already available to the server, especially a batch.</td></tr>
+  <tr><td><strong>Add Physical Book</strong></td><td>The library menu creates a staged catalog placeholder with metadata but no readable digital file. An ISBN can be used to look up book information.</td><td>You want to track one printed book.</td></tr>
+  <tr><td><strong>Bulk ISBN Import</strong></td><td>The library menu looks up a list of ISBNs and creates staged physical-book records for successful entries while reporting skipped or failed entries.</td><td>You want to catalog several printed books at once.</td></tr>
+</table>
+
+<div class="callout info">
+  <strong>Upload is not another name for BookDrop.</strong> The same uploader dialog offers two destinations. <strong>Library</strong> bypasses BookDrop review and writes into the selected library path. <strong>BookDrop</strong> feeds the pending-file workflow described in <a href="sec7.html">Section 7</a>.
+</div>
+
+<h3 id="staging-lifecycle">Staging Lifecycle: Staged, Review, Completed, Release</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Staging</p>
+<p>New digital imports and newly created physical-book records begin with <code>staged=true</code>. Staging is a triage flag, not a separate storage location: the book already belongs to its selected library. Use the tabs to decide what still needs attention.</p>
+<table>
+  <tr><th>Tab/action</th><th>Meaning and next step</th></tr>
+  <tr><td><strong>Staged</strong></td><td>The staged inbox: books that do not currently have a pending metadata proposal and are not classified as completed. Inspect the book, edit metadata, or start a metadata fetch.</td></tr>
+  <tr><td><strong>Review</strong></td><td>Books with fetched metadata proposals awaiting a decision. Open the metadata review, compare proposed and current values, then apply or reject as appropriate. Pending review wins over the other triage buckets; a review item can remain visible even if its staging flag was previously cleared.</td></tr>
+  <tr><td><strong>Completed</strong></td><td>Staged books whose metadata fetch has completed or whose ISBN has been verified, with no pending review proposal. Check the result before release.</td></tr>
+  <tr><td><strong>Release</strong></td><td>Select one or more books and click <strong>Release</strong>. This changes only <code>staged</code> from <code>true</code> to <code>false</code>. It does <strong>not</strong> move files, alter metadata, change library or shelf membership, or delete anything.</td></tr>
+</table>
+
+<div class="callout tip">
+  <strong>Suggested loop:</strong> import &rarr; open <strong>Staged</strong> &rarr; correct or fetch metadata &rarr; resolve <strong>Review</strong> items &rarr; check <strong>Completed</strong> &rarr; select the books &rarr; <strong>Release</strong>.
+</div>
 
 <h3>Browsing Books</h3>
 <ul>
@@ -725,26 +760,38 @@
   <strong>Good to Know:</strong> The Directory Explorer works alongside all other filters. You can select a folder and then use the right-side filter sidebar to narrow results further by reading status, media type, genre, or rating.
 </div>
 
-<h3>What You Can Do</h3>
+<h3>Single-Book Actions</h3>
 <table>
   <tr><th>Action</th><th>How</th></tr>
   <tr><td><i class="pi pi-eye"></i> View book details</td><td>Click the book cover</td></tr>
   <tr><td><i class="pi pi-book"></i> Read a book / Listen to audiobook</td><td>Click &ldquo;Read&rdquo; on the detail page or double-click the cover</td></tr>
-  <tr><td><i class="pi pi-bookmark"></i> Add to a shelf</td><td>Right-click &rarr; Add to Shelf, or use the book detail page</td></tr>
-  <tr><td><i class="pi pi-times"></i> Remove from shelf</td><td>Right-click &rarr; Remove from Shelf</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Organize</td><td>Open the book menu to assign or move it to a shelf and assign a media type. Use the selection toolbar for Story Arcs. See <a href="sec8.html">Shelves</a>, <a href="sec9.html">Magic Shelves</a>, <a href="sec13.html">Series and Authors</a>, and <a href="sec14.html">Story Arcs</a>.</td></tr>
   <tr><td><i class="pi pi-check-circle"></i> Change reading status</td><td>Set to: Not Started, Reading, Completed, or Abandoned</td></tr>
   <tr><td><i class="pi pi-bookmark-fill"></i> Pin to Currently Reading</td><td>Use <strong>More Actions &rarr; Currently Reading</strong> to add or remove a book from the dashboard's quick access panel</td></tr>
   <tr><td><i class="pi pi-star"></i> Rate a book</td><td>Give it 1&ndash;5 stars on the detail page</td></tr>
-  <tr><td><i class="pi pi-pencil"></i> Edit metadata</td><td>Update title, author, description, cover, etc. manually</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Delete multiple books</td><td>Select books using the grid checkboxes, then delete in bulk</td></tr>
-  <tr><td><i class="pi pi-box"></i> Add a physical book entry</td><td>Create a catalog entry for a book you own physically. Fable can query metadata automatically using the book's ISBN.</td></tr>
-  <tr><td><i class="pi pi-tag"></i> Assign file type overrides</td><td>Choose how to open a file (e.g., open a PDF in the e-book reader rather than the document viewer)</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Metadata and covers</td><td>Search, auto-fetch, custom-fetch, edit, regenerate a file cover, or generate a custom cover. ISBN Discovery is available when configured. See <a href="sec15.html">Section 15</a> and <a href="sec16.html">Section 16</a>.</td></tr>
+  <tr><td><i class="pi pi-download"></i> Download</td><td>Use the book menu to download the primary file; books with alternative or supplementary files expose per-file and all-file choices.</td></tr>
+  <tr><td><i class="pi pi-envelope"></i> Email</td><td>Use <strong>Email Book</strong> for Quick Send or Custom Send when your account has permission and email is configured; see <a href="sec21.html">Section 21</a>.</td></tr>
+  <tr><td><i class="pi pi-arrows-v"></i> Organize the file on disk</td><td>Use <strong>More Actions &rarr; Organize File</strong> to run the file mover. It follows the library naming pattern and is available with file-move permission on local storage.</td></tr>
+  <tr><td><i class="pi pi-sparkles"></i> AI actions</td><td>When enabled, ask AI Search about the book, embed it, mark or unmark it for embedding, or delete its embeddings. Comic panel detection is covered in <a href="sec18.html">Section 18</a>; AI Search is covered in <a href="sec17.html">Section 17</a>.</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Delete or remove</td><td><strong>Delete from disk</strong> permanently deletes the selected file when file deletion is allowed. <strong>Remove from library</strong> keeps the file and offers the removal behavior shown in its submenu.</td></tr>
 </table>
+
+<h3>Multi-Book Actions</h3>
+<p>Select book-card checkboxes, then open the selection action panel. Actions appear only when your permissions, selection, storage type, and enabled features allow them.</p>
+<ul>
+  <li><strong>Metadata:</strong> automatic or custom fetch, ISBN Discovery, bulk metadata editor, multi-book editor, restore titles from filenames, lock/unlock fields, and cover generation.</li>
+  <li><strong>Organization:</strong> assign shelves, move between shelves while viewing a shelf, remove from a shelf or all shelves, assign media type, and add to a Story Arc.</li>
+  <li><strong>Files:</strong> run the file mover on local storage, or open the file attacher to combine eligible single-file source books from one library into a target book.</li>
+  <li><strong>AI Search:</strong> embed selected books, mark or unmark them for embedding, or delete selected embeddings when AI Search is enabled.</li>
+  <li><strong>Reading and classification:</strong> update read status, age rating, content rating, or reset supported reading progress.</li>
+  <li><strong>Deletion:</strong> permanently delete selected files when allowed, or remove selected records from the library while retaining files according to the chosen removal option.</li>
+  <li><strong>Staging:</strong> on the Staging page, select one or more checked books and use <strong>Release</strong> only after review.</li>
+</ul>
 
 <div class="callout info">
   <strong>What is a metadata sidecar file?</strong><br>
-  A **sidecar file** is a small text file saved on disk in the same folder as your book. It stores metadata details like the title, author, description, and ratings. Having sidecar files acts as a local backup—if you ever move your books or need to rebuild Fable from scratch, Fable can quickly recreate your library setup directly from these files. Physical book placeholders also write sidecar files to their designated folder so they are not lost during database rebuilds.
+  A <strong>sidecar file</strong> is a small metadata file saved on disk beside a book or in the designated physical-book location. It can preserve details such as title, author, description, and ratings for later import or rebuilding. Physical-book creation writes a sidecar for the placeholder.
 </div>
 
 <div class="callout tip">
@@ -754,7 +801,6 @@
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
   <li>Directly edit the book file contents (Fable is a reader and organizer, not an editor)</li>
-  <li>Upload books from this screen (use BookDrop for that &mdash; see Section 7)</li>
   <li>Move or rename folders from the directory explorer (it is a filtering tool, not a file manager)</li>
 </ul>
 
@@ -762,7 +808,7 @@
   <strong>Be Careful:</strong>
   <ul>
     <li><strong>Deleting a book with &ldquo;delete from disk&rdquo; enabled is permanent.</strong> The file is gone. There is no recycle bin.</li>
-    <li><strong>Removing from Library vs. Deleting from Disk:</strong> If you turn off "Allow File Deletion" in settings, Fable will only let you remove books from the library catalog, leaving the physical files untouched. Books removed this way are hidden permanently and will not reappear during subsequent library scans.</li>
+    <li><strong>Removing from Library vs. Deleting from Disk:</strong> Removing a record keeps its files. The removal submenu distinguishes removal until a future scan from permanent catalog suppression. Deleting from disk removes the real file.</li>
     <li><strong>Bulk deleting books</strong> is powerful &mdash; double-check your selection before confirming.</li>
     <li><strong>Deleting the last file:</strong> If you delete the only readable file from a digital book record, Fable removes the empty catalog card. To keep a catalog entry without a file, create a <strong>Physical Book</strong> entry instead.</li>
   </ul>

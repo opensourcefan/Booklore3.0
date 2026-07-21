@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,59 +663,73 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html" class="active">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html" class="active">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 16 ==================== -->
-<h2 id="sec16">16. Metadata Manager &mdash; Bulk Editing <span class="section-icon"><i class="pi pi-sliders-h"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Metadata Manager <i class="pi pi-sitemap"></i>, or Settings <i class="pi pi-chevron-right"></i> Metadata tab</p>
+<h2 id="sec16">16. Metadata Manager &mdash; Vocabulary Management <span class="section-icon"><i class="pi pi-sliders-h"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Metadata Manager <i class="pi pi-tags"></i></p>
 
-<p>The Metadata Manager lets you edit metadata for many books at once.</p>
+<p>The Metadata Manager standardizes repeated vocabulary values already assigned to books. It is not the selected-book bulk editor or metadata fetch screen; those workflows are covered in <a href="sec15.html">Metadata</a>.</p>
 
-<h3>What You Can Do</h3>
+<h3>Choose a Vocabulary</h3>
+<p>Open the tab for <strong>Authors</strong>, <strong>Genres/Categories</strong>, <strong>Moods</strong>, <strong>Tags</strong>, <strong>Series</strong>, <strong>Publishers</strong>, or <strong>Languages</strong>. Each tab title shows its number of distinct values.</p>
+
+<h3>Find and Inspect Values</h3>
+<ol>
+  <li>Search within the active tab to narrow values by text.</li>
+  <li>Sort the value column alphabetically or sort the <strong>Books</strong> column by usage count.</li>
+  <li>Click a value to navigate to <strong>All Books</strong> with that metadata filter applied.</li>
+  <li>Use the book count beside a value to estimate the impact before changing it. Pagination offers 25, 50, or 100 rows per page.</li>
+</ol>
+
+<h3>Select Variants</h3>
 <ul>
-  <li>Select multiple books for batch metadata operations</li>
-  <li>Apply the same genre, category, or mood to many books at once</li>
-  <li>Bulk-update reading status or media type</li>
-  <li>Bulk-fetch metadata for selected books with automatic fallback if the initial match fails</li>
-  <li>Limit a custom metadata fetch to all selected books, only books that have never been fetched, or only books whose last successful metadata fetch is older than a chosen age window</li>
-  <li>Use the custom metadata fetch ComicVine fields (source URL plus issue number or issue range like 43-171) to sequence exact ComicVine issue lookups across selected books, including manual-review workflows</li>
-  <li>Restore titles for selected books from each book&rsquo;s own primary filename from the bulk metadata actions menu when those books still have blank, unlocked titles</li>
-  <li>Delete all metadata for selected books from the bulk selection action bar</li>
+  <li>Select rows individually, or use the header checkbox to select all rows currently represented by the table or search result.</li>
+  <li>Use <strong>Select Similar</strong> on a row to select values whose normalized text contains one another; review the selection because similarity is text-based, not semantic.</li>
+  <li>Use <strong>Clear Selection</strong> before starting a different cleanup group.</li>
 </ul>
 
-<div class="callout warning">
-  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step, but Fable keeps a filename-derived title when one is available so you can search again immediately.
-</div>
+<h3>Rename or Split One Value</h3>
+<ol>
+  <li>Choose <strong>Rename/Split</strong> on the value.</li>
+  <li>Enter one replacement to rename it.</li>
+  <li>For Authors, Genres/Categories, Moods, or Tags, enter comma-separated replacements to split one value into several values on affected books.</li>
+</ol>
+<p>Series, Publishers, and Languages are single-value fields. They can be renamed to one target but cannot be split into several values for the same book.</p>
 
-<div class="callout info">
-  <strong>Good to Know: Batch Job Resilience and Error Recovery</strong>
-  <ul>
-    <li><strong>Graceful error recovery:</strong> If a metadata source fails to return a match for a book in the batch, Fable continues processing the rest of the queue instead of halting the entire job.</li>
-    <li><strong>Throttling and cooldown:</strong> If an online provider throttles your requests, Fable automatically pauses, shows a countdown timer (paused state) in the top progress bar, and retries once the cooldown expires.</li>
-    <li><strong>Top bar tracking:</strong> Click the metadata progress indicator in the top bar to open a detailed <strong>Asset Log</strong> showing successfully fetched items versus remaining items in the queue.</li>
-    <li><strong>Flexible queue control:</strong> You can pause, resume, or cancel metadata jobs directly from the top bar widget. Paused or interrupted jobs can be resumed later.</li>
-    <li><strong>ComicVine optimization:</strong> Large bulk scans are optimized to stay within API rate limits to prevent budget exhaustion.</li>
-  </ul>
+<h3>Merge or Split Selected Values</h3>
+<ol>
+  <li>Select at least two variants, such as <em>English</em>, <em>en</em>, and <em>en-US</em>.</li>
+  <li>Choose <strong>Merge/Split Selected</strong>.</li>
+  <li>Enter one standardized target to merge them. For multi-value vocabularies, comma-separated targets can replace every selected source with several values.</li>
+  <li>Confirm only after checking the displayed source values and affected-book total.</li>
+</ol>
+
+<h3>Delete Values</h3>
+<p>Delete one row with its trash action, or select rows and choose <strong>Delete Selected</strong>. Deletion removes those vocabulary values from every affected book; it does not delete the books.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Rename, split, merge, and delete operations update every book using the source values and cannot be undone. The confirmation dialogs show counts; verify them and start with a small cleanup. If file write-back is enabled in <a href="sec24.html">Metadata Settings</a>, updates may also rewrite supported files and take substantially longer.
 </div>
 
 <div class="callout tip">
-  <strong>Custom Metadata Fetch Defaults:</strong> The advanced custom metadata fetch dialog opens with <strong>Merge Genres</strong> off by default and <strong>Manual Review</strong> on by default, so a new batch starts in a safer review-first mode unless you intentionally change those toggles.
+  <strong>Why standardize?</strong> Clean vocabulary prevents duplicate author or series pages and produces more reliable <a href="sec9.html">Magic Shelves</a>, <a href="sec13.html">series browsing</a>, <a href="sec14.html">Story Arc preparation</a>, and <a href="sec17.html">search filters</a>.
 </div>
 <nav class="section-nav">
   <a href="sec15.html" class="nav-link nav-prev">← Previous: 15. Metadata</a>

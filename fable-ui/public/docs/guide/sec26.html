@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,62 +663,74 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html" class="active">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 26 ==================== -->
 <h2 id="sec26">26. Backup and Restore <span class="section-icon"><i class="pi pi-database"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Backups tab, or Docker command line</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar gear <i class="pi pi-chevron-right"></i> Settings <i class="pi pi-chevron-right"></i> Backups</p>
 
-<p>Protecting your Fable data requires backing up <strong>two things</strong>:</p>
+<p>The Backups parent tab organizes five permission-aware child tabs: <strong>Status</strong>, <strong>App Settings</strong>, <strong>Sidecar</strong>, <strong>Database Export</strong>, and <strong>Database Restore</strong>. Not every account sees all five.</p>
 
-<h3>1. Application Settings (Database)</h3>
-
-<h4>Quick Export (Settings Only)</h4>
-<ol>
-  <li>Go to <strong>Settings &rarr; Global Preferences &rarr; Settings Transfer</strong></li>
-  <li>Click <strong>Export</strong></li>
-  <li>Save the downloaded JSON file</li>
-</ol>
-<p>This exports libraries, users, shelves, metadata settings, and preferences.</p>
-
-<h4>Full Database Backup (Recommended)</h4>
-<p>For complete protection (including all book metadata, reading progress, annotations, and shelf assignments), use a database dump:</p>
-<pre><code>docker exec mariadb mariadb-dump \
-  --single-transaction --quick --no-tablespaces \
-  -u root -p"YOUR_ROOT_PASSWORD" \
-  fable > fable_backup.sql</code></pre>
-
-<h3>2. Book Files and Data</h3>
 <table>
-  <tr><th>What to Back Up</th><th>Folder</th></tr>
-  <tr><td><i class="pi pi-book"></i> Book files</td><td><code>./books/</code></td></tr>
-  <tr><td><i class="pi pi-image"></i> Covers, thumbnails, and images</td><td><code>./data/</code></td></tr>
-  <tr><td><i class="pi pi-inbox"></i> BookDrop inbox</td><td><code>./bookdrop/</code></td></tr>
+  <tr><th>Child tab</th><th>Permission</th><th>What the current UI actually does</th></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Status</td><td>Anyone who can open Backups</td><td>Shows the last known browser-recorded app-settings/database helper activity and the latest available sidecar history. It is an activity summary, not proof that off-host backup files still exist.</td></tr>
+  <tr><td><i class="pi pi-cog"></i> App Settings</td><td>Admin or Manage App Preferences</td><td>Exports application settings to JSON and imports a selected settings JSON after validation and confirmation.</td></tr>
+  <tr><td><i class="pi pi-folder-open"></i> Sidecar</td><td>Admin or Manage Metadata Config</td><td>Runs a manual sidecar backup for one selected library and shows up to ten recorded runs with attempted/exported/failed counts and triggering user.</td></tr>
+  <tr><td><i class="pi pi-download"></i> Database Export</td><td>Admin only</td><td>Builds and copies a logical MariaDB export command. Fable does not run the database dump inside the app.</td></tr>
+  <tr><td><i class="pi pi-upload"></i> Database Restore</td><td>Admin only</td><td>Collects operator confirmations, evaluates an in-browser preflight checklist, and enables copying a restore command. Fable does not execute the restore.</td></tr>
 </table>
+
+<h3>Routine Backup Procedure</h3>
+<ol>
+  <li><strong>Prepare external storage.</strong> Use a destination separate from the Fable host and record the Fable/MariaDB version and deployment paths.</li>
+  <li><strong>Export app settings.</strong> Open <strong>Backups &rarr; App Settings</strong>, click <strong>Export</strong>, and store the downloaded JSON securely. It may contain sensitive configuration; it is not a database or media backup.</li>
+  <li><strong>Optionally write sidecars.</strong> Open <strong>Backups &rarr; Sidecar</strong>, select one library, click <strong>Back Up Sidecars per Library</strong>, and verify attempted equals exported with zero failed. Repeat for each required library.</li>
+  <li><strong>Prepare a logical database dump.</strong> As an admin, open <strong>Backups &rarr; Database Export</strong>, set the destination directory and filename, review the generated command for your deployment, and click <strong>Copy export command</strong>.</li>
+  <li><strong>Run the copied command outside Fable</strong> in the documented host/container environment. The UI only records that the command was copied; independently verify a non-empty SQL file was created.</li>
+  <li><strong>Copy companion data.</strong> Back up all library media, the mounted Fable app-data directory, and deployment configuration/path-mapping notes. Include BookDrop content if pending files matter to recovery.</li>
+  <li><strong>Validate the set.</strong> Confirm the SQL dump, app-settings JSON, media, app data, and deployment notes are readable from the recovery destination, then record checksums, sizes, date, and version.</li>
+</ol>
+
+<div class="callout info">
+  <strong>Coverage boundary:</strong> App Settings JSON covers application configuration only. Sidecars preserve supported per-book metadata only. The logical SQL dump protects catalog/database state but not the media or app-data files. A recoverable set therefore needs the database dump plus matching media, app data, and deployment information.
+</div>
+
+<h3>Safe Restore Ordering</h3>
+<ol>
+  <li><strong>Do not overwrite the only good copy.</strong> Preserve the incoming backup set and take a fresh backup of the current target before starting.</li>
+  <li><strong>Match the environment.</strong> Recreate or verify deployment configuration, mounts, service names, path mappings, and a compatible Fable/MariaDB version.</li>
+  <li><strong>Stage files first.</strong> Put library media and app data at the confirmed target paths with appropriate ownership and enough free space.</li>
+  <li><strong>Pause writes.</strong> Stop or isolate scans, uploads, BookDrop processing, metadata edits, scheduled tasks, and user traffic. The UI&rsquo;s maintenance checkbox is an operator confirmation; it does not pause the system for you.</li>
+  <li><strong>Run the UI preflight.</strong> Open <strong>Backups &rarr; Database Restore</strong>; enter the SQL path, app-data path, deployment-config path, and measured free space. Confirm the SQL/notes, media, app data, config, version, and maintenance plan. The current check requires at least 15 GB entered free space.</li>
+  <li><strong>Resolve every failed check.</strong> Only after all checks pass should <strong>Copy restore command</strong> become available. The helper supports restoring into the existing <code>fable</code> schema; a temporary-schema restore is outside the current grants/UI boundary.</li>
+  <li><strong>Review and execute externally.</strong> Inspect the copied command against the actual service/container name and credential handling, then run it in the documented operator environment. Fable does not execute or verify that command.</li>
+  <li><strong>Start and validate.</strong> Bring services back in controlled order, wait for health checks/migrations, then validate login, user/library mappings, book counts, representative metadata, covers, reading progress, annotations, shelves, BookDrop, and one reader download before reopening writes.</li>
+  <li><strong>Retain rollback material.</strong> Keep the pre-restore target backup and original recovery set until validation and a subsequent fresh backup both succeed.</li>
+</ol>
 
 <div class="callout warning">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>Settings export does NOT include reading progress, annotations, or book files.</strong> For full protection, do a database dump AND file backup.</li>
-    <li><strong>Store backups in a separate location</strong> from your Fable server.</li>
-    <li><strong>Test your backups periodically.</strong> A backup you&rsquo;ve never tested is a backup you can&rsquo;t trust.</li>
-    <li>The <strong>Settings &rarr; Backups &rarr; Sidecar</strong> view keeps a recent run history for the selected library. You can review up to the last <strong>10</strong> manual sidecar backup runs, showing their status, timestamp, and the user who triggered the run.</li>
+    <li><strong>Preflight is declarative.</strong> It checks entered values and confirmations; it does not inspect host files, versions, ownership, free space, or backup integrity.</li>
+    <li><strong>Importing App Settings changes live configuration.</strong> Read the confirmation, keep a fresh export, and validate affected settings after import.</li>
+    <li><strong>Database restore is destructive to current schema state.</strong> Use a maintenance window and a tested rollback; never paste an unreviewed command into production.</li>
+    <li><strong>Secrets may be present.</strong> Protect settings JSON, SQL dumps, deployment files, OPDS/device credentials, SMTP credentials, and API keys.</li>
   </ul>
 </div>
 <nav class="section-nav">

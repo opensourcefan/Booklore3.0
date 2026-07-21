@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,50 +663,57 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html" class="active">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html" class="active">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 21 ==================== -->
 <h2 id="sec21">21. Email &mdash; Sending Books <span class="section-icon"><i class="pi pi-envelope"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Email tab</p>
 
+<p><strong>Choose a sharing route:</strong> use <a href="sec19.html">OPDS</a> when a reader app should browse and pull books, <a href="sec20.html">Devices</a> for Kobo/KOReader progress integration, or Email for a one-time attachment. Opening Fable in a browser reads from Fable directly and does not copy a file to an e-reader.</p>
+
 <h3>How to Set Up</h3>
 <ol>
-  <li>Go to <strong>Settings &rarr; Email</strong></li>
-  <li>Configure your email provider (SMTP server, port, username, password)</li>
-  <li>Add recipient email addresses</li>
+  <li>Confirm your account has <strong>Email Books</strong> permission.</li>
+  <li>Open <strong>Settings &rarr; Email</strong>, create an email provider with the SMTP host, port, encryption/authentication values, username, password, and sender details requested by the form, then save it.</li>
+  <li>Add at least one recipient and mark the intended defaults if you want one-click Quick Send.</li>
+  <li>Send a small test book and check both the Fable task status and the recipient inbox.</li>
 </ol>
 
-<h3>What You Can Do</h3>
-<ul>
-  <li>Send individual books to configured email addresses</li>
-  <li>Configure multiple recipients</li>
-  <li>Use email templates for formatting</li>
-</ul>
+<h3>Send a Book from the Exact Launch Point</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Any book card <i class="pi pi-chevron-right"></i> three-dot/context menu <i class="pi pi-chevron-right"></i> Email Book</p>
+<ol>
+  <li>Open a library, shelf, All Books, or another view that shows book cards.</li>
+  <li>Open the book card&rsquo;s context menu and choose <strong>Email Book</strong>.</li>
+  <li>Choose <strong>Quick Send</strong> to use configured defaults, or <strong>Custom Send</strong> to select the provider, recipient, and an emailable primary or additional file.</li>
+  <li>Submit the send. Fable schedules the work; watch <a href="sec25.html">background task status</a> and check failures from the topbar notifications area.</li>
+</ol>
 
-<h3>What You Can&rsquo;t Do</h3>
+<h3>Supported Results and Boundaries</h3>
 <ul>
-  <li>Send books larger than your email provider&rsquo;s attachment limit (typically 25 MB)</li>
-  <li>Send audiobooks via email (file sizes are too large)</li>
+  <li>Configure multiple providers and recipients and choose among available files with Custom Send.</li>
+  <li>Files over 25 MB trigger Fable&rsquo;s large-file warning, but the real limit is imposed by the sending and receiving providers.</li>
+  <li>Email delivery transfers a file; it does not synchronize reading position, shelves, or later metadata changes.</li>
+  <li>Only files offered by the send dialog are supported. Use <a href="sec19.html">OPDS</a> or another transfer method for oversized content.</li>
 </ul>
 
 <div class="callout">
-  <strong>Be Careful:</strong> Store your SMTP credentials securely. Large books may fail to send if they exceed your provider&rsquo;s size limit.
+  <strong>Be Careful:</strong> Store SMTP credentials securely. Quick Send uses defaults without reopening the chooser, so verify the default provider and recipient before using it.
 </div>
 <nav class="section-nav">
   <a href="sec20.html" class="nav-link nav-prev">← Previous: 20. Kobo & KoReader Sync</a>

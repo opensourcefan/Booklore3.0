@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,23 +663,23 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html" class="active">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html" class="active">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 24 ==================== -->
 <h2 id="sec24">24. Application Settings <span class="section-icon"><i class="pi pi-cog"></i></span></h2>
@@ -685,39 +689,115 @@
 
 <p>The main Settings page includes a compact <i class="pi pi-arrow-left guide-icon-inline"></i> left-arrow control in the top-right corner that returns you to the route you opened Settings from.</p>
 
+<p>Settings has exactly <strong>15 parent tabs</strong>. Tabs are permission-gated, so a normal reader sees fewer than an admin. Reader, View, Email, OPDS, and Devices are always present as parent tabs, although individual integrations can still show an access-restricted card.</p>
+
 <table>
-  <tr><th>Category</th><th>What You Can Configure</th></tr>
-  <tr><td><i class="pi pi-book"></i> Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
-  <tr><td><i class="pi pi-desktop"></i> View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization, optional tablet/kiosk navigation gestures (never Phone Mode), independent phone and tablet header position (bottom chrome)</td></tr>
-  <tr><td><i class="pi pi-users"></i> User Management</td><td>Create/edit/delete users and their permissions</td></tr>
-  <tr><td><i class="pi pi-envelope"></i> Email</td><td>SMTP server for sending books via email</td></tr>
-  <tr><td><i class="pi pi-sitemap"></i> File Naming Patterns</td><td>How imported files are named and organized</td></tr>
-  <tr><td><i class="pi pi-sliders-h"></i> Metadata</td><td>Default metadata providers and API keys</td></tr>
-  <tr><td><i class="pi pi-save"></i> Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
-  <tr><td><i class="pi pi-file"></i> File Management</td><td>Control whether Fable is allowed to delete real files from disk during book-file deletion actions</td></tr>
-  <tr><td><i class="pi pi-database"></i> Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
-  <tr><td><i class="pi pi-lock"></i> Authentication</td><td>OIDC and forward auth configuration</td></tr>
-  <tr><td><i class="pi pi-globe"></i> OPDS</td><td>E-reader feed configuration</td></tr>
-  <tr><td><i class="pi pi-list-check"></i> Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
-  <tr><td><i class="pi pi-history"></i> Audit Logs</td><td>View user activity logs</td></tr>
-  <tr><td><i class="pi pi-eye"></i> AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
-  <tr><td><i class="pi pi-search"></i> AI Search Settings</td><td>AI model provider, API keys, external URL, saved LLM profiles, and advanced embedding, chunking, and retrieval parameters (BM25, Matryoshka, Reranking, RAG techniques)</td></tr>
-  <tr><td><i class="pi pi-cog"></i> Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
+  <tr><th>Parent tab</th><th>Purpose</th><th>Visibility</th></tr>
+  <tr><td><i class="pi pi-book"></i> <strong>Reader</strong></td><td>Application mode; EPUB, PDF, and CBX defaults; custom fonts</td><td>All users; font management requires its permission</td></tr>
+  <tr><td><i class="pi pi-desktop"></i> <strong>View</strong></td><td>Grid/sort defaults, visible filters, sidebar sorting, Metadata Center behavior, toolbar and device-layout preferences</td><td>All users</td></tr>
+  <tr><td><i class="pi pi-sliders-h"></i> <strong>Metadata 1</strong></td><td>Persistence, BookDrop auto-fetch, ISBN Discovery, providers, field selection, public reviews, match weights</td><td>Admin or Manage Metadata Config</td></tr>
+  <tr><td><i class="pi pi-database"></i> <strong>Metadata 2</strong></td><td>Default and per-library advanced fetch options; sidecar import/export where supported</td><td>Admin or Manage Metadata Config</td></tr>
+  <tr><td><i class="pi pi-cog"></i> <strong>Application</strong></td><td>Instance-wide preferences, including file deletion and other global controls</td><td>Admin or Manage App Preferences</td></tr>
+  <tr><td><i class="pi pi-save"></i> <strong>Backups</strong></td><td>Status, app-settings transfer, sidecars, and admin database command helpers</td><td>Admin, Manage App Preferences, or Manage Metadata Config; child tabs narrow further</td></tr>
+  <tr><td><i class="pi pi-sparkles"></i> <strong>AI</strong></td><td>AI Search Engine and AI Panel Detection children</td><td>Admin or Manage App Preferences</td></tr>
+  <tr><td><i class="pi pi-users"></i> <strong>Users</strong></td><td>Accounts, libraries, passwords, and permissions</td><td>Admin only</td></tr>
+  <tr><td><i class="pi pi-envelope"></i> <strong>Email</strong></td><td>Email providers and recipients used by book-card send actions</td><td>All users</td></tr>
+  <tr><td><i class="pi pi-sitemap"></i> <strong>Patterns</strong></td><td>Import/upload naming patterns</td><td>Admin or Manage Metadata Config</td></tr>
+  <tr><td><i class="pi pi-lock"></i> <strong>OIDC</strong></td><td>Local/OIDC login, provider configuration, provisioning, mappings, and OIDC-only mode</td><td>Admin only</td></tr>
+  <tr><td><i class="pi pi-list-check"></i> <strong>Tasks</strong></td><td>Manual runs, schedules, recent runs, and failure-notification policy</td><td>Admin or Access Task Manager</td></tr>
+  <tr><td><i class="pi pi-history"></i> <strong>Audit Logs</strong></td><td>Search and inspect recorded activity</td><td>Admin only</td></tr>
+  <tr><td><i class="pi pi-globe"></i> <strong>OPDS</strong></td><td>OPDS/Komga endpoints and OPDS credentials</td><td>Parent shown to all; content requires Access OPDS or Admin</td></tr>
+  <tr><td><i class="pi pi-tablet"></i> <strong>Devices</strong></td><td>KOReader, Hardcover, and Kobo integrations</td><td>Parent shown to all; each child is permission-aware</td></tr>
 </table>
+
+<h3>Orient Yourself Inside the Larger Tabs</h3>
+<h4>Reader: Mode, Reader Defaults, and Fonts</h4>
+<ul>
+  <li><strong>Application Mode</strong> controls the reading-oriented application mode offered at the top of Reader settings.</li>
+  <li><strong>eBook Reader</strong>, <strong>PDF Reader</strong>, and <strong>CBX Reader</strong> contain format-specific defaults rather than one shared font-size/zoom control.</li>
+  <li><strong>Custom Fonts</strong> appears only for Admin or a user with Manage Fonts permission; use it to add/manage reader fonts before selecting them in supported reader controls.</li>
+</ul>
+
+<h4>View: Browser, Filter, Sidebar, and Metadata Center Preferences</h4>
+<ul>
+  <li><strong>Library Display &amp; Sorting</strong> sets default grid/table view, multi-field sort order, visible sort fields, auto-save metadata, the random-cover loading screen, and per-library/shelf/Magic Shelf overrides.</li>
+  <li><strong>Filter Preferences</strong> selects the filter mode and lets you add, remove, and drag visible filters into order.</li>
+  <li><strong>Sidebar Sorting</strong> independently sorts Libraries, Shelves, and Magic Shelves.</li>
+  <li><strong>Metadata Center</strong> chooses page versus dialog display and whether Series View Mode is enabled.</li>
+  <li>Further children cover cover preview, resize handles, tablet/kiosk gestures, phone/tablet header position, layout mode and breakpoints, and the configurable toolbar.</li>
+</ul>
+
+<h4>Metadata 1 and Metadata 2</h4>
+<ul>
+  <li><strong>Metadata 1</strong> starts with metadata persistence/write-back and automatic BookDrop download, then ISBN Discovery.</li>
+  <li><strong>Metadata Providers</strong> holds provider enablement and provider-specific credentials/options. <strong>Provider Field Selection</strong> chooses which provider-specific fields Fable retains.</li>
+  <li><strong>Public Reviews</strong> controls review downloading and sources. <strong>Metadata Match Weights</strong> controls how fields contribute to candidate matching; change weights only after testing representative books.</li>
+  <li><strong>Metadata 2</strong> applies advanced fetch options globally or as per-library overrides and exposes sidecar import/export only where the current storage mode supports it.</li>
+</ul>
+
+<h4>Devices and Hardcover</h4>
+<ul>
+  <li><strong>KOReader</strong> needs saved credentials before its sync toggles can be enabled.</li>
+  <li><strong>Hardcover</strong> accepts a personal API key and sends KOReader reading progress to Hardcover; it is not a book-transfer service.</li>
+  <li><strong>Kobo</strong> provides a per-user sync token and progress/shelf controls; admins additionally see conversion policy. Follow the first-use procedure in <a href="sec20.html">Section 20</a>.</li>
+</ul>
+
+<h4>AI Children</h4>
+<ul>
+  <li><strong>AI Search Engine</strong> contains enable/status, LLM profiles and provider/model/API fields, result tuning, RAG techniques, OCR, embedding configuration/statistics, advanced chunking/BM25/reranking, auto-embed libraries, and manual scan controls.</li>
+  <li><strong>AI Panel Detection</strong> is lower on the same AI parent page and contains enable/model ID, status/reload, directory scan/progress, stored-data statistics, and cleanup. See <a href="sec18.html">Section 18</a>.</li>
+</ul>
 
 <p><strong>Good to Know:</strong> For CBR comics, embedded metadata writes are fastest when the Fable container has access to a compatible Linux <code>rar</code> binary. Without it, Fable may convert the archive to <code>.cbz</code> during a save-to-original-file operation.</p>
 
+<h3>Metadata &amp; ISBN Discovery</h3>
+<h4>ISBN Discovery Settings</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Metadata 1 <i class="pi pi-chevron-right"></i> ISBN Discovery</p>
+<p>ISBN Discovery scans a book&rsquo;s copyright/front matter and, when needed, its last pages or back cover for a checksum-valid ISBN. A verified ISBN is then used as the ground truth for fetching metadata.</p>
+<ul>
+  <li><strong>Enable ISBN discovery</strong> &mdash; Master switch for automatic and manually launched ISBN discovery.</li>
+  <li><strong>BookDrop imports</strong> &mdash; Runs discovery when a new BookDrop file is imported.</li>
+  <li><strong>Library scans</strong> &mdash; Runs discovery during scans; it is off by default because large libraries make this processing intensive.</li>
+  <li><strong>Use OCR for image-only pages</strong> &mdash; Lets scanned PDFs and cover images be read through the AI Search sidecar. If that sidecar is unavailable, OCR soft-fails while text-extractable files continue normally.</li>
+  <li><strong>Require review before applying</strong> &mdash; Sends verified results to Review instead of applying them automatically. Ambiguous or failed discoveries still require review.</li>
+  <li><strong>Write ISBN-fetched metadata to original files</strong> &mdash; Off by default and also requires write-back for that file format under Metadata Persistence.</li>
+  <li><strong>Max pages to scan (front and back)</strong> &mdash; Sets how many first pages are searched, followed by the same number of last pages (including the back cover) when no ISBN is found up front.</li>
+</ul>
+<p>When starting ISBN Discovery from selected book actions, the confirmation dialog also lets you choose which currently enabled metadata providers to query. The task indicator shows ISBN Fetch first, then Metadata Fetch, while books needing a decision appear in Staging &rarr; Review.</p>
+
+<h3>View</h3>
+<h4>Device Layout Mode</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View</p>
+<table>
+  <tr><th>Mode</th><th>Behavior</th></tr>
+  <tr><td><strong>Automatic (Responsive)</strong></td><td>Uses the configured phone and tablet width breakpoints to choose Phone, Tablet, or Desktop layout.</td></tr>
+  <tr><td><strong>Automatic (Viewport Shape Aware)</strong></td><td>Phone-width screens stay in Phone layout. Wider portrait windows use Tablet layout; wider landscape windows use Desktop layout. This is useful for tablets that rotate between portrait and landscape.</td></tr>
+  <tr><td><strong>Phone Layout</strong></td><td>Forces Phone Mode regardless of viewport size.</td></tr>
+  <tr><td><strong>Tablet Layout</strong></td><td>Forces Tablet layout regardless of viewport shape.</td></tr>
+  <tr><td><strong>Desktop Layout</strong></td><td>Forces Desktop layout even on a touch device or narrow browser window.</td></tr>
+</table>
+<p>Layout mode and custom breakpoints are stored per browser. Forced modes override automatic breakpoint/shape selection until you choose an Automatic option again.</p>
+
+<h4>Cover Preview &amp; Resize Handles</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View</p>
+<ul>
+  <li><strong>Show cover preview panel</strong> &mdash; Hovering a book can display a larger cover inside the filter sidebar.</li>
+  <li><strong>Show drag handles</strong> &mdash; Keeps thumb-friendly grips visible on resizable side panels and the cover preview, making touch resizing practical on tablets.</li>
+  <li><strong>Per-browser preference</strong> &mdash; Resize-handle visibility and panel sizes stay local to that browser/device, so a tablet can use larger touch grips without changing another computer.</li>
+</ul>
+
 <h4>Customizable Toolbar</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View</p>
 <ul>
   <li><strong>Add or remove buttons</strong> &mdash; Choose which actions appear in the toolbar</li>
-  <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange</li>
+  <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange; touch devices can drag from the toolbar editor&rsquo;s handles</li>
   <li><strong>Add separators</strong> &mdash; Insert visual dividers between button groups</li>
   <li><strong>Keep a fullscreen toggle in the toolbar</strong> &mdash; Show or hide the fullscreen action like any other topbar button, and place it where it fits your layout best</li>
+  <li><strong>Per-browser configuration</strong> &mdash; Each browser/device keeps its own toolbar arrangement, allowing different tablet and desktop layouts for the same account</li>
 </ul>
 
 <h4>Tablet Navigation Gestures</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View</p>
 <ul>
   <li><strong>Optional, off by default</strong> &mdash; Enable <strong>Tablet / kiosk gestures</strong> for high-resolution tablets and desktop-touch browsers (for example a 1200&times;2000 Linux tablet)</li>
   <li><strong>Never applies in Phone Mode</strong> &mdash; Forced Phone Mode and real phone layouts stay unchanged</li>
@@ -725,7 +805,7 @@
 </ul>
 
 <h4>Header Position (Phone &amp; Tablet)</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View</p>
 <ul>
   <li><strong>Phone Header Position</strong> &mdash; Optionally move the app toolbar to the bottom for easier thumb reach on large phones. Only applies in phone layout mode. Stored per browser as <code>bl-header-position</code>.</li>
   <li><strong>Tablet Header Position</strong> &mdash; Independent setting for tablet layout (forced tablet, auto tablet band, or Viewport Shape Aware portrait). Stored as <code>bl-tablet-header-position</code>. Does not follow the phone setting, and never applies in Phone Mode or desktop landscape.</li>
@@ -733,7 +813,7 @@
 </ul>
 
 <h4>Theme Colors</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Global Preferences</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Application</p>
 <ul>
   <li><strong>Choose preset colors for the interface</strong> &mdash; The theme configurator lets you pick the accent color and the surface palette independently</li>
   <li><strong>Use a color picker or paste a value</strong> &mdash; Both color controls accept a native color picker or a typed/pasted color such as <code>#ff6600</code></li>
@@ -742,11 +822,11 @@
 </ul>
 
 <h3>AI Search & Embedding Tuning</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
-<p>Fable&rsquo;s AI Search is powered by two separate AI engines: an <strong>Embedding Engine</strong> that converts book text into searchable vectors, and an <strong>LLM (Large Language Model) Engine</strong> that generates natural-language answers to your queries. Both can run locally (via the bundled Ollama service inside the <code>fable-ai-search</code> Docker container) or connect to external cloud providers like OpenAI. The AI Search Settings page is organized into collapsible sections, each controlling a different aspect of the AI pipeline.</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine</p>
+<p>Fable&rsquo;s AI Search is powered by two separate AI engines: an <strong>Embedding Engine</strong> that converts book text into searchable vectors, and an <strong>LLM (Large Language Model) Engine</strong> that generates natural-language answers to your queries. Both can run locally (via the bundled Ollama service inside the <code>fable-ai-search</code> Docker container) or connect to external cloud providers like OpenAI. The AI Search Engine area is organized into sections that control different parts of the AI pipeline.</p>
 
 <h4>AI Search Status Panel</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> top of page</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> top of area</p>
 <p>The status panel shows the current state of the AI Search service at a glance:</p>
 <ul>
   <li><strong>Service State</strong> &mdash; Displays <code>READY</code>, <code>STARTING</code>, <code>UNREACHABLE</code>, or <code>ERROR</code> with a color-coded status box (green/amber/red).</li>
@@ -757,7 +837,7 @@
 </ul>
 
 <h4>LLM Configuration</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> LLM Configuration section</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> LLM Configuration</p>
 <p>The LLM (Large Language Model) is what generates the natural-language answers when you ask AI Search a question. This section controls which model to use and how to connect to it:</p>
 <ul>
   <li><strong>Active LLM Profile</strong> &mdash; A dropdown listing all your saved profiles. Select one to instantly load its provider, model, API key, and tuning parameters. The currently active profile is highlighted. If no profile matches your current settings, the dropdown shows &ldquo;Custom Settings (No Profile).&rdquo;</li>
@@ -778,7 +858,7 @@
 </ul>
 
 <h4>Embedding Configuration</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Embedding Configuration (click to expand)</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Embedding Configuration (click to expand)</p>
 <p>The Embedding Engine converts book text into mathematical vectors that power semantic search. This section is collapsed by default with an orange warning header because changing the embedding model requires re-embedding all books:</p>
 <ul>
   <li><strong>Embedding Engine (Local / External)</strong> &mdash; Same provider options as the LLM: Local Ollama, OpenAI, Custom URL, or External Ollama.</li>
@@ -792,7 +872,7 @@
 </ul>
 
 <h4>Saved LLM Profiles</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Saved LLM Profiles</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Saved LLM Profiles</p>
 <p>Profiles let you save and switch between complete AI configurations instantly. Each profile stores: LLM provider, model, API key, external URL, Max Tokens, Temperature, and all RAG technique toggles.</p>
 <ul>
   <li><strong>Save Profile</strong> <i class="pi pi-save guide-icon-inline"></i> &mdash; Opens a dialog where you name the profile. The name defaults to the current model name. The description is auto-generated from the provider type, temperature, and max tokens.</li>
@@ -802,7 +882,7 @@
 </ul>
 
 <h4>Search Tuning Parameters</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Search Tuning section</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Search Tuning</p>
 <p>These sliders control how the AI Search retrieves and presents results. Each has a range slider with &minus;/+ stepper buttons and a direct numeric input:</p>
 <ul>
   <li><strong>Top K (1–50, default 5):</strong> How many context chunks to retrieve from the vector database. More chunks give the LLM richer context but increase processing time.</li>
@@ -813,7 +893,7 @@
 </ul>
 
 <h4>RAG Techniques</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> RAG Techniques section</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> RAG Techniques</p>
 <p>Retrieval-Augmented Generation (RAG) techniques enhance answer quality by adding processing steps between retrieval and response generation. Each technique has an independent toggle switch. <strong>Features that add LLM calls are automatically disabled when using a local LLM provider</strong> to avoid excessive latency on CPU-only hardware. They activate automatically when using an external (cloud) LLM.</p>
 <ul>
   <li><strong>HyDE (Hypothetical Document Embeddings):</strong> Generates a synthetic ideal answer to your query, then uses that to find similar content. Especially effective for abstract or conceptual queries. <em>Adds 1 LLM call.</em></li>
@@ -824,7 +904,7 @@
 </ul>
 
 <h4>OCR Settings</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> OCR section</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Automatic OCR Fallback</p>
 <p>Optical Character Recognition (OCR) extracts text from scanned or image-only PDF pages during book embedding:</p>
 <ul>
   <li><strong>Enable OCR</strong> &mdash; Master toggle. When on, Fable runs OCR on pages that have no extractable text layer.</li>
@@ -833,11 +913,11 @@
 </ul>
 
 <h4>Auto-Embed Libraries</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Auto-Embed section</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Auto-Embed Libraries</p>
 <p>A multi-select dropdown listing all your libraries. Books imported into selected libraries are automatically queued for embedding in the background. If no libraries are selected, you must manually trigger embedding via the scan section below.</p>
 
 <h4>AI Search Scan</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Scan section</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Manual Scan</p>
 <p>This section lets you manually trigger embedding for books that don&rsquo;t yet have AI Search data:</p>
 <ul>
   <li><strong>Directory Picker</strong> &mdash; Select which library directories to scan for unembedded books.</li>
@@ -847,7 +927,7 @@
 </ul>
 
 <h4>Advanced Embedding & Retrieval Tuning</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning (click to expand)</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning (click to expand)</p>
 <p>This collapsible section (orange header, collapsed by default) contains low-level tuning parameters for the embedding and retrieval pipeline. It includes an <strong>Auto-Fill Recommended Presets</strong> <i class="pi pi-sparkles guide-icon-inline"></i> button that loads optimal settings for your currently selected embedding model.</p>
 
 <div class="callout warning">
@@ -864,7 +944,7 @@
 </ul>
 
 <h4>CPU Optimization Presets</h4>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning <i class="pi pi-chevron-right"></i> Auto-Fill Recommended Presets</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI <i class="pi pi-chevron-right"></i> AI Search Engine <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning <i class="pi pi-chevron-right"></i> Auto-Fill Recommended Presets</p>
 <p>To maximize search accuracy and inference speed without overloading system resources, refer to the following recommended configurations based on the selected embedding model. Click <strong>Auto-Fill Recommended Presets</strong> to apply these values automatically:</p>
 
 <table>

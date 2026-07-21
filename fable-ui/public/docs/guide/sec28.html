@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,61 +663,61 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html" class="active">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 28 ==================== -->
 <h2 id="sec28">28. Tips and Best Practices <span class="section-icon"><i class="pi pi-lightbulb"></i></span></h2>
 
 <h3>For New Users</h3>
 <ol>
-  <li><strong>If you were invited by someone:</strong> change your temporary password, open User Guide from the sidebar, and read <a href="sec22.html">Section 22</a> first&mdash;then explore your personal library.</li>
-  <li><strong>Start small.</strong> Set up one library, add a few books, and explore before importing your entire collection.</li>
-  <li><strong>Use BookDrop</strong> for importing rather than manually placing files (if your account allows it).</li>
-  <li><strong>Fetch metadata early.</strong> After importing, fetch metadata to fill in titles, authors, covers, and descriptions.</li>
-  <li><strong>Create shelves</strong> to organize your favorites.</li>
-  <li><strong>Set your reading status</strong> so you can track what you&rsquo;ve read.</li>
+  <li><strong>If you were invited:</strong> follow <a href="sec22.html#sec22">the invited-user sign-in and profile procedure</a> before exploring your personal library.</li>
+  <li><strong>Start small:</strong> follow <a href="sec5.html">the library setup procedure</a> for one library, then add only a few test books with <a href="sec7.html">the BookDrop workflow</a>.</li>
+  <li><strong>Use the supported import path:</strong> follow <a href="sec22.html#personal-bookdrop">the permission-aware BookDrop versus Upload guidance</a> instead of copying into another user&rsquo;s area.</li>
+  <li><strong>Fetch metadata early:</strong> after import, follow <a href="sec15.html">the metadata fetch and review procedure</a> to verify title, author, cover, description, and identifiers.</li>
+  <li><strong>Organize deliberately:</strong> follow <a href="sec8.html">the shelf creation and assignment procedure</a> for hand-picked collections.</li>
+  <li><strong>Track reading:</strong> follow <a href="sec12.html">the reading-status and statistics procedure</a>.</li>
 </ol>
 
 <h3>For Security</h3>
 <ol>
-  <li>Use strong passwords for all accounts, especially the admin account.</li>
-  <li>Never expose Fable directly to the internet without a reverse proxy and authentication.</li>
-  <li>Keep your OPDS token private.</li>
-  <li>Review user permissions carefully &mdash; only grant deletion rights to trusted users.</li>
-  <li>Back up regularly &mdash; both the database and your book files.</li>
+  <li>Use unique strong passwords and follow <a href="sec22.html">the supported profile, admin-reset, and sole-admin recovery boundaries</a>.</li>
+  <li>Secure remote access by following <a href="sec23.html">the verified Local Login/OIDC setup and reverse-proxy boundary</a>.</li>
+  <li>Protect catalog credentials and follow <a href="sec19.html">the OPDS credential setup and rotation procedure</a>.</li>
+  <li>Grant only needed rights by following <a href="sec22.html">the role-preset and permission review procedure</a>, especially for upload, BookDrop, library management, and deletion.</li>
+  <li>Create and validate off-host recovery sets with <a href="sec26.html">the complete backup and restore procedure</a>.</li>
 </ol>
 
 <h3>For Performance</h3>
 <ol>
-  <li>Use CBZ over CBR when possible &mdash; ZIP extraction is faster than RAR.</li>
-  <li>Keep image sizes reasonable &mdash; extremely high-resolution scans use more memory.</li>
-  <li>Schedule background tasks during off-hours.</li>
-  <li>Don&rsquo;t scan libraries too frequently &mdash; once-daily scans are usually sufficient.</li>
+  <li>Choose and maintain comic formats using <a href="sec6.html">the supported-files and book-file procedure</a>; prefer CBZ where your source workflow permits it.</li>
+  <li>Test large scans with <a href="sec10.html#sec10c">the CBX reader procedure</a> before importing an entire high-resolution collection.</li>
+  <li>Move expensive jobs to quiet periods with <a href="sec25.html">the Settings &rarr; Tasks scheduling procedure</a>.</li>
+  <li>Prefer additive discovery and use full reconcile only intentionally by following <a href="sec25.html">the scan-versus-reconcile guidance</a>.</li>
 </ol>
 
 <h3>For Organization</h3>
 <ol>
-  <li>Be consistent with author names to avoid duplicates.</li>
-  <li>Use genres and categories &mdash; they make filtering and Magic Shelves more useful.</li>
-  <li>Rate your books &mdash; ratings enable great Magic Shelf filters.</li>
-  <li>Use <strong>Story Arcs</strong> for crossover reading orders instead of overloading shelves.</li>
-  <li>Use the Notebook to review all your annotations in one place.</li>
+  <li>Normalize author records with <a href="sec13.html">the author browsing and editing procedure</a> before treating similar names as separate people.</li>
+  <li>Populate genres, categories, and identifiers with <a href="sec15.html">the metadata review procedure</a>, then apply them through <a href="sec17.html">search and filters</a>.</li>
+  <li>Record ratings with <a href="sec6.html">the book details procedure</a>, then use <a href="sec9.html">Magic Shelf rules</a> to build rating-based collections.</li>
+  <li>Build crossover orders with <a href="sec14.html">the Story Arc creation procedure</a> instead of overloading ordinary shelves.</li>
+  <li>Review highlights and notes with <a href="sec11.html">the Bookmarks and Notebook procedure</a>.</li>
 </ol>
 <nav class="section-nav">
   <a href="sec27.html" class="nav-link nav-prev">← Previous: 27. Audit Logs</a>

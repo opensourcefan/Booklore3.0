@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
-    <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec4.html" class="active">4. Navigating the Interface</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,23 +663,23 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 4 ==================== -->
 <style>
@@ -703,7 +707,7 @@
     <tr>
       <th colspan="3" style="text-align: center; background: var(--table-head); color: var(--heading); padding: 10px; border: 1px solid var(--table-border);">
         <strong>Top Bar</strong><br>
-        <span style="font-size: 8.5pt; font-weight: normal; color: var(--muted);">[Menu] &nbsp;&bull;&nbsp; [Search / AI Search] &nbsp;&bull;&nbsp; [Notifications] &nbsp;&bull;&nbsp; [Customizable Toolbar: BookDrop, Fullscreen, etc.]</span>
+        <span style="font-size: 8.5pt; font-weight: normal; color: var(--muted);">[Sidebar] &nbsp;&bull;&nbsp; [Search / AI Search] &nbsp;&bull;&nbsp; [Task Notifications] &nbsp;&bull;&nbsp; [Customizable Toolbar: Upload, BookDrop, Fullscreen, etc.]</span>
       </th>
     </tr>
   </thead>
@@ -712,7 +716,7 @@
       <td style="width: 30%; border: 1px solid var(--table-border); padding: 12px; background: rgba(108, 73, 39, 0.05); vertical-align: top;">
         <strong>Left Sidebar</strong>
         <ul style="margin: 8px 0 0; padding-left: 1.2em; font-size: 8.5pt; line-height: 1.5;">
-          <li><strong>HOME:</strong> Dashboard, All Books, Physical Books</li>
+          <li><strong>HOME:</strong> Dashboard, Staging, All Books, Physical Books, Series, Authors, Notebook</li>
           <li><strong>Story Arcs:</strong> Guided reading paths (with book-count badges)</li>
           <li><strong>Libraries:</strong> Expandable folders</li>
           <li><strong>Shelves:</strong> Favorites &amp; custom shelves</li>
@@ -730,7 +734,7 @@
           <strong>Book Browser Header</strong>
           <ul style="margin: 4px 0 0; padding-left: 1.2em; font-size: 8pt; line-height: 1.4;">
             <li>Breadcrumb paths &amp; folder navigations</li>
-            <li>Library actions (Scan for New Files, Reconcile)</li>
+            <li>Library-scoped actions (scan, settings, directories, and maintenance)</li>
             <li>Grid / List view toggle &amp; Sort options</li>
             <li>Active filter tags list</li>
           </ul>
@@ -885,14 +889,16 @@
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Dashboard</strong> <i class="pi pi-home" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Returns to the home screen</td></tr>
+  <tr><td><strong>Staging</strong> <i class="pi pi-inbox" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows newly created book records and metadata-review triage; see <a href="sec6.html#staging-lifecycle">Section 6</a></td></tr>
   <tr><td><strong>All Books</strong> <i class="pi pi-book" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows every book across all your libraries</td></tr>
   <tr><td><strong>Physical Books</strong> <i class="pi pi-box" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows your physical placeholders grouped by library, helping you track printed books you own</td></tr>
+  <tr><td><strong>Series</strong> <i class="pi pi-objects-column" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books grouped by series</td></tr>
+  <tr><td><strong>Authors</strong> <i class="pi pi-users" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books by author</td></tr>
+  <tr><td><strong>Notebook</strong> <i class="pi pi-pencil" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Open your notes and bookmarks in one place</td></tr>
   <tr><td><strong>Libraries</strong> <i class="pi pi-building" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Expandable list of shared folders connected to Fable&mdash;click one to view only its books</td></tr>
   <tr><td><strong>USERS</strong> <i class="pi pi-users" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Admin only, and only when a personal library has <strong>Show library</strong> turned on. Lists those personal libraries separately so they do not mix into the main Libraries list</td></tr>
   <tr><td><strong>Shelves</strong> <i class="pi pi-bookmark" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Your custom book collections</td></tr>
   <tr><td><strong>Not Shelfed</strong> <i class="pi pi-folder" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Books not assigned to any shelf</td></tr>
-  <tr><td><strong>Series</strong> <i class="pi pi-objects-column" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books grouped by series</td></tr>
-  <tr><td><strong>Authors</strong> <i class="pi pi-users" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books by author</td></tr>
   <tr><td><strong>Story Arcs</strong> <i class="pi pi-compass" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Its own sidebar section (not under HOME). Expand to see each arc with a book-count badge, or open the Story Arcs browser to manage guided reading paths</td></tr>
   <tr><td><strong>Magic Shelves</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Smart collections that filter automatically based on search rules</td></tr>
   <tr><td><strong>User Guide</strong> (bottom)</td><td>Open this guide directly in Fable</td></tr>
@@ -904,9 +910,11 @@
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Search</strong> <i class="pi pi-search" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Search your collection by title, author, or ISBN</td></tr>
-  <tr><td><strong>AI Search</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Natural language search powered by AI (see Section 16)</td></tr>
+  <tr><td><strong>AI Search</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Natural-language search powered by AI; see <a href="sec17.html">Section 17</a></td></tr>
   <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the Tasks / Notifications status center (see below). A badge shows unread failures first; otherwise completed task counts. On phones the bell stays available next to fullscreen.</td></tr>
-  <tr><td><strong>Customizable Toolbar</strong></td><td>Access shortcuts for BookDrop, theme selection, settings, and fullscreen mode</td></tr>
+  <tr><td><strong>Upload</strong> <i class="pi pi-upload" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the browser uploader. Choose <strong>Library</strong> for direct import to a library path or <strong>BookDrop</strong> to send files to your account&rsquo;s BookDrop inbox; see <a href="sec6.html">Section 6</a></td></tr>
+  <tr><td><strong>BookDrop</strong> <i class="pi pi-inbox" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the pending-file review and finalization page; see <a href="sec7.html">Section 7</a></td></tr>
+  <tr><td><strong>Customizable Toolbar</strong></td><td>Choose and reorder available shortcuts such as Upload, BookDrop, library creation, Metadata Manager, statistics, notifications, layout mode, fullscreen, theme, settings, profile, and logout. Availability depends on permissions and saved toolbar choices.</td></tr>
 </table>
 
 <h3>Notification Bell &mdash; Tasks &amp; Notifications</h3>

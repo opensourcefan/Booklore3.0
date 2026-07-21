@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html" class="active">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,31 +663,31 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 1 ==================== -->
 <h2 id="sec1">1. What Is Fable? <span class="section-icon"><i class="pi pi-info-circle"></i></span></h2>
 
-<p>Fable is a <strong>self-hosted digital library</strong> &mdash; a personal application you run on your own computer or server to organize, read, and manage your book and comic collection. Because it is self-hosted, all your data, settings, and book files are stored locally on your own hardware rather than on a third-party cloud service, giving you complete ownership and privacy. You can access your private digital bookshelf from any web browser on any device in your network.</p>
+<p>Fable is a <strong>self-hosted digital library</strong> for organizing, reviewing, reading, and sharing access to books, comics, audiobooks, and physical-book records. The application and catalog run on your computer or server, while its browser interface lets permitted users work from other devices. Your files remain in storage locations you control rather than being moved to a third-party library service.</p>
 
 <h3>Supported Formats</h3>
-<p>To add books to Fable, you can upload them directly through the browser interface (using BookDrop) or place files into folders on your host server that are scanned by Fable. The following formats are supported:</p>
+<p>You can add books by uploading directly to a library, sending files through BookDrop for pre-import review, or placing files in a configured host folder and scanning its library. You can also catalog physical books without digital files. See <a href="sec6.html">Section 6: Books</a> for the complete import and staging lifecycle and <a href="sec7.html">Section 7: BookDrop</a> for the BookDrop workflow.</p>
 <table>
   <tr><th>Format</th><th>Description</th></tr>
   <tr><td><strong><span class="guide-badge guide-badge-pdf">PDF</span></strong></td><td>Standard document files (books, manuals, magazines)</td></tr>
@@ -695,18 +699,16 @@
   <tr><td><strong><span class="guide-badge guide-badge-physical">Physical</span></strong></td><td>Printed books or items in your real-world collection. Creating a physical book entry creates a catalog placeholder (no digital file required) so you can track your entire shelf in one interface.</td></tr>
 </table>
 
-<h3>What You Can Do</h3>
+<h3>Start with the Task You Want to Complete</h3>
 <ul>
-  <li>Store and organize thousands of books across multiple libraries</li>
-  <li>Read books, comics, and listen to audiobooks directly in your browser</li>
-  <li>Track your reading progress across devices</li>
-  <li>Highlight text, add bookmarks, and write notes</li>
-  <li>Search and filter your entire collection</li>
-  <li>Fetch book information (metadata) from the internet automatically</li>
-  <li>Share your catalog with e-readers via OPDS feeds</li>
-  <li>Manage multiple users with different access levels</li>
-  <li>Use AI to detect comic panels for panel-by-panel reading</li>
-  <li>Use AI-powered natural language search to find books by theme, character, or concept</li>
+  <li><strong>Finish setup and add your first book:</strong> follow <a href="sec2.html">Section 2</a>, then choose an import route in <a href="sec6.html">Section 6</a>.</li>
+  <li><strong>Separate collections by storage location or access:</strong> learn library boundaries and library tools in <a href="sec5.html">Section 5</a>.</li>
+  <li><strong>Review every new catalog entry before normal use:</strong> use the Staging lifecycle in <a href="sec6.html#staging-lifecycle">Section 6</a>.</li>
+  <li><strong>Prepare filenames and metadata before import:</strong> use <a href="sec7.html">Section 7: BookDrop</a>.</li>
+  <li><strong>Organize books:</strong> use shelves and Magic Shelves in <a href="sec8.html">Section 8</a> and <a href="sec9.html">Section 9</a>, or browse series and authors in <a href="sec13.html">Section 13</a>.</li>
+  <li><strong>Read or listen in a browser:</strong> open <a href="sec10.html">Section 10</a>; bookmarks and notes are covered in <a href="sec11.html">Section 11</a>.</li>
+  <li><strong>Find books:</strong> use metadata search, filtering, or AI Search as described in <a href="sec17.html">Section 17</a>.</li>
+  <li><strong>Connect readers and other users:</strong> see <a href="sec19.html">OPDS</a>, <a href="sec20.html">Kobo and KOReader sync</a>, <a href="sec21.html">email</a>, and <a href="sec22.html">accounts and profiles</a>.</li>
 </ul>
 <nav class="section-nav">
   <a href="index.html" class="nav-link nav-prev">← Guide Home</a>

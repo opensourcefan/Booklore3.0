@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -657,39 +661,39 @@
     </li>
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
-    <li><a href="sec13.html">13. Series and Authors</a></li>
+    <li><a href="sec13.html" class="active">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 13 ==================== -->
 <h2 id="sec13">13. Series and Authors <span class="section-icon"><i class="pi pi-objects-column"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Series / Authors</p>
 
 <h3>Series</h3>
-<p>Books can be grouped into series (e.g., &ldquo;Harry Potter,&rdquo; &ldquo;The Walking Dead&rdquo;).</p>
-<ul>
-  <li><strong>Browse by series</strong> &mdash; Click &ldquo;Series&rdquo; <i class="pi pi-objects-column guide-icon-inline"></i> in the sidebar</li>
-  <li><strong>View all books in a series</strong> &mdash; Click a series name to see its books in order</li>
-  <li>Series are auto-detected from metadata</li>
-  <li><strong>On phones</strong> &mdash; The series browser uses a two-column layout and an A&ndash;Z scrubber (when sorted by name) so large libraries are easier to jump through; Read Next is available on the series detail page rather than on each card</li>
-</ul>
-<p><strong>What You Can&rsquo;t Do:</strong> Manually create a series from scratch (series come from book metadata) or reorder books within a series.</p>
+<p>Series are built from each book&rsquo;s series name and number metadata.</p>
+<ol>
+  <li>Open <strong>Sidebar &rarr; Home &rarr; Series</strong>.</li>
+  <li>Select a series to see its books ordered by series number and identify what comes next.</li>
+  <li>If a book is missing or out of order, edit its series name or number with the <a href="sec15.html">Metadata</a> tools.</li>
+  <li>If spelling variants created duplicate series entries, consolidate them in the <a href="sec16.html">Metadata Manager</a>.</li>
+</ol>
+<p>On phones, the browser uses a two-column layout and an A&ndash;Z scrubber when sorted by name; <strong>Read Next</strong> is available on the series detail page. Series order comes from metadata rather than manual card dragging.</p>
 
 <h3>Authors</h3>
 <ul>
@@ -700,8 +704,11 @@
 </ul>
 
 <div class="callout tip">
-  <strong>Tip:</strong> Use consistent author names in book metadata to avoid duplicate author entries (e.g., always &ldquo;J.K. Rowling,&rdquo; not sometimes &ldquo;Rowling, J.K.&rdquo;).
+  <strong>Tip:</strong> Consistent author and series values prevent duplicate entries and improve <a href="sec17.html">search and filters</a> and <a href="sec9.html">Magic Shelf</a> rules.
 </div>
+
+<h3>Use Series with Other Collections</h3>
+<p>A <a href="sec8.html">Shelf</a> is a hand-picked collection, while a series is metadata-driven and ordered by volume. Use a <a href="sec14.html">Story Arc</a> when one reading path crosses several series or needs a custom order. The same book can participate in all three.</p>
 <nav class="section-nav">
   <a href="sec12.html" class="nav-link nav-prev">← Previous: 12. Reading Progress & Stats</a>
   <a href="sec14.html" class="nav-link nav-next">Next: 14. Story Arcs →</a>

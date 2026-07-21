@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html" class="active">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,46 +663,58 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 2 ==================== -->
 <h2 id="sec2">2. Getting Started &mdash; First-Time Setup <span class="section-icon"><i class="pi pi-play-circle"></i></span></h2>
 
-<p>To access the **Setup Wizard**, open a web browser and navigate to your server's address and port—by default, this is <code>http://&lt;your-server-ip&gt;:6060</code> (or <code>http://localhost:6060</code> if running on your local machine).</p>
+<p>To access the <strong>Setup Wizard</strong>, open a web browser and navigate to your server's address and port&mdash;by default, <code>http://&lt;your-server-ip&gt;:6060</code>, or <code>http://localhost:6060</code> from the host itself.</p>
 
 <h3>What You Do</h3>
 <ol>
   <li><strong>Create your admin account</strong> &mdash; Choose a username and strong password. This is the main administrator account. The email field is <strong>optional</strong> for local accounts &mdash; it is only used for OIDC (Single Sign-On providers like Authentik, Keycloak, or Pocket ID) identity matching (see <a href="sec22.html">Section 22</a>). You can leave it blank if you are not using OIDC.</li>
-  <li><strong>Set up your first library</strong> &mdash; Point Fable to the folder where your books are stored. <strong>Note:</strong> You must enter the path *inside the Docker container* (typically <code>/books</code>), which maps to the physical folder on your host machine's drive.</li>
+  <li><strong>Set up your first library</strong> &mdash; Point Fable to the folder where your books are stored. Enter the path <em>inside the Docker container</em> (typically <code>/books</code>), which maps to the physical folder on your host machine.</li>
   <li><strong>Configure authentication</strong> &mdash; Choose how users will log in (local password, OIDC, or forward auth).</li>
 </ol>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
   <li>You cannot skip creating the admin account &mdash; it is required.</li>
-  <li>You cannot change the admin username later through the normal interface.</li>
+  <li>You can change your username later from your user profile. Fable may also ask an invited user to confirm or change it during the first-login credential update.</li>
   <li>You cannot undo the first-time setup once completed &mdash; but you can change all settings afterward.</li>
 </ul>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Choose a strong password. Anyone who knows this password has full control over Fable. Because this is a private local app, there is no "Forgot Password" email reset by default. If you lose the admin password and have no other login method configured, recovery requires running database command-line queries inside the database container to manually reset the credential hash.
+  <strong>Be Careful:</strong> Choose a strong password. Anyone who knows this password has full control over Fable. There is no anonymous &ldquo;Forgot Password&rdquo; email reset by default. Another admin can issue a temporary password; if the sole admin loses every working local/OIDC login, stop and follow the supported recovery boundary in <a href="sec22.html">Section 22</a> rather than editing password hashes or improvising database commands.
 </div>
+
+<h3>After the Wizard: Add and Check Your First Book</h3>
+<ol>
+  <li><strong>Choose an import route.</strong> Use topbar <strong>Upload</strong> to send a browser file straight to a selected library path, use <strong>BookDrop</strong> when you want a review-and-finalize inbox, or copy a file into the library&rsquo;s host folder and run <strong>Scan for New Files</strong>. The differences are explained in <a href="sec6.html">Section 6</a>.</li>
+  <li><strong>Open HOME &rarr; Staging.</strong> Every newly created digital or physical catalog entry starts with <code>staged=true</code>. Confirm its title, author, cover, media type, and destination.</li>
+  <li><strong>Fetch or edit metadata if needed.</strong> A metadata fetch may finish automatically, produce a proposal in <strong>Review</strong>, or require a manual action. See <a href="sec6.html#staging-lifecycle">the Staging lifecycle</a>.</li>
+  <li><strong>Open the book.</strong> Verify that a digital file reads or plays correctly. Physical entries have no readable file by design.</li>
+  <li><strong>Release it from Staging.</strong> Select the book and choose <strong>Release</strong>. This only clears its staged status; it does not move the file or remove library, shelf, or metadata assignments.</li>
+</ol>
+
+<h3>Open Fable on a Second Device</h3>
+<p>On another computer, tablet, or phone that can reach the server, open <code>http://&lt;your-server-ip&gt;:6060</code> and sign in. Use the server&rsquo;s LAN hostname or IP address&mdash;<code>localhost</code> on the second device refers to that device, not the Fable server. Browser layout preferences can differ by device, while account-backed settings such as HOME shortcut visibility follow your account. If the page cannot connect, confirm that both devices can reach the same network and that port <code>6060</code> is exposed by the host.</p>
 
 <h3>Joining an existing Fable (not the first-time wizard)</h3>
 <p>If someone already runs Fable and invited you, <strong>you skip this Setup Wizard</strong>. Use the username and temporary password they sent you, sign in, change your password when asked, then open the <strong>User Guide</strong> from the sidebar. Details: <a href="sec22.html">Section 22 &mdash; If someone invited you to Fable</a>.</p>

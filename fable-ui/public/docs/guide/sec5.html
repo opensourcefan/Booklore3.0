@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html" class="active">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,56 +663,67 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 5 ==================== -->
 <h2 id="sec5">5. Libraries &mdash; Organizing Your Collection <span class="section-icon"><i class="pi pi-building"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> LIBRARIES section</p>
 
-<p>A <strong>Library</strong> is a connection between Fable and a folder on your computer or server where book files are stored.</p>
+<p>A <strong>Library</strong> is a storage boundary: it connects one catalog collection to one or more configured host or mounted directories. Its paths, permitted media formats, access rules, naming pattern, metadata behavior, and maintenance operations apply to the books inside that boundary. A shelf can group books across libraries, but it does not change where their files are stored.</p>
+
+<h3>Choose How to Organize</h3>
+<table>
+  <tr><th>If your goal is&hellip;</th><th>Use</th></tr>
+  <tr><td>Different storage roots, access rules, allowed formats, or file-naming policies</td><td><strong>Separate libraries</strong></td></tr>
+  <tr><td>A manual collection that can include books from several libraries</td><td><a href="sec8.html"><strong>Shelf</strong> (Section 8)</a></td></tr>
+  <tr><td>A collection that updates from filter rules</td><td><a href="sec9.html"><strong>Magic Shelf</strong> (Section 9)</a></td></tr>
+  <tr><td>A guided reading order</td><td><a href="sec14.html"><strong>Story Arc</strong> (Section 14)</a></td></tr>
+  <tr><td>Browsing existing metadata without changing storage</td><td><a href="sec13.html"><strong>Series</strong> or <strong>Authors</strong> (Section 13)</a></td></tr>
+</table>
+
+<h3>Open the Current Library Menu</h3>
+<p>In the sidebar, select a library and open its ellipsis menu. The current menu contains these tasks:</p>
+<table>
+  <tr><th>Menu item</th><th>Use it to</th></tr>
+  <tr><td><strong>Add Physical Book</strong></td><td>Create a file-free physical-book record in this library. It enters <a href="sec6.html#staging-lifecycle">Staging</a>.</td></tr>
+  <tr><td><strong>Bulk ISBN Import</strong></td><td>Look up and create multiple physical-book records from ISBNs. Created entries are staged for checking.</td></tr>
+  <tr><td><strong>Scan for New Files</strong></td><td>Add supported files that now exist under the configured library directories. Existing catalog records are not the target of this additive scan.</td></tr>
+  <tr><td><strong>Custom Fetch Metadata</strong></td><td>Open metadata-fetch options for books in this library.</td></tr>
+  <tr><td><strong>Auto Fetch Metadata</strong></td><td>Start the library-wide automatic metadata refresh after confirmation.</td></tr>
+  <tr><td><strong>Find Duplicates</strong></td><td>Open duplicate detection scoped to this library and plan merges.</td></tr>
+  <tr><td><strong>Library Settings</strong></td><td>Change this library&rsquo;s identity and behavior, including access and format-related settings.</td></tr>
+  <tr><td><strong>Manage Directories</strong></td><td>Add or remove storage paths. <strong>Save &amp; Scan New Directories</strong> also imports from newly added paths.</td></tr>
+  <tr><td><strong>Library Maintenance</strong></td><td>Run deeper maintenance and metadata sidecar import/export operations.</td></tr>
+  <tr><td><strong>Delete Library</strong></td><td>Remove the library catalog boundary from Fable after confirmation; this does not delete the source files on disk.</td></tr>
+</table>
 
 <div class="callout tip">
-  <strong>Scan vs. Reconcile &mdash; Which should you use?</strong>
-  <ul>
-    <li><strong>Scan for New Files (Safe & Fast):</strong> Fable only looks for newly added book files and adds them to your library. It will not touch or overwrite your existing books or metadata. Use this for regular updates.</li>
-    <li><strong>Reconcile Library (Deep Sync):</strong> Fable performs a full check of your library against your storage disk. It updates all library records to match the current disk contents, including removing catalog entries for files you deleted on disk. Reconcile requires an explicit confirmation before running.</li>
-  </ul>
+  <strong>Task links:</strong> For adding and staging digital or physical books, continue to <a href="sec6.html">Section 6</a>. For a pre-import inbox, use <a href="sec7.html">Section 7</a>. For metadata concepts and review tools, see <a href="sec15.html">Section 15</a> and <a href="sec16.html">Section 16</a>.
 </div>
 
-<h3>What You Can Do</h3>
-<ul>
-  <li><strong>Create multiple libraries</strong> &mdash; For example, separate libraries for "Fiction," "Comics," or "Audiobooks"</li>
-  <li><strong>Configure settings and folders</strong> &mdash; Manage names and display icons under <strong>Library Settings</strong>, and add or remove folder paths under <strong>Manage Directories</strong></li>
-  <li><strong>Choose directory scanning options</strong> &mdash; When editing directory paths, select <strong>Save</strong> to update folder list membership or <strong>Save & Scan New Directories</strong> to immediately import books from newly added folders</li>
-  <li><strong>Access library maintenance tools</strong> &mdash; Perform advanced tasks like rebuilding libraries or exporting/importing metadata sidecar files from the <strong>Library Maintenance</strong> panel</li>
-  <li><strong>Check library health</strong> &mdash; Verify Fable can reach the configured folders on disk</li>
-  <li><strong>Restrict library access</strong> &mdash; Control which user accounts can view and search books in each library</li>
-  <li><strong>Delete libraries</strong> &mdash; Remove a library from Fable's interface at any time (this removes the catalog but does **not** touch your files on disk). Delete from the sidebar library menu (⋯), not a separate &ldquo;Library Management&rdquo; settings page</li>
-</ul>
-
 <div class="callout info">
-  <strong>Good to Know:</strong> Additional user accounts usually get an automatic <strong>personal library</strong> at <code>/books/_users/{id}/</code> when the admin creates the user (see <a href="sec22.html">Section 22</a>). Admins only see those under a <strong>USERS</strong> sidebar section if <strong>Show library</strong> is enabled for that user. Fable's library settings, directories, and maintenance dialogs are cross-linked. Scheduled scans use the additive &ldquo;Scan for New Files&rdquo; process to protect existing metadata.
+  <strong>Good to Know:</strong> Additional user accounts usually get an automatic <strong>personal library</strong> under <code>/books/_users/{id}/</code> when the admin creates the user (see <a href="sec22.html">Section 22</a>). Admins see it under a <strong>USERS</strong> sidebar section only when <strong>Show library</strong> is enabled. Its <code>bookdrop</code> subdirectory is a personal inbox marked to be excluded from normal library scans.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Assign the same folder to two different libraries (each folder should belong to one library)</li>
+  <li>Treat one folder as two independent storage boundaries; each configured folder should belong to one library</li>
   <li>Manage files on remote cloud services directly &mdash; Fable reads from local or network-mounted folders</li>
 </ul>
 
@@ -717,7 +732,7 @@
   <ul>
     <li><strong>Deleting a library removes the catalog entry, not the source files on disk.</strong> If you want to delete real book files, that happens through book-file deletion flows, not library removal.</li>
     <li><strong>Moving or renaming book files outside of Fable</strong> will cause them to appear missing. Always let Fable manage file movements.</li>
-    <li><strong>Use Reconcile Library intentionally.</strong> It is not the same as a safe new-file scan and may change existing library records to match disk.</li>
+    <li><strong>Use maintenance operations intentionally.</strong> They are broader than the additive <strong>Scan for New Files</strong> action.</li>
     <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration (the <code>.env</code> file) for better compatibility. Automatic metadata writes stay disabled there, but you can still run manual sidecar backups when you want a portable metadata snapshot.</li>
   </ul>
 </div>

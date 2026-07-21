@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,33 +663,35 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html" class="active">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html" class="active">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 30 ==================== -->
 <h2 id="sec30">30. Document Maintenance Log <span class="section-icon"><i class="pi pi-history"></i></span></h2>
 
 <div class="callout info">
-  <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from Fable. This HTML file is the source of truth. After any guide change, regenerate the PDF from this HTML and update the README&rsquo;s <strong>Familiarization Guide</strong> section in the same change so the repository docs and maintenance notes stay aligned. Record changes below to track guide accuracy over time.
+  <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from Fable. The modular section bodies are the editing source for user-facing content; run <code>scripts/validate-familiarization-guide.py --sync</code> to synchronize the single-page guide, then run it without <code>--sync</code> to verify links, anchors, versions, and parity. Update the README&rsquo;s <strong>Familiarization Guide</strong> section when its path or delivery changes. Record changes below to track guide accuracy over time.
 </div>
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-20</td><td>1.1.133</td><td>Rebuilt the guide around novice task journeys: Books now owns adding, Staging, Review, Completed, Release, bulk actions, and file management; Metadata Manager now matches vocabulary cleanup; Libraries, BookDrop, Settings, Devices, Accounts, Backup/Restore, and cross-chapter paths reflect the current UI. Added goal-based navigation plus automated modular/single-page link and parity validation.</td></tr>
+  <tr><td>2026-07-20</td><td>1.1.132</td><td>Closed the July guide audit gaps: synchronized cover versions; corrected username-change guidance and AI Search links; documented ISBN Discovery settings, all device layout modes, per-browser/touch toolbar and resize behavior, and personal versus shared BookDrop inboxes. Updated both guide formats.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.131</td><td>Book Details return navigation now restores the originating Staging section, accepted reviews leave the Review browser without a page refresh, and the card Review tooltip resolves to translated text. App <code>v4.16.15</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.130</td><td>Manual ISBN discovery now includes the standard metadata-provider multi-select, passes only selected providers to the task, and fills previously omitted metadata fields during later provider passes. App <code>v4.16.14</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.129</td><td>The topbar status pill now mirrors purple ISBN Fetch &rarr; green Metadata Fetch progress with a brief red failure state; Staging Review cards expose an orange action that opens the selected book&rsquo;s proposal directly. App <code>v4.16.13</code>.</td></tr>

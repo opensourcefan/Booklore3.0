@@ -638,13 +638,17 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-        <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
-    <li><a href="sec5.html">5. Libraries</a></li>
-    <li><a href="sec6.html">6. Books</a></li>
-    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
+    <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
+      <ol>
+        <li><a href="sec6.html#staging-lifecycle">Staging, Review &amp; Release</a></li>
+      </ol>
+    </li>
+    <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
     <li><a href="sec10.html">10. Reading Books</a>
@@ -659,29 +663,29 @@
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Metadata</a></li>
-    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
+    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
-    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
-    <li><a href="sec21.html">21. Email</a></li>
-    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
-    <li><a href="sec23.html" class="active">23. Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
+    <li><a href="sec21.html">21. Send Books by Email</a></li>
+    <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
+    <li><a href="sec23.html" class="active">23. Authentication &amp; Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings Guide</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
     <li><a href="sec28.html">28. Tips & Best Practices</a></li>
     <li><a href="sec29.html">29. Glossary</a></li>
-    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
+  <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 23 ==================== -->
 <h2 id="sec23">23. Authentication &mdash; Login Methods <span class="section-icon"><i class="pi pi-lock"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Authentication tab</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> OIDC tab</p>
 
-<p>Fable supports three ways to log in:</p>
+<p>The current supported login methods are <strong>Local Login</strong> and <strong>OIDC Login</strong>. The Settings page does not currently provide a Forward Auth mode.</p>
 
 <h3>Local Password</h3>
 <p>The default method &mdash; log in with your username and password. Simplest option for personal and multi-user use. Passwords are stored securely (hashed). Sessions use JWT tokens that auto-refresh.</p>
@@ -690,21 +694,26 @@
 <h3>OIDC (OpenID Connect)</h3>
 <p>Use a third-party identity provider (like PocketID, Keycloak, or Authentik) for single sign-on.</p>
 <ol>
-  <li>Configure the OIDC provider (create a client for Fable)</li>
-  <li>In Fable Settings &rarr; Authentication, enter the Client ID, Issuer URI, and JWKS URL</li>
-  <li>Enable OIDC</li>
-  <li>Users can now log in with the &ldquo;Login with [Provider]&rdquo; button</li>
+  <li>Log in as an admin and open <strong>Settings &rarr; OIDC</strong>.</li>
+  <li>Copy the values in <strong>Provider Configuration Reference</strong> into a new client at the identity provider: redirect URI, post-logout redirect URI, back-channel logout URI where supported, required scopes, PKCE method, and grant type.</li>
+  <li>In Fable, enter <strong>Provider Name</strong>, <strong>Client ID</strong>, optional <strong>Client Secret</strong> for a confidential client, <strong>Issuer URI</strong>, scopes, and username/email/name/groups claim mappings.</li>
+  <li>Click <strong>Test Connection</strong>, expand the checks, and resolve failures before saving and enabling OIDC.</li>
+  <li>Choose provisioning, local-account linking, group mappings, default libraries/permissions, session duration, and any mobile redirect URIs your deployment needs.</li>
+  <li>Test a non-admin login and an admin login in a private browser window before enabling <strong>OIDC-Only Mode</strong>.</li>
 </ol>
 
 <h3>Forward Auth (Reverse Proxy)</h3>
-<p>If you run Fable behind a reverse proxy with an authentication layer (like Authelia), Fable can trust the proxy&rsquo;s authentication headers.</p>
+<div class="callout info">
+  <strong>Supported boundary:</strong> Fable currently has no Forward Auth toggle, trusted-header field, header-name mapping, or backend authentication mode exposed by this release. A reverse proxy may protect network access, but Fable still requires Local Login or OIDC. Do not inject identity headers and assume Fable will create or authenticate that user. Use the verified OIDC flow above when integrating Authentik, Authelia, Keycloak, Pocket ID, or another provider that offers OIDC.
+</div>
 
 <div class="callout warning">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>If using Forward Auth, NEVER expose Fable directly to the internet.</strong> Always route through your authenticated reverse proxy.</li>
-    <li><strong>OIDC requires correct URL configuration.</strong> Incorrect Issuer URI or JWKS URL will prevent login entirely.</li>
-    <li><strong>Test new authentication settings before disabling local login,</strong> or you may lock yourself out.</li>
+    <li><strong>Never expose Fable directly to the internet.</strong> Use HTTPS and a properly secured reverse proxy.</li>
+    <li><strong>OIDC requires exact URL and claim configuration.</strong> An incorrect issuer, redirect URI, client credential, scope, or username claim can prevent login or provisioning.</li>
+    <li><strong>Local Login remains available to admins.</strong> In OIDC-Only Mode the supported admin entry point is <code>/login?local=true</code>; it still requires the valid local password.</li>
+    <li><strong>Test before switching modes.</strong> Keep a working admin session open until both ordinary and admin OIDC logins have succeeded.</li>
   </ul>
 </div>
 <nav class="section-nav">
