@@ -73,9 +73,9 @@
         class="info-btn"
         [class.info-btn--review]="isReviewActionEnabled"
         (click)="onInfoAction(book)"
-        [pTooltip]="isReviewActionEnabled ? ('book.labels.openMetadataReview' | transloco) : ''"
+        [pTooltip]="isReviewActionEnabled ? ('book.browser.tooltip.openMetadataReview' | transloco) : ''"
         tooltipPosition="top"
-        [ariaLabel]="(isReviewActionEnabled ? 'book.labels.openMetadataReview' : 'book.card.alt.viewDetails') | transloco">
+        [ariaLabel]="(isReviewActionEnabled ? 'book.browser.tooltip.openMetadataReview' : 'book.card.alt.viewDetails') | transloco">
       </p-button>
     }
 

@@ -319,6 +319,13 @@ describe('BookCardComponent', () => {
     const reviewButton = reviewHost.querySelector('button') as HTMLButtonElement;
     expect(reviewHost).toBeTruthy();
     expect(reviewButton.querySelector('.pi-info')).toBeTruthy();
+    expect(reviewButton.getAttribute('aria-label')).toBe('book.browser.tooltip.openMetadataReview');
+
+    const translationsPath = join(process.cwd(), 'src/i18n/en/book.json');
+    const translations = JSON.parse(readFileSync(translationsPath, 'utf8')) as {
+      browser: {tooltip: {openMetadataReview: string}};
+    };
+    expect(translations.browser.tooltip.openMetadataReview).toBe('Open metadata review dialog');
 
     const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
     const scss = readFileSync(scssPath, 'utf8');

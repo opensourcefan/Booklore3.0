@@ -13,6 +13,7 @@ export const QUERY_PARAMS = {
   FMODE: 'fmode',
   SIDEBAR: 'sidebar',
   FROM: 'from',
+  STAGING_TRIAGE: 'triage',
 } as const;
 
 export const VIEW_MODES = {

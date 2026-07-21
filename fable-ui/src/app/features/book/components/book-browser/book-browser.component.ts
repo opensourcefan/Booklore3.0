@@ -72,7 +72,7 @@ import {FailureNotificationService} from '../../../../shared/service/failure-not
 import {BookNavigationService} from '../../service/book-navigation.service';
 import {BookCardOverlayPreferenceService} from './book-card-overlay-preference.service';
 import {BookSelectionService, CheckboxClickEvent} from './book-selection.service';
-import {BookBrowserQueryParamsService, VIEW_MODES} from './book-browser-query-params.service';
+import {BookBrowserQueryParamsService, QUERY_PARAMS, VIEW_MODES} from './book-browser-query-params.service';
 import {BookBrowserEntityService, EntityInfo} from './book-browser-entity.service';
 import {BookFilterOrchestrationService} from './book-filter-orchestration.service';
 import {BookBrowserScrollService} from './book-browser-scroll.service';
@@ -1065,9 +1065,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
           if (this.stagingTriageMode === 'review' && this.pendingReviewCount === 0) {
             this.stagingTriageMode = 'staging';
+            this.syncStagingTriageModeQuery('staging');
           }
           if (this.stagingTriageMode === 'completed' && this.stagingCompletedCount === 0) {
             this.stagingTriageMode = 'staging';
+            this.syncStagingTriageModeQuery('staging');
           }
 
           const signature = [
@@ -1110,6 +1112,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.stagingTriageMode = mode;
+    this.syncStagingTriageModeQuery(mode);
     this.lastStagingTriageSignature = '';
     // Must rebuild even when sort is unchanged — applyEffectiveSortCriteria() no-ops then,
     // which left Completed/Review tabs looking selected while the grid stayed on Staging.
@@ -1130,11 +1133,24 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.applySortCriteria(this.getEffectiveSortCriteria(baseSortCriteria));
   }
 
+  private syncStagingTriageModeQuery(mode: StagingTriageMode): void {
+    const queryValue = mode === 'staging' ? null : mode;
+    if (this.activatedRoute.snapshot.queryParamMap.get(QUERY_PARAMS.STAGING_TRIAGE) === queryValue) {
+      return;
+    }
+    void this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: {[QUERY_PARAMS.STAGING_TRIAGE]: queryValue},
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   openPendingMetadataReview(): void {
     if (!this.pendingReviewPrimaryTaskId) {
       return;
     }
-    this.dialogLauncherService.openMetadataReviewDialog(this.pendingReviewPrimaryTaskId);
+    this.openMetadataReviewAndRefresh(this.pendingReviewPrimaryTaskId);
   }
 
   openBookMetadataReview(book: Book): void {
@@ -1145,7 +1161,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!taskId) {
       return;
     }
-    this.dialogLauncherService.openMetadataReviewDialog(taskId, book.id);
+    this.openMetadataReviewAndRefresh(taskId, book.id);
+  }
+
+  private openMetadataReviewAndRefresh(taskId: string, initialBookId?: number): void {
+    const dialogRef = this.dialogLauncherService.openMetadataReviewDialog(taskId, initialBookId);
+    dialogRef?.onClose
+      .pipe(take(1), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.entityType === EntityType.STAGING) {
+          this.refreshStagingTriage();
+        }
+      });
   }
 
   get canShowStagingTriageChrome(): boolean {
@@ -1211,6 +1238,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
     ]).pipe(takeUntil(this.destroy$)).subscribe(([entityInfo, queryParamMap, user]) => {
       this.entityType = entityInfo.entityType;
+      if (entityInfo.entityType === EntityType.STAGING) {
+        const requestedTriageMode = queryParamMap.get(QUERY_PARAMS.STAGING_TRIAGE);
+        const nextTriageMode: StagingTriageMode =
+          requestedTriageMode === 'completed' || requestedTriageMode === 'review'
+            ? requestedTriageMode
+            : 'staging';
+        if (this.stagingTriageMode !== nextTriageMode) {
+          this.stagingTriageMode = nextTriageMode;
+          this.lastStagingTriageSignature = '';
+        }
+      }
       const previousViewMode = this.currentViewMode;
       const previousFilterMode = this.selectedFilterMode.getValue();
       const previousFilterSignature = JSON.stringify(this.parsedFilters);
