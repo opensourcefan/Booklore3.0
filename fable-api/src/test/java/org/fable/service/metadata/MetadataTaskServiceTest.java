@@ -12,6 +12,7 @@ import org.fable.model.dto.response.MetadataTaskLogResponse;
 import org.fable.model.dto.response.TaskCancelResponse;
 import org.fable.model.dto.response.TaskCreateResponse;
 import org.fable.model.dto.response.MetadataTaskDetailsResponse;
+import org.fable.model.dto.response.StagingTriageResponse;
 import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookFileEntity;
 import org.fable.model.entity.BookMetadataEntity;
@@ -189,6 +190,73 @@ class MetadataTaskServiceTest {
             assertThat(result.getTask().getProposals())
                     .extracting(FetchedProposal::getProposalId)
                     .containsExactly(2L, 1L);
+        }
+    }
+
+    @Nested
+    class GetStagingTriage {
+
+        @Test
+        void excludesReleasedReviewBooksAndFiltersTheirTaskEntries() {
+            MetadataFetchJobEntity task = buildTask("review-task", MetadataFetchTaskStatus.COMPLETED, new ArrayList<>());
+            MetadataFetchProposalEntity stagedProposal = MetadataFetchProposalEntity.builder()
+                    .proposalId(1L)
+                    .job(task)
+                    .bookId(100L)
+                    .status(FetchedMetadataProposalStatus.FETCHED)
+                    .build();
+            MetadataFetchProposalEntity releasedProposal = MetadataFetchProposalEntity.builder()
+                    .proposalId(2L)
+                    .job(task)
+                    .bookId(200L)
+                    .status(FetchedMetadataProposalStatus.FETCHED)
+                    .build();
+            task.setProposals(List.of(stagedProposal, releasedProposal));
+
+            BookEntity stagedReviewBook = buildBook(100L, "Review", "review.epub");
+            stagedReviewBook.setLastMetadataFetchAt(Instant.now());
+            BookEntity completedBook = buildBook(300L, "Completed", "completed.epub");
+            completedBook.setLastMetadataFetchAt(Instant.now());
+            BookEntity inboxBook = buildBook(400L, "Inbox", "inbox.epub");
+
+            when(proposalRepository.findAllByStatusWithJob(FetchedMetadataProposalStatus.FETCHED))
+                    .thenReturn(List.of(stagedProposal, releasedProposal));
+            when(bookRepository.findAllStagedWithMetadata())
+                    .thenReturn(List.of(stagedReviewBook, completedBook, inboxBook));
+
+            StagingTriageResponse result = service.getStagingTriage();
+
+            assertThat(result.getReviewBookIds()).containsExactly(100L);
+            assertThat(result.getReviewCount()).isEqualTo(1);
+            assertThat(result.getCompletedBookIds()).containsExactly(300L);
+            assertThat(result.getStagingBookIds()).containsExactly(400L);
+            assertThat(result.getReviewTasks()).singleElement().satisfies(reviewTask -> {
+                assertThat(reviewTask.getTaskId()).isEqualTo("review-task");
+                assertThat(reviewTask.getBookIds()).containsExactly(100L);
+                assertThat(reviewTask.getProposalCount()).isEqualTo(1);
+            });
+        }
+
+        @Test
+        void clearsReviewCountWhenOnlyReleasedBooksHaveFetchedProposals() {
+            MetadataFetchJobEntity task = buildTask("released-task", MetadataFetchTaskStatus.COMPLETED, new ArrayList<>());
+            MetadataFetchProposalEntity releasedProposal = MetadataFetchProposalEntity.builder()
+                    .proposalId(1L)
+                    .job(task)
+                    .bookId(200L)
+                    .status(FetchedMetadataProposalStatus.FETCHED)
+                    .build();
+            task.setProposals(List.of(releasedProposal));
+
+            when(proposalRepository.findAllByStatusWithJob(FetchedMetadataProposalStatus.FETCHED))
+                    .thenReturn(List.of(releasedProposal));
+            when(bookRepository.findAllStagedWithMetadata()).thenReturn(List.of());
+
+            StagingTriageResponse result = service.getStagingTriage();
+
+            assertThat(result.getReviewCount()).isZero();
+            assertThat(result.getReviewBookIds()).isEmpty();
+            assertThat(result.getReviewTasks()).isEmpty();
         }
     }
 

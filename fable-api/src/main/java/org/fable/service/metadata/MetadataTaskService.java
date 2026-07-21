@@ -113,11 +113,19 @@ public class MetadataTaskService {
     public StagingTriageResponse getStagingTriage() {
         PendingMetadataReviewResponse pending = getPendingReviews();
         LinkedHashSet<Long> reviewIds = new LinkedHashSet<>(pending.getBookIds());
+        List<BookEntity> stagedBooks = bookRepository.findAllStagedWithMetadata();
+        LinkedHashSet<Long> stagedBookIds = new LinkedHashSet<>();
+        for (BookEntity book : stagedBooks) {
+            if (book.getId() != null) {
+                stagedBookIds.add(book.getId());
+            }
+        }
+        reviewIds.retainAll(stagedBookIds);
 
         List<Long> stagingIds = new ArrayList<>();
         List<Long> completedIds = new ArrayList<>();
 
-        for (BookEntity book : bookRepository.findAllStagedWithMetadata()) {
+        for (BookEntity book : stagedBooks) {
             Long id = book.getId();
             if (id == null) {
                 continue;
@@ -132,8 +140,21 @@ public class MetadataTaskService {
             }
         }
 
-        // Include review books that are not currently staged so the Review tab still lists them.
         List<Long> reviewBookIds = new ArrayList<>(reviewIds);
+        List<PendingMetadataReviewResponse.PendingReviewTask> reviewTasks = new ArrayList<>();
+        for (PendingMetadataReviewResponse.PendingReviewTask task : pending.getTasks()) {
+            List<Long> stagedReviewBookIds = task.getBookIds().stream()
+                    .filter(reviewIds::contains)
+                    .toList();
+            if (stagedReviewBookIds.isEmpty()) {
+                continue;
+            }
+            reviewTasks.add(PendingMetadataReviewResponse.PendingReviewTask.builder()
+                    .taskId(task.getTaskId())
+                    .bookIds(stagedReviewBookIds)
+                    .proposalCount(stagedReviewBookIds.size())
+                    .build());
+        }
 
         return StagingTriageResponse.builder()
                 .stagingCount(stagingIds.size())
@@ -142,7 +163,7 @@ public class MetadataTaskService {
                 .stagingBookIds(stagingIds)
                 .completedBookIds(completedIds)
                 .reviewBookIds(reviewBookIds)
-                .reviewTasks(pending.getTasks())
+                .reviewTasks(reviewTasks)
                 .build();
     }
 
