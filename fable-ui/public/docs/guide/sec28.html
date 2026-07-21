@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -684,14 +704,34 @@
 <!-- ==================== SECTION 28 ==================== -->
 <h2 id="sec28">28. Tips and Best Practices <span class="section-icon"><i class="pi pi-lightbulb"></i></span></h2>
 
-<h3>For New Users</h3>
+<h3 id="persona-paths">Choose Your Workflow Path</h3>
+<table>
+  <tr><th>Persona</th><th>Recommended path</th><th>Operational outcome check</th></tr>
+  <tr><td><strong>Invited reader</strong></td><td>Sign in/change the temporary password in <a href="sec22.html">Accounts</a>; identify assigned libraries; learn <a href="sec3.html">Dashboard</a>, <a href="sec6.html">Books</a>, <a href="sec10.html">Reading</a>, and <a href="sec11.html">Notebook</a>.</td><td>You can see only expected libraries, read/download only as granted, retain progress and notes after sign-out/in, and cannot see admin settings or another user&rsquo;s personal library.</td></tr>
+  <tr><td><strong>Contributor</strong></td><td>Confirm assigned-library scope and BookDrop versus Upload permissions in <a href="sec22.html#persona-permission-flow">the permission flow</a>; import a small sample through <a href="sec7.html">BookDrop</a>; review metadata in <a href="sec15.html">Metadata</a>.</td><td>Upload/import/edit actions appear only where granted; the sample lands in the intended library; metadata review completes; deletion, library paths, and global Settings remain denied unless explicitly assigned.</td></tr>
+  <tr><td><strong>Administrator</strong></td><td>Complete <a href="sec23.html">authentication</a>, user/library permissions, <a href="sec24.html#settings-effects">settings-effects review</a>, task schedules, <a href="sec26.html">off-host backup/test restore</a>, and <a href="sec27.html">audit-log boundaries</a> before broad rollout.</td><td>Local break-glass access works; spoofed Forward Auth headers fail; personas see the intended controls; schedules use server time; provider limits are understood; a test restore passes representative login/catalog/reader checks.</td></tr>
+</table>
+
+<h3>If You Were Invited</h3>
 <ol>
-  <li><strong>If you were invited:</strong> follow <a href="sec22.html#sec22">the invited-user sign-in and profile procedure</a> before exploring your personal library.</li>
-  <li><strong>Start small:</strong> follow <a href="sec5.html">the library setup procedure</a> for one library, then add only a few test books with <a href="sec7.html">the BookDrop workflow</a>.</li>
-  <li><strong>Use the supported import path:</strong> follow <a href="sec22.html#personal-bookdrop">the permission-aware BookDrop versus Upload guidance</a> instead of copying into another user&rsquo;s area.</li>
-  <li><strong>Fetch metadata early:</strong> after import, follow <a href="sec15.html">the metadata fetch and review procedure</a> to verify title, author, cover, description, and identifiers.</li>
-  <li><strong>Organize deliberately:</strong> follow <a href="sec8.html">the shelf creation and assignment procedure</a> for hand-picked collections.</li>
-  <li><strong>Track reading:</strong> follow <a href="sec12.html">the reading-status and statistics procedure</a>.</li>
+  <li>Follow <a href="sec22.html#sec22">the invited-user sign-in and profile procedure</a>, then confirm which libraries and actions your account can access.</li>
+  <li>Start with <a href="sec3.html">Dashboard</a>, <a href="sec10.html">Reading</a>, <a href="sec11.html">Notebook</a>, and <a href="sec12.html">progress</a>. An invited reader does not need to create a library.</li>
+  <li>If Upload, BookDrop, metadata, download, or organization actions are absent, ask an administrator to review your permissions rather than assuming the interface failed.</li>
+</ol>
+
+<h3>If You Manage Books</h3>
+<ol>
+  <li>Confirm assigned-library scope plus Upload and BookDrop permissions in <a href="sec22.html#persona-permission-flow">the permission flow</a>.</li>
+  <li>Import a small representative set using <a href="sec6.html">Books and Staging</a> or <a href="sec7.html">BookDrop</a>, then verify destination, metadata, and readability before scaling up.</li>
+  <li>Use <a href="sec15.html">Metadata</a> for individual/batch fetches and review; use <a href="sec16.html">Metadata Manager</a> only for shared values that affect multiple books.</li>
+  <li>Release completed Staging items, organize them with <a href="sec8.html">Shelves</a> or <a href="sec9.html">Magic Shelves</a>, and verify one ordinary user can see the intended result.</li>
+</ol>
+
+<h3>If You Administer Fable</h3>
+<ol>
+  <li>Complete library paths, login methods, user permissions, and one end-to-end import/read test before inviting a broad audience.</li>
+  <li>Review settings side effects, provider limits, server-time schedules, and task restart behavior in <a href="sec24.html">Application Settings</a> and <a href="sec25.html">Background Tasks</a>.</li>
+  <li>Create an encrypted off-host recovery set and complete an isolated test restore using <a href="sec26.html">Backup and Restore</a>.</li>
 </ol>
 
 <h3>For Security</h3>
@@ -702,6 +742,15 @@
   <li>Grant only needed rights by following <a href="sec22.html">the role-preset and permission review procedure</a>, especially for upload, BookDrop, library management, and deletion.</li>
   <li>Create and validate off-host recovery sets with <a href="sec26.html">the complete backup and restore procedure</a>.</li>
 </ol>
+
+<h3 id="operational-outcome-checks">Outcome Checks After High-Impact Work</h3>
+<ul>
+  <li><strong>User or authentication change:</strong> test one allowed and one denied action with the affected persona; for Forward Auth, include a direct/spoofed-header attempt. Follow <a href="sec22.html#persona-permission-flow">persona permissions</a> and <a href="sec23.html">login methods</a>.</li>
+  <li><strong>Settings import:</strong> re-enter redacted secrets, test OIDC/providers/AI, and verify an unrelated setting was not unintentionally changed. See <a href="sec24.html#settings-effects">Settings Effects</a>.</li>
+  <li><strong>Persistence or file organization:</strong> compare filename/path/hash, open the source book, inspect sidecar placement, and verify a rescan does not duplicate it before expanding beyond the test set.</li>
+  <li><strong>Scheduled or provider job:</strong> confirm the server-time schedule, inspect Recent runs rather than only the bell, and verify cancellation/restart behavior on non-production data. See <a href="sec25.html">Background Tasks</a>.</li>
+  <li><strong>Restore:</strong> run the complete <a href="sec26.html#restore-outcome-checks">restore outcome checks</a> before reopening writes or deleting rollback material.</li>
+</ul>
 
 <h3>For Performance</h3>
 <ol>
@@ -724,7 +773,7 @@
   <a href="sec29.html" class="nav-link nav-next">Next: 29. Glossary →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

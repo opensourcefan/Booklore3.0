@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html" class="active">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html" class="active">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -716,6 +736,7 @@
   <li><strong>Application Mode</strong> controls the reading-oriented application mode offered at the top of Reader settings.</li>
   <li><strong>eBook Reader</strong>, <strong>PDF Reader</strong>, and <strong>CBX Reader</strong> contain format-specific defaults rather than one shared font-size/zoom control.</li>
   <li><strong>Custom Fonts</strong> appears only for Admin or a user with Manage Fonts permission; use it to add/manage reader fonts before selecting them in supported reader controls.</li>
+  <li><strong>Custom-font limits:</strong> each account can store up to 10 custom fonts. Each <code>.ttf</code>, <code>.otf</code>, <code>.woff</code>, or <code>.woff2</code> file must be no larger than 5 MB.</li>
 </ul>
 
 <h4>View: Browser, Filter, Sidebar, and Metadata Center Preferences</h4>
@@ -749,6 +770,39 @@
 </ul>
 
 <p><strong>Good to Know:</strong> For CBR comics, embedded metadata writes are fastest when the Fable container has access to a compatible Linux <code>rar</code> binary. Without it, Fable may convert the archive to <code>.cbz</code> during a save-to-original-file operation.</p>
+
+<h3 id="settings-effects">Settings Effects and High-Impact Changes</h3>
+<p>Use this hub before transferring settings, running broad metadata jobs, or enabling persistence. A successful save means the setting was accepted; it does not prove that every downstream file, provider, or sidecar service completed successfully.</p>
+
+<h4>App Settings Export and Import</h4>
+<ul>
+  <li><strong>Export scope:</strong> the transfer file contains application-wide settings the current operator can manage. Email provider/recipient records are stored separately and are not included.</li>
+  <li><strong>Secret redaction:</strong> nested fields named <code>clientSecret</code>, <code>apiKey</code>, or <code>cookie</code> are exported as <code>null</code>. Treat other configuration in the file as sensitive anyway.</li>
+  <li><strong>Import effect:</strong> after the UI confirmation, recognized application settings are written immediately, one setting at a time; this is not a dry run or an all-or-nothing preview.</li>
+  <li><strong>Redacted-secret hazard:</strong> importing an unchanged export can write those <code>null</code> values back and clear working credentials. Restore required secrets in the import file or re-enter them immediately afterward, then test OIDC, metadata providers, and AI endpoints.</li>
+</ul>
+
+<h4 id="provider-limits">Metadata Provider Limits</h4>
+<ul>
+  <li>Providers do not share one throttle policy. ComicVine detects its rate-limit response, honors <code>Retry-After</code> when available, otherwise uses a cooldown, keeps the batch visible as paused, retries after reset, and checks for cancellation while waiting.</li>
+  <li>Hardcover increases its inter-request delay after throttling. Google Books reports rate limiting but does not provide ComicVine&rsquo;s batch pause/resume behavior. Other providers can fail, retry, or limit independently.</li>
+  <li>Test a representative batch, avoid overlapping broad jobs, watch provider-specific messages, and do not assume that one provider&rsquo;s recovery behavior applies to another. See <a href="sec25.html#provider-limits-advisory">the task advisory</a>.</li>
+</ul>
+
+<h4>Metadata Persistence, Sidecars, and File Movement</h4>
+<ul>
+  <li><strong>Default guards:</strong> write-to-original is off. The UI defaults its size ceilings to <strong>250 MB</strong> each for EPUB, PDF, and CBX and <strong>1000 MB</strong> for audiobook files; oversized files are skipped rather than rewritten.</li>
+  <li><strong>LOCAL storage only:</strong> embedded write-back, conversion, and automatic reorganization depend on <code>DISK_TYPE=LOCAL</code>. NETWORK mode disables automatic local writes/moves because non-atomic network operations can corrupt or lose data.</li>
+  <li><strong>File and hash changes:</strong> embedded writes modify the source file and refresh Fable&rsquo;s stored hash. Sidecar-on-update can also rewrite the adjacent sidecar and cover. Back up representative files and verify external sync/deduplication behavior first.</li>
+  <li><strong>CBR/CB7 conversion:</strong> when configured or required by the available archive tooling, a metadata write can replace a CBR/CB7 path with CBZ and update Fable&rsquo;s filename record. Confirm free space and downstream device compatibility.</li>
+  <li><strong>Automatic move risk:</strong> <strong>Move files to library pattern</strong> can rename or relocate files after metadata changes. Validate naming patterns and permissions on a small disposable set before enabling it broadly.</li>
+  <li><strong>Automatic sidecars:</strong> standard digital-book sidecars are written beside the primary book as <code>&lt;base-name&gt;.metadata.json</code> (and optionally <code>&lt;base-name&gt;.cover.jpg</code>). Fileless physical-book sidecars are written at the library directory as <code>&lt;generated-name&gt;.physical.metadata.json</code>.</li>
+  <li><strong>Manual backup location:</strong> run on-demand per-library sidecar backup from <strong>Settings &rarr; Backups &rarr; Sidecar</strong>. It writes/refreshes sidecars beside each supported book; it does not create a separate central backup archive.</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> The UI warns that embedding provider/model or structure changes invalidate existing embeddings, then the save takes effect immediately. This is a warning, not a separate confirmation gate. Fable marks affected books for re-embedding and clears incompatible embedding data. Configuration is pushed asynchronously to the AI sidecar after the database save, with a short delay and up to three attempts; a sidecar delivery failure does not roll back the saved setting. Check service status and retry/reload as needed.
+</div>
 
 <h3>Metadata &amp; ISBN Discovery</h3>
 <h4>ISBN Discovery Settings</h4>
@@ -868,7 +922,7 @@
   <li><strong>Test Connection</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Verifies the embedding endpoint is reachable.</li>
   <li><strong>Downloaded Models</strong> &mdash; Right-side panel listing all embedding models downloaded locally, with sizes and delete buttons.</li>
   <li><strong>Embedding Statistics</strong> &mdash; Shows how many books are embedded with each model. If a model doesn&rsquo;t match the currently selected one, it shows a <strong>(Mismatch)</strong> warning in orange — those embeddings are stale and books need re-embedding.</li>
-  <li><strong>Apply Embedding Settings</strong> &mdash; If the provider or model changed, a confirmation dialog warns that all existing embeddings will be invalidated and books must be re-embedded.</li>
+  <li><strong>Apply Embedding Settings</strong> &mdash; The warning explains that provider/model changes invalidate existing embeddings; applying saves immediately and starts the invalidation/re-embed workflow described in <a href="#settings-effects">Settings Effects</a>.</li>
 </ul>
 
 <h4>Saved LLM Profiles</h4>
@@ -931,7 +985,7 @@
 <p>This collapsible section (orange header, collapsed by default) contains low-level tuning parameters for the embedding and retrieval pipeline. It includes an <strong>Auto-Fill Recommended Presets</strong> <i class="pi pi-sparkles guide-icon-inline"></i> button that loads optimal settings for your currently selected embedding model.</p>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Modifying <strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, <strong>Semantic Chunking</strong>, or <strong>Matryoshka Dimensions</strong> changes how embeddings are structured. Saving changes to these settings will <strong>automatically delete all existing book embeddings</strong> and mark all books to be re-embedded. A confirmation dialog warns you before this happens. Search-only parameters (Hybrid Search or Reranking) do not invalidate existing embeddings.
+  <strong>Be Careful:</strong> Modifying <strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, <strong>Semantic Chunking</strong>, or <strong>Matryoshka Dimensions</strong> changes how embeddings are structured. The UI warning precedes an immediate save; saving <strong>automatically deletes incompatible existing book embeddings</strong> and marks affected books to be re-embedded. It is not a separate confirmation step. Search-only parameters (Hybrid Search or Reranking) do not invalidate existing embeddings.
 </div>
 
 <ul>
@@ -995,7 +1049,7 @@
   <strong>Be Careful:</strong>
   <ul>
     <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
-    <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
+    <li><strong>Settings transfer is not a secret backup.</strong> It excludes email provider/recipient records and redacts <code>clientSecret</code>, <code>apiKey</code>, and <code>cookie</code> fields to <code>null</code>. Import can therefore clear those values; follow <a href="#settings-effects">Settings Effects</a>.</li>
     <li><strong>Allow File Deletion is a hard safety gate.</strong> When it is off, Fable hides the <strong>Delete from Disk</strong> action, removes catalog associations only, and should not delete physical files from disk.</li>
   </ul>
 </div>
@@ -1005,7 +1059,7 @@
   <ul>
     <li><strong>The File Management toggle also protects additional attached files.</strong> When <strong>Allow File Deletion</strong> is disabled, deleting an attached file removes it from Fable without overriding the global disk-deletion block.</li>
     <li><strong>Remove from Library is a durable hide action.</strong> When you remove a book without deleting its file, Fable keeps the file on disk but suppresses automatic re-import during later scans and watcher events.</li>
-    <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
+    <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from <strong>Backups &rarr; Sidecar</strong> when you want an on-demand metadata backup.</li>
     <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
     <li><strong>Running the backup again refreshes existing backup sidecars.</strong> Fable rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
     <li><strong>Manual sidecar backups show a light grey topbar working pill while they run.</strong> The message is intentionally simple because the backup call is usually brief, but it gives you immediate confirmation that the action started.</li>
@@ -1016,7 +1070,7 @@
   <a href="sec25.html" class="nav-link nav-next">Next: 25. Background Tasks →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>15. Metadata — Fable Familiarization Guide</title>
+<title>15. Metadata — Edit, Fetch, Review, and Write Back — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html" class="active">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html" class="active">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -682,35 +702,51 @@
   <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 15 ==================== -->
-<h2 id="sec15">15. Metadata &mdash; Book Information <span class="section-icon"><i class="pi pi-tag"></i></span></h2>
+<h2 id="sec15">15. Metadata &mdash; Edit, Fetch, Review, and Write Back <span class="section-icon"><i class="pi pi-tag"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Book detail page <i class="pi pi-chevron-right"></i> Metadata tab, or right-click a book <i class="pi pi-chevron-right"></i> Edit Metadata</p>
 
 <p><strong>Metadata</strong> is the information that identifies and organizes a book. Better titles, authors, series, categories, tags, languages, and identifiers improve <a href="sec17.html">search and filtering</a>, <a href="sec9.html">Magic Shelves</a>, and the browsing tools for <a href="sec13.html">series</a> and <a href="sec14.html">Story Arcs</a>.</p>
 
-<h3>Edit One Book Manually</h3>
+<h3 id="choose-metadata-task">Choose Your Metadata Task</h3>
+<table>
+  <tr><th>Goal</th><th>Start here</th></tr>
+  <tr><td>Edit one book, manage identifiers or locks, replace a cover, or wipe its metadata</td><td><a href="#edit-one-book">Edit One Book Manually</a></td></tr>
+  <tr><td>Search providers and compare a result before saving</td><td><a href="#fetch-one-book">Fetch Metadata for One Book</a></td></tr>
+  <tr><td>Refresh several books automatically or create review proposals</td><td><a href="#fetch-selected-books">Fetch Metadata for Selected Books</a></td></tr>
+  <tr><td>Accept or reject proposals for staged books</td><td><a href="#staging-review">Process Staging and Review</a> and the canonical <a href="sec6.html#staging-lifecycle">Staging Lifecycle</a></td></tr>
+  <tr><td>Standardize an author, series, tag, publisher, language, or other shared value across books</td><td><a href="sec16.html#sec16">Metadata Manager &mdash; Standardize Shared Values</a></td></tr>
+  <tr><td>Configure providers, fields, matching, or persistence</td><td><a href="sec24.html">Application Settings</a></td></tr>
+  <tr><td>Monitor a long metadata job</td><td><a href="sec25.html">Background Tasks</a></td></tr>
+</table>
+
+<div class="callout info">
+  <strong>Plan Ahead:</strong> Metadata providers have different quotas, rate limits, coverage, and matching behavior. Test a small representative batch before a broad run, and schedule large or overnight batches only while the Fable server and required provider services can remain running. A server restart interrupts in-flight work. Cancellation is cooperative: the current provider request or book may finish before the batch stops.
+</div>
+
+<h3 id="edit-one-book">Edit One Book Manually</h3>
 <ol>
   <li>Open the book and choose <strong>Edit Metadata</strong>.</li>
   <li>Change fields, upload a cover, or restore an empty title from the primary filename.</li>
   <li>Use field locks when a trusted value must survive later fetches, then save.</li>
 </ol>
-<p>Use <strong>Delete All Metadata</strong> only when you intend to clear the editable fields and start again. The action cannot be undone.</p>
+<p><strong>Delete All Metadata</strong> is a full reset, not an ordinary edit. It clears metadata and metadata locks, resets ISBN processing status, and returns the book to <strong>Staged</strong> for another review cycle. The action cannot be undone.</p>
 
-<h3>Fetch Metadata for One Book</h3>
+<h3 id="fetch-one-book">Fetch Metadata for One Book</h3>
 <ol>
   <li>Open the book&rsquo;s <strong>Search Metadata</strong> tab or use its quick <strong>Fetch Metadata</strong> action.</li>
   <li>Search by ISBN when available, or by title and author. A supported provider URL can bias or directly resolve a result; ComicVine volume URLs can be paired with an issue number or range.</li>
   <li>Choose a result and compare current and fetched values. Copy missing fields or all fields, review covers and edition details, then save.</li>
 </ol>
 
-<h3>Fetch Metadata for Selected Books</h3>
+<h3 id="fetch-selected-books">Fetch Metadata for Selected Books</h3>
 <ol>
   <li>In a book browser, select the target books.</li>
   <li>Use <strong>Auto Fetch Metadata</strong> for configured defaults, or the custom metadata refresh action to choose target books, replacement mode, covers, genre merging, field enablement, and provider priorities.</li>
   <li>For a custom run, keep <strong>Manual Review</strong> on when you want proposals. Turn it off only when the selected replacement rules are safe to apply automatically.</li>
-  <li>Track the background run from the topbar metadata status. Provider failures do not stop the remaining queue; paused or interrupted batches can be resumed where supported.</li>
+  <li>Track the run from the topbar metadata status and <a href="sec25.html">Background Tasks</a>. Provider failures may leave individual books unresolved while the queue continues.</li>
 </ol>
 
-<h3>Understand Auto Apply and Proposals</h3>
+<h3 id="auto-apply-review">Understand Auto Apply and Proposals</h3>
 <table>
   <tr><th>Choice or trigger</th><th>Result</th></tr>
   <tr><td><strong>Manual Review on</strong></td><td>Fetched results become proposals instead of immediately replacing book metadata.</td></tr>
@@ -719,7 +755,7 @@
   <tr><td>BookDrop automatic metadata download</td><td>New imports can trigger metadata retrieval when enabled in Metadata Settings.</td></tr>
 </table>
 
-<h3>Process Staging and Review</h3>
+<h3 id="staging-review">Process Staging and Review</h3>
 <p>Open <strong>Sidebar &rarr; Home &rarr; Staging</strong>. For the complete intake flow, see <a href="sec6.html#staging-lifecycle">Books: Staging Lifecycle</a>.</p>
 <ul>
   <li><strong>Staged</strong> is the intake queue for books still awaiting metadata completion.</li>
@@ -729,18 +765,26 @@
 </ul>
 <p>Dismissing a progress notification does not delete its proposals. Finish proposal decisions in <strong>Staging &rarr; Review</strong>.</p>
 
-<h3>Configure Fetching and Persistence</h3>
+<h3 id="metadata-persistence">Configure Fetching and Persistence</h3>
 <p>Use <a href="sec24.html">Application Settings</a> to configure metadata providers, automatic BookDrop fetching, ISBN discovery, replacement priorities, enabled fields, match weights, and whether supported file formats or sidecars receive metadata writes.</p>
 
+<table>
+  <tr><th>Effect</th><th>What changes</th></tr>
+  <tr><td><strong>Database metadata</strong></td><td>Changes Fable&rsquo;s catalog record and what the interface, search, and filters display.</td></tr>
+  <tr><td><strong>File write-back</strong></td><td>Rewrites metadata inside a supported book file. This is separate from updating the database and may change the file itself.</td></tr>
+  <tr><td><strong>Sidecar write</strong></td><td>Creates or updates a metadata file beside the book when the configured workflow supports sidecars; it does not mean the book file was rewritten.</td></tr>
+  <tr><td><strong>File move or rename</strong></td><td>Changes storage location or filename according to organization settings. A database edit or sidecar write alone does not imply a move.</td></tr>
+</table>
+
 <div class="callout warning">
-  <strong>Be Careful:</strong> Replace-all modes can overwrite unlocked manual values, and fetched covers may represent another edition. Review a small batch before applying the same choices widely.
+  <strong>Be Careful:</strong> The default ISBN multi-pass workflow clears unlocked metadata before rebuilding it from provider results. If a provider misses, the book can be left with only its ISBN. Lock trusted values, prefer review-first proposals, and test a small batch before applying the same choices widely. Replace-all modes can overwrite unlocked manual values, and fetched covers may represent another edition.
 </div>
 <nav class="section-nav">
   <a href="sec14.html" class="nav-link nav-prev">← Previous: 14. Story Arcs</a>
-  <a href="sec16.html" class="nav-link nav-next">Next: 16. Metadata Manager →</a>
+  <a href="sec16.html" class="nav-link nav-next">Next: 16. Metadata Manager &mdash; Standardize Shared Values →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

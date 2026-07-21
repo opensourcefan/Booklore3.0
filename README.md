@@ -361,15 +361,15 @@ docker compose --profile ai up -d
 
 ## Saving Your Data
 
-Fable stores your data in two places. Back up both to ensure a complete recovery.
+A recoverable Fable backup is a coordinated set: database dump, library media, app data, and deployment configuration from the same recovery window. Keep encrypted copies off the Fable host and test restores periodically. See the [Backup and Restore workflow](fable-ui/public/docs/guide/sec26.html) for the complete operator checklist.
 
 ### Application Settings
 
-Your admin configuration (libraries, users, shelves, metadata settings, etc.) lives in the MariaDB database.
+Your users, libraries, books, shelves, progress, annotations, and most application state live in MariaDB.
 
-**Export via the UI** — Go to **Settings → Global Preferences → Settings Transfer** and click **Export**. This downloads a `fable-settings-*.json` file you can re-import on the same or a new instance.
+**Export application settings via the UI** — Go to **Settings → Backups → App Settings** and click **Export**. This downloads a `fable-settings-*.json` file containing application-wide settings only. It is not a database dump and does not contain users, libraries, books, shelves, progress, annotations, media, or email provider/recipient records. Fields named `clientSecret`, `apiKey`, and `cookie` are redacted; re-enter required secrets after import.
 
-**Full database backup (recommended for complete protection)** — Exports everything including all book metadata, read progress, and shelf assignments:
+**Create a logical database dump** — Review the generated command under **Settings → Backups → Database Export**, or run a deployment-appropriate `mariadb-dump`. For the default Compose service:
 
 ```bash
 # Load your .env variables, then run:
@@ -379,7 +379,7 @@ docker exec mariadb mariadb-dump \
   fable > "fable_backup_$(date +%Y%m%d_%H%M%S).sql"
 ```
 
-> See [docs/mariadb-backup-restore.html](docs/mariadb-backup-restore.html) for the full backup, restore, and automation guide.
+Verify the command succeeded and the SQL file is non-empty. The in-app Database Export page copies a command; Fable does not execute the dump.
 
 ### Book Files and Covers
 
@@ -389,13 +389,19 @@ Your actual book files, cover images, and thumbnails are **not** stored in the d
 |---|---|
 | `./books/` | All book files |
 | `./data/` | Cover images, thumbnails, author images, AI model |
-| `./bookdrop/` | Bookdrop inbox (if in use) |
+| `./bookdrop/` | Shared BookDrop inbox (if in use) |
+| `docker-compose.yml`, `.env` | Deployment topology, versions, mounts, and settings (protect secrets) |
 
-A simple full backup copies all three:
+Personal BookDrop files are under `./books/_users/{id}/bookdrop/`, so they are included with the books copy rather than the shared `./bookdrop/` directory.
+
+A simple file archive can capture the mounted content, but coordinate it with the database dump and include deployment configuration:
 
 ```bash
-tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
+tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz \
+  ./books ./data ./bookdrop ./docker-compose.yml ./.env
 ```
+
+Store ownership/path-mapping notes and the Fable/MariaDB versions with the backup. Keep the only recovery copy off-host, encrypted, and periodically restore it into an isolated disposable stack before relying on it.
 
 ---
 

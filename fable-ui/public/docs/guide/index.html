@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fable 3.0 Familiarization Guide — Fable Familiarization Guide</title>
+<title>Fable Familiarization Guide — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -681,15 +701,16 @@
   </ol>
   <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
+<!-- ==================== GUIDE HOME START ==================== -->
 <!-- ==================== COVER PAGE ==================== -->
-<div class="cover">
-  <h1>Fable 3.0</h1>
-  <div class="subtitle">Familiarization Guide</div>
+<div class="cover" id="guide-home">
+  <h1>Fable Familiarization Guide</h1>
+  <div class="subtitle">Task-oriented workflows, advisories, and reference</div>
   <p style="font-size:11pt; color:#444; max-width:500px; margin:0 auto 2em;">
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.134 &mdash; July 20, 2026<br>
+    Version 1.1.135 &mdash; July 21, 2026<br>
     Audience: New users, invited users, and non-technical readers<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -697,9 +718,11 @@
 
 <div style="max-width:760px; margin:2em auto; padding:1.5em 2em; border:1px solid var(--paper-edge); border-radius:12px; background:rgba(255,255,255,0.18);">
   <h3 style="margin-top:0; color:var(--heading);">How to Use This Guide</h3>
-  <p>This guide has <strong>29 user chapters</strong> plus a maintenance appendix. Start with your goal instead of reading every chapter:</p>
+  <p>This guide has <strong>29 user chapters</strong> plus a maintenance appendix. Start with your role or goal instead of reading every chapter:</p>
   <ul style="margin-bottom:0;">
-    <li><strong>Were you invited?</strong> Jump to <a href="sec22.html">Section 22</a> first (login + what you will see), then the Dashboard and Reading sections.</li>
+    <li><strong>Invited reader:</strong> start with <a href="sec22.html">Accounts and Permissions</a>, then <a href="sec3.html">Dashboard</a>, <a href="sec10.html">Reading</a>, and <a href="sec11.html">Notebook</a>.</li>
+    <li><strong>Contributor or importer:</strong> confirm permissions in <a href="sec22.html">Section 22</a>, then follow <a href="sec6.html">Books and Staging</a>, <a href="sec7.html">BookDrop</a>, and <a href="sec15.html">Metadata</a>.</li>
+    <li><strong>Owner or administrator:</strong> follow <a href="sec2.html">first setup</a>, <a href="sec5.html">libraries</a>, <a href="sec25.html">tasks</a>, and the <a href="sec26.html">backup/test-restore workflow</a>.</li>
     <li><strong>Browse the sidebar</strong> on the left — click any section to jump directly to it.</li>
     <li><strong>Start from the beginning</strong> — click "Next" at the bottom of each page to read in order.</li>
   </ul>
@@ -711,22 +734,27 @@
     <tr><th>Your goal</th><th>Start here</th></tr>
     <tr><td>Add or import books</td><td><a href="sec6.html">Books</a> for every addition method; <a href="sec7.html">BookDrop</a> for review-before-import</td></tr>
     <tr><td>Process new books</td><td><a href="sec6.html#staging-lifecycle">Staging, Review, Completed, and Release</a></td></tr>
-    <tr><td>Fix a title, cover, author, or ISBN</td><td><a href="sec15.html">Edit and Fetch Book Information</a>; <a href="sec16.html">Metadata Manager</a> for duplicate or inconsistent values</td></tr>
+    <tr><td>Fix, fetch, review, or write book information</td><td><a href="sec15.html">Metadata</a>; use <a href="sec16.html">Metadata Manager</a> for duplicate or inconsistent shared values</td></tr>
     <tr><td>Organize the collection</td><td><a href="sec5.html">Libraries and storage</a>, <a href="sec8.html">Shelves</a>, <a href="sec9.html">Magic Shelves</a>, <a href="sec13.html">Series</a>, or <a href="sec14.html">Story Arcs</a></td></tr>
     <tr><td>Read, listen, take notes, or track progress</td><td><a href="sec10.html">Readers</a>, <a href="sec11.html">Notebook</a>, and <a href="sec12.html">Progress and Statistics</a></td></tr>
     <tr><td>Find a book</td><td><a href="sec17.html">Search, filters, AI Search, and duplicate review</a></td></tr>
     <tr><td>Send, share, or sync books</td><td><a href="sec19.html">OPDS</a>, <a href="sec20.html">Devices</a>, <a href="sec21.html">Email</a>, or <a href="sec22.html">user access</a></td></tr>
     <tr><td>Manage my account or another user</td><td><a href="sec22.html">Accounts, Profiles, and Permissions</a>; <a href="sec23.html">Login Methods</a></td></tr>
     <tr><td>Configure or maintain Fable</td><td><a href="sec24.html">Application Settings</a>, <a href="sec25.html">Tasks</a>, and <a href="sec26.html">Backup and Restore</a></td></tr>
+    <tr><td>Understand something still running or failed</td><td><a href="sec25.html">Background Tasks and Recent runs</a>; <a href="sec27.html">Audit Logs</a> for recorded administrative events</td></tr>
+    <tr><td>Back up, restore, or recover the server</td><td><a href="sec26.html">Backup and Restore</a></td></tr>
+    <tr><td>Check who changed something</td><td><a href="sec27.html">Audit Logs</a> and its documented coverage limits</td></tr>
+    <tr><td>Understand a term, badge, or workflow state</td><td><a href="sec29.html">Glossary</a></td></tr>
   </table>
 </div>
 
 <div style="text-align:center; margin-top:2em;">
   <a href="sec1.html" class="nav-link" style="font-size:11pt; padding:8px 20px;">Begin Reading → 1. What Is Fable?</a>
 </div>
+<!-- ==================== GUIDE HOME END ==================== -->
 
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

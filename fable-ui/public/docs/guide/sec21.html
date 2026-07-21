@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>21. Email — Fable Familiarization Guide</title>
+<title>21. Email Delivery — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html" class="active">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -682,45 +702,49 @@
   <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 21 ==================== -->
-<h2 id="sec21">21. Email &mdash; Sending Books <span class="section-icon"><i class="pi pi-envelope"></i></span></h2>
+<h2 id="sec21">21. Email Delivery &mdash; Sending Books <span class="section-icon"><i class="pi pi-envelope"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Email tab</p>
 
 <p><strong>Choose a sharing route:</strong> use <a href="sec19.html">OPDS</a> when a reader app should browse and pull books, <a href="sec20.html">Devices</a> for Kobo/KOReader progress integration, or Email for a one-time attachment. Opening Fable in a browser reads from Fable directly and does not copy a file to an e-reader.</p>
 
-<h3>How to Set Up</h3>
+<h3 id="email-setup">How to Set Up</h3>
 <ol>
   <li>Confirm your account has <strong>Email Books</strong> permission.</li>
   <li>Open <strong>Settings &rarr; Email</strong>, create an email provider with the SMTP host, port, encryption/authentication values, username, password, and sender details requested by the form, then save it.</li>
   <li>Add at least one recipient and mark the intended defaults if you want one-click Quick Send.</li>
-  <li>Send a small test book and check both the Fable task status and the recipient inbox.</li>
+  <li>Send a small test book, watch Notifications for a failure, and confirm receipt in the destination inbox.</li>
 </ol>
 
-<h3>Send a Book from the Exact Launch Point</h3>
+<h3 id="send-book-email">Send a Book from the Exact Launch Point</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Any book card <i class="pi pi-chevron-right"></i> three-dot/context menu <i class="pi pi-chevron-right"></i> Email Book</p>
 <ol>
   <li>Open a library, shelf, All Books, or another view that shows book cards.</li>
   <li>Open the book card&rsquo;s context menu and choose <strong>Email Book</strong>.</li>
   <li>Choose <strong>Quick Send</strong> to use configured defaults, or <strong>Custom Send</strong> to select the provider, recipient, and an emailable primary or additional file.</li>
-  <li>Submit the send. Fable schedules the work; watch <a href="sec25.html">background task status</a> and check failures from the topbar notifications area.</li>
+  <li>Submit the send. A success response means asynchronous delivery was <strong>started</strong>; it does not confirm that the SMTP server or recipient accepted the attachment. Watch the topbar <strong>Notifications</strong> area for failures and verify the recipient inbox.</li>
 </ol>
 
-<h3>Supported Results and Boundaries</h3>
+<div class="callout info">
+  <strong>Good to Know:</strong> Email delivery runs asynchronously on a virtual thread. It is not registered with the <a href="sec25.html">Task Manager</a>, so do not expect a task row, durable progress record, cancellation control, or task retry there. A later delivery failure is reported through Notifications.
+</div>
+
+<h3 id="email-boundaries">Supported Results and Boundaries</h3>
 <ul>
   <li>Configure multiple providers and recipients and choose among available files with Custom Send.</li>
-  <li>Files over 25 MB trigger Fable&rsquo;s large-file warning, but the real limit is imposed by the sending and receiving providers.</li>
+  <li><strong>Files over 25 MB trigger Fable&rsquo;s large-file warning.</strong> The actual acceptance limit is imposed by the sending SMTP provider and receiving service, and may be lower.</li>
   <li>Email delivery transfers a file; it does not synchronize reading position, shelves, or later metadata changes.</li>
   <li>Only files offered by the send dialog are supported. Use <a href="sec19.html">OPDS</a> or another transfer method for oversized content.</li>
 </ul>
 
 <div class="callout">
-  <strong>Be Careful:</strong> Store SMTP credentials securely. Quick Send uses defaults without reopening the chooser, so verify the default provider and recipient before using it.
+  <strong>Be Careful:</strong> Store SMTP credentials securely. Quick Send uses defaults without reopening the chooser, so verify the default provider and recipient before using it. Treat &ldquo;started&rdquo; as dispatch acknowledgement, not delivery confirmation.
 </div>
 <nav class="section-nav">
   <a href="sec20.html" class="nav-link nav-prev">← Previous: 20. Kobo & KoReader Sync</a>
   <a href="sec22.html" class="nav-link nav-next">Next: 22. User Accounts & Profiles →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

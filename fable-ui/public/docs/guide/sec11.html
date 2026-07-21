@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html" class="active">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html" class="active">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -685,7 +705,12 @@
 <h2 id="sec11">11. Bookmarks, Annotations, and the Notebook <span class="section-icon"><i class="pi pi-pencil"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Notebook, or inside any reader sidebar</p>
 
-<h3>Bookmarks</h3>
+<h3 id="create-reader-marks">Create Marks While Reading</h3>
+<div class="callout tip">
+  <strong>Plan Ahead:</strong> Create bookmarks, highlights, and notes in a supported <a href="sec10.html">reader</a>; use the Notebook afterward to review them across books.
+</div>
+
+<h4>Bookmarks</h4>
 <p>Simple position markers with an optional label. Use them to mark pages you want to return to.</p>
 <ul>
   <li><strong>Create:</strong> While reading, click the bookmark icon <i class="pi pi-bookmark guide-icon-inline"></i> at your current position</li>
@@ -695,7 +720,7 @@
   <li><strong>Delete:</strong> Remove bookmarks when no longer needed <i class="pi pi-trash guide-icon-inline"></i></li>
 </ul>
 
-<h3>Annotations (Highlights and Notes)</h3>
+<h4>Annotations (Highlights and Notes)</h4>
 <p>Available in PDF and EPUB readers.</p>
 <ul>
   <li><strong>Highlight:</strong> Select text &rarr; choose a highlight color <i class="pi pi-pencil guide-icon-inline"></i></li>
@@ -705,22 +730,28 @@
   <li><strong>Delete:</strong> Remove individual annotations <i class="pi pi-trash guide-icon-inline"></i></li>
 </ul>
 
-<h3>The Notebook</h3>
+<h3 id="review-notebook">Filter and Review the Notebook</h3>
 <p>A centralized view of <strong>all your annotations across every book</strong>.</p>
 <ul>
   <li>See all highlights and notes in one place</li>
-  <li>Filter by book, type, or date</li>
-  <li>Search through your annotations <i class="pi pi-search guide-icon-inline"></i></li>
-  <li>Export all annotations for backup <i class="pi pi-download guide-icon-inline"></i></li>
+  <li>Filter by <strong>book</strong> and by entry <strong>type</strong>: highlights, notes, or bookmarks</li>
+  <li>Search annotation text <i class="pi pi-search guide-icon-inline"></i></li>
+  <li>Sort entries <strong>newest</strong> or <strong>oldest</strong></li>
+  <li>Edit or delete an existing entry</li>
+  <li>Export the current filtered result as Markdown <i class="pi pi-download guide-icon-inline"></i></li>
   <li>Quickly jump to the source book and location</li>
   <li>Book groups are collapsed by default to keep the view tidy for large collections</li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Annotations are created while reading &mdash; you cannot create them from the Notebook view.
+  <strong>Good to Know:</strong> The Notebook can edit and delete existing entries, but it cannot create them.
 </div>
 
-<h3>Move Between Reading and Review</h3>
+<div class="callout warning">
+  <strong>Be Careful:</strong> Export uses the filters, search text, and newest/oldest order currently selected. Clear filters first if you intend to export the entire Notebook.
+</div>
+
+<h3 id="reading-review-loop">Move Between Reading and Review</h3>
 <ol>
   <li>Create bookmarks, highlights, and notes in a supported <a href="sec10.html">reader</a>.</li>
   <li>Open <strong>Sidebar &rarr; Home &rarr; Notebook</strong> to search and review them across books.</li>
@@ -732,7 +763,7 @@
   <a href="sec12.html" class="nav-link nav-next">Next: 12. Reading Progress & Stats →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

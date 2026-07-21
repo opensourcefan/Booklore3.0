@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html" class="active">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -689,14 +709,27 @@
 
 <table>
   <tr><th>Task</th><th>What It Does</th></tr>
-  <tr><td><i class="pi pi-search"></i> Library Scan</td><td>Detect newly added book files</td></tr>
-  <tr><td><i class="pi pi-refresh"></i> Reconcile Library</td><td>Compare a library against disk and update library records to match</td></tr>
-  <tr><td><i class="pi pi-download"></i> Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
-  <tr><td><i class="pi pi-eraser"></i> Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
-  <tr><td><i class="pi pi-inbox"></i> BookDrop Scan</td><td>Check the BookDrop folder for new files</td></tr>
-  <tr><td><i class="pi pi-sync"></i> KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
+  <tr><td><i class="pi pi-refresh"></i> Refresh Metadata</td><td>Runs the full library reconcile path: re-reads embedded metadata, detects removed, restored, or disallowed files, and imports new files. This is distinct from a manual provider metadata fetch.</td></tr>
+  <tr><td><i class="pi pi-star"></i> Update Book Recommendations</td><td>Rebuilds personalized recommendations from books in the library.</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Cleanup Deleted Books</td><td>Permanently removes database entries for books previously deleted from libraries.</td></tr>
+  <tr><td><i class="pi pi-sync"></i> Sync Library Files</td><td>Uses the additive scan path to discover and import new files without performing the full reconcile cleanup.</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Directory Tagging</td><td>Applies or backfills directory-based tags after imports.</td></tr>
+  <tr><td><i class="pi pi-inbox"></i> Bookdrop Periodic Scanning</td><td>Scans the configured BookDrop ingest folder and queues new files for processing.</td></tr>
+  <tr><td><i class="pi pi-eraser"></i> Cleanup Temporary Metadata</td><td>Removes temporary metadata files from BookDrop and manual review workflows.</td></tr>
+  <tr><td><i class="pi pi-save"></i> Push Metadata to Files</td><td>Writes pending database metadata back to enabled original-file formats; available only in LOCAL storage mode.</td></tr>
+  <tr><td><i class="pi pi-sparkles"></i> Scan Marked AI Search Embeddings</td><td>Extracts text and generates embeddings for books marked for AI Search.</td></tr>
 </table>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> The table reflects the actual Task Manager task types. Manual provider metadata fetch and ISBN Discovery use background-task infrastructure but are intentionally hidden from the general task list. KEPUB conversion is not a Task Manager task type.
+</div>
+
+<h3>Scheduling and Server Time</h3>
+<ul>
+  <li>Only task cards marked as schedule-capable expose cron controls. Use exactly six fields: <code>Second Minute Hour Day-of-Month Month Day-of-Week</code>.</li>
+  <li>Schedules run in the Fable server/JVM timezone, not the browser&rsquo;s timezone. Check the deployment timezone before scheduling overnight work or daylight-saving transitions.</li>
+  <li>Save a valid expression, enable its schedule toggle, and choose whether scheduled failures should create a durable notification. A cron expression can be stored while its schedule remains disabled.</li>
+</ul>
 
 <h3>Task Notifications &amp; the Bell</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i> (see also <a href="sec4.html">Section 4</a>)</p>
@@ -714,7 +747,7 @@
 <ul>
   <li>Run tasks manually &mdash; Start any task on demand</li>
   <li>Schedule tasks &mdash; Set up automatic timing, including an <strong>Error notifications</strong> toggle so scheduled failures appear in the bell inbox</li>
-  <li>Cancel running tasks</li>
+  <li>Cancel running tasks. Cancellation is <strong>cooperative</strong>: Fable records a cancellation request immediately, but the current provider call, file write, or book step may finish before the next cancellation checkpoint stops the task.</li>
   <li>View task history and results &mdash; Expand <strong>Recent runs</strong> on a task card to see the last scheduled and manual runs with status and messages</li>
   <li>Use <strong>Library Settings</strong> to change library naming <i class="pi pi-cog guide-icon-inline"></i> and scan options without touching directories</li>
   <li>Use <strong>Manage Directories</strong> to add or remove library paths with explicit directory-focused actions</li>
@@ -727,6 +760,13 @@
   <li>Directory-tag rule changes affect future imports only; existing book tags are not retroactively modified</li>
 </ul>
 
+<h3>Cancellation and Restart Boundaries</h3>
+<ul>
+  <li>A cancelled run remains in Recent runs as <strong>CANCELLED</strong>; it is not erased and does not automatically roll back already completed books or file writes.</li>
+  <li>On server restart, any task left <strong>IN_PROGRESS</strong> is marked <strong>CANCELLED</strong> with a restart-interruption message. General Task Manager jobs do not resume from their previous checkpoint.</li>
+  <li>After cancellation or restart, inspect the run message and resulting library state before starting a new run. Re-running may revisit work that already completed.</li>
+</ul>
+
 <h3>Related Procedures</h3>
 <ul>
   <li>Configure tab visibility and permissions in <a href="sec22.html">User Accounts and Permissions</a>.</li>
@@ -736,12 +776,13 @@
   <li>Back up before risky maintenance using <a href="sec26.html">Backup and Restore</a>, and inspect administrative history in <a href="sec27.html">Audit Logs</a>.</li>
 </ul>
 
-<div class="callout">
+<div class="callout warning" id="provider-limits-advisory">
   <strong>Be Careful:</strong>
   <ul>
     <li><strong>Reconcile Library on a very large library</strong> can take a long time and use significant resources.</li>
     <li><strong>Reconcile Library</strong> may remove missing-file entries and purge disallowed formats; use <strong>Scan for New Files</strong> when you only want to import newly added content.</li>
-    <li><strong>Metadata Refresh</strong> makes network calls &mdash; running too frequently may cause rate limiting from providers.</li>
+    <li><strong>Provider metadata fetches</strong> make network calls. ComicVine can visibly pause until its cooldown expires and retry; Hardcover increases delay after throttling; Google Books can report rate limiting without ComicVine&rsquo;s pause/resume behavior. See <a href="sec24.html#provider-limits">Metadata Provider Limits</a>.</li>
+    <li><strong>Notifications are not history:</strong> the bell&rsquo;s Notifications tab is a dismissible WARN/ERROR inbox. <strong>Recent runs</strong> on each task card is the run history and remains the place to inspect successes, cancellations, item counts, and detailed messages.</li>
   </ul>
 </div>
 <nav class="section-nav">
@@ -749,7 +790,7 @@
   <a href="sec26.html" class="nav-link nav-next">Next: 26. Backup and Restore →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

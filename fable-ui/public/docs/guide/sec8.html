@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html" class="active">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -687,41 +707,38 @@
 
 <p>Use a shelf when you want to choose membership yourself: a reading list, a favorite-books collection, or a device queue. A book can belong to several shelves without being duplicated.</p>
 
-<h3>Create and Fill a Shelf</h3>
+<h3 id="create-shelf">Create and Fill a Shelf</h3>
 <ol>
   <li>In the <strong>Shelves</strong> sidebar section, create a shelf and choose its name and optional icon.</li>
   <li>Add books from a book&rsquo;s detail page or cover menu. In a book browser, select several books to assign them together.</li>
   <li>Open the shelf from the sidebar to check its contents. Removing a book from the shelf does not remove it from its library.</li>
 </ol>
 
-<h3>Choose the Right Organization Tool</h3>
-<table>
-  <tr><th>Goal</th><th>Use</th></tr>
-  <tr><td>Hand-pick a collection</td><td>This section: <strong>Shelves</strong></td></tr>
-  <tr><td>Keep membership updated by rules</td><td><a href="sec9.html">Magic Shelves</a></td></tr>
-  <tr><td>Follow numbered volumes</td><td><a href="sec13.html">Series</a></td></tr>
-  <tr><td>Build a custom reading order across books or series</td><td><a href="sec14.html">Story Arcs</a></td></tr>
-  <tr><td>Find a temporary result set</td><td><a href="sec17.html">Search and Filtering</a></td></tr>
-</table>
+<div class="callout tip">
+  <strong>Plan Ahead:</strong> Shelf names must be unique within your account. Before creating another collection, use the organization chooser in <a href="sec5.html">Libraries &amp; Storage</a> to confirm that a shelf is the right tool.
+</div>
 
-<h3>Maintain the Shelf</h3>
+<h3 id="maintain-shelf">Maintain and Share the Shelf</h3>
 <ul>
   <li>Rename, recolor, or change the icon when the shelf&rsquo;s purpose changes.</li>
-  <li>Admins can make a shelf public for other accounts.</li>
+  <li>A shelf belongs to the account that created it. Only an admin can create a public shelf or change a shelf to public; public shelves are visible to other users but remain owned and managed by their creator.</li>
   <li>Use <strong>Not Shelfed</strong> in the sidebar to find books that still need organizing.</li>
   <li>Keep titles, authors, categories, tags, and series consistent with <a href="sec15.html">book metadata tools</a> and the <a href="sec16.html">Metadata Manager</a>; clean metadata improves filtering and makes it easier to decide what belongs on a shelf.</li>
-  <li>The special Kobo shelf participates in device sync; see <a href="sec20.html">Kobo &amp; KOReader Sync</a>.</li>
+  <li>The special Kobo shelf participates in device sync; see <a href="sec20.html">Kobo, KOReader &amp; Device Sync</a> before using it as a queue.</li>
 </ul>
 
 <div class="callout warning">
   <strong>Be Careful:</strong> Shelves are flat and cannot be nested. Deleting a shelf removes only the shelf; it does not delete its books.
+</div>
+<div class="callout info">
+  <strong>Good to Know:</strong> A book can appear on several shelves without creating another copy of its file.
 </div>
 <nav class="section-nav">
   <a href="sec7.html" class="nav-link nav-prev">← Previous: 7. BookDrop</a>
   <a href="sec9.html" class="nav-link nav-next">Next: 9. Magic Shelves →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

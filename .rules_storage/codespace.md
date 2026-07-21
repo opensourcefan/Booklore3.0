@@ -1,6 +1,6 @@
 # Fable Codebase Reference
 
-The workspace root is `/home/michael/fable_test`. When working with file paths, remember they are relative to this root unless stated otherwise.
+The workspace root is `/home/michael/fable`. When working with file paths, remember they are relative to this root unless stated otherwise.
 
 ## Workspace Layout
 
@@ -8,7 +8,6 @@ The workspace root is `/home/michael/fable_test`. When working with file paths, 
 |---|---|
 | `fable-api/` | Spring Boot 4.0 backend (Java 25) |
 | `fable-ui/` | Angular 21 frontend |
-| `fable-v3/`, `fable-v3b/`, `fable-v3c/` | Legacy snapshot copies (not part of active build) |
 | `assets/` | Screenshots and static assets |
 | `bookdrop/` | Bookdrop inbox directory (mounted in Docker) |
 | `books/` | Book files directory (mounted in Docker) |
@@ -32,11 +31,11 @@ The workspace root is `/home/michael/fable_test`. When working with file paths, 
 |---|---|
 | Primary remote | `origin` → `https://github.com/opensourcefan/Fable.git` |
 | Alias remote | `fable3` → same URL |
-| Scratch remote | `scratch_repo` → `/home/michael/fable_test/scratch_repo` (local bare repo) |
+| Scratch remote | `scratch_repo` (local scratch remote, when configured) |
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
-| Latest tag | `v3.15.46` (also `v3.15.45`..`v3.15.0`, `v3.14.6`..`v3.13.8`) |
+| Latest documented tag | `v4.16.18` |
 | GitHub owner | `opensourcefan` |
 
 ### Branch naming conventions
@@ -219,8 +218,17 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend version: `4.15.92` (in both `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest git tag: `v4.15.92`
+- Backend/frontend version: `4.16.18` (in `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest documented git tag: `v4.16.18`
+
+### Documentation Parity
+
+- Canonical chapter sources: `fable-ui/public/docs/guide/sec1.html` through `sec30.html`
+- Canonical Guide Home and sidebar navigation: `fable-ui/public/docs/guide/index.html`
+- Generated single-page guide: `fable-ui/public/docs/Fable-Familiarization-Guide.html`
+- Synchronize with `python3 scripts/validate-familiarization-guide.py --sync`, then validate again without `--sync`.
+- Update the guide cover and newest Section 30 maintenance entry together. The validator also checks backend/frontend app-version agreement and local README links.
+- Review README guidance whenever setup, delivery, backup/recovery, authentication, or deployment paths change.
 
 ## Code Conventions
 

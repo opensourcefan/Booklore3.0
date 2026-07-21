@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html" class="active">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -700,7 +720,7 @@
 
 <p>Fable uses a <strong>sidebar + main content</strong> layout.</p>
 
-<h3>Visual Layout Interface Map</h3>
+<h3 id="identify-interface-regions">Identify the Interface Regions</h3>
 <div class="layout-map-wrapper">
   <table class="layout-map-table" style="width: 100%; min-width: 750px; border-collapse: collapse; background: rgba(255, 255, 255, 0.18); font-size: 10pt;">
   <thead>
@@ -763,7 +783,7 @@
 </table>
 </div>
 
-<h3>Visual Book Card Layout Map</h3>
+<h3 id="identify-book-card-controls">Identify Book Card Controls</h3>
 <div class="book-card-map-wrapper">
   <table class="book-card-container-table" style="width: 100%; min-width: 820px; border-collapse: collapse; background: transparent !important; font-size: 9.5pt; border: none !important;">
   <tbody>
@@ -885,7 +905,7 @@
 </div>
 
 
-<h3>Left Sidebar</h3>
+<h3 id="use-sidebar">Use the Left Sidebar</h3>
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Dashboard</strong> <i class="pi pi-home" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Returns to the home screen</td></tr>
@@ -901,12 +921,12 @@
   <tr><td><strong>Not Shelfed</strong> <i class="pi pi-folder" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Books not assigned to any shelf</td></tr>
   <tr><td><strong>Story Arcs</strong> <i class="pi pi-compass" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Its own sidebar section (not under HOME). Expand to see each arc with a book-count badge, or open the Story Arcs browser to manage guided reading paths</td></tr>
   <tr><td><strong>Magic Shelves</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Smart collections that filter automatically based on search rules</td></tr>
-  <tr><td><strong>User Guide</strong> (bottom)</td><td>Open this guide directly in Fable</td></tr>
+  <tr><td><strong>User Guide</strong> (bottom)</td><td>Open this guide in a new browser tab</td></tr>
   <tr><td><strong>Settings</strong> <i class="pi pi-cog" style="font-size:9pt;color:var(--icon-color);"></i> (bottom)</td><td>Application settings and user management</td></tr>
   <tr><td><strong>Language</strong> (bottom)</td><td>Switch the interface language</td></tr>
 </table>
 
-<h3>Top Bar</h3>
+<h3 id="use-topbar">Use the Top Bar</h3>
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Search</strong> <i class="pi pi-search" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Search your collection by title, author, or ISBN</td></tr>
@@ -914,72 +934,33 @@
   <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the Tasks / Notifications status center (see below). A badge shows unread failures first; otherwise completed task counts. On phones the bell stays available next to fullscreen.</td></tr>
   <tr><td><strong>Upload</strong> <i class="pi pi-upload" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the browser uploader. Choose <strong>Library</strong> for direct import to a library path or <strong>BookDrop</strong> to send files to your account&rsquo;s BookDrop inbox; see <a href="sec6.html">Section 6</a></td></tr>
   <tr><td><strong>BookDrop</strong> <i class="pi pi-inbox" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the pending-file review and finalization page; see <a href="sec7.html">Section 7</a></td></tr>
-  <tr><td><strong>Customizable Toolbar</strong></td><td>Choose and reorder available shortcuts such as Upload, BookDrop, library creation, Metadata Manager, statistics, notifications, layout mode, fullscreen, theme, settings, profile, and logout. Availability depends on permissions and saved toolbar choices.</td></tr>
+  <tr><td><strong>Customizable Toolbar</strong></td><td>Choose and reorder available shortcuts such as Upload, BookDrop, library creation, Metadata Manager, statistics, notifications, layout mode, fullscreen, theme, settings, profile, and logout. Availability depends on permissions. Toolbar configuration is saved for the current browser and layout, so another browser or layout mode can have a different toolbar.</td></tr>
 </table>
 
-<h3>Notification Bell &mdash; Tasks &amp; Notifications</h3>
+<h3 id="check-task-status">Check Tasks and Failures</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Bell icon <i class="pi pi-bell"></i></p>
 
-<p>The bell is Fable&rsquo;s <strong>status center</strong>. Click it to open a popover with two tabs: <strong>Tasks</strong> and <strong>Notifications</strong>. They answer different questions: &ldquo;What is running right now?&rdquo; versus &ldquo;What failed that I still need to know about?&rdquo;</p>
+<p>Open <strong>Tasks</strong> for live work and <strong>Notifications</strong> for WARN or ERROR items that need attention. Dismiss failures after resolving them. For scheduled-task configuration and run history, use the canonical task guidance in <a href="sec25.html">Section 25</a>.</p>
 
-<h4>Tasks tab &mdash; live progress</h4>
-<p>The <strong>Tasks</strong> tab shows work in progress. When nothing is running, it shows <em>No running tasks.</em> When something is active, you may see:</p>
-<ul>
-  <li><strong>Metadata jobs</strong> &mdash; bulk metadata downloads and review progress widgets</li>
-  <li><strong>AI Search scans</strong> &mdash; batch embedding / indexing progress</li>
-  <li><strong>System jobs</strong> &mdash; metadata flush to files, library file sync, directory tagging, metadata refresh, and related long-running work</li>
-  <li><strong>BookDrop</strong> &mdash; a widget when files are waiting in the BookDrop folder</li>
-</ul>
-<p>On phones, desktop-only status chips are hidden, so those same system jobs are surfaced inside this Tasks tab so you can still monitor them.</p>
-
-<h4>Notifications tab &mdash; durable failures</h4>
-<p>The <strong>Notifications</strong> tab is a <strong>failure inbox</strong>, not a general activity feed. Only <strong>WARN</strong> and <strong>ERROR</strong> items appear here. Successful / informational chatter does <strong>not</strong> fill this list.</p>
-<ul>
-  <li><strong>Persistent</strong> &mdash; Failures are saved to the database for your account, so they survive page reloads and server restarts (recent history, up to about 50 items)</li>
-  <li><strong>Each entry</strong> shows a severity tag, a timestamp, and the message</li>
-  <li><strong>Dismiss one</strong> with the &times; on that row, or <strong>Dismiss All</strong> to clear the inbox</li>
-  <li>Empty state: <em>No failures to show.</em></li>
-  <li>The Notifications tab shows a small count badge when unread failures exist</li>
-</ul>
-
-<h4>What you should expect &mdash; where and when</h4>
-<table>
-  <tr><th>Situation</th><th>Where you see it</th><th>When / how long</th></tr>
-  <tr><td>Metadata fetch, AI Search scan, BookDrop pending files, or a system job is running</td><td>Bell &rarr; <strong>Tasks</strong> tab (and desktop status chips when those chips are visible)</td><td>While the job is in progress; clears when finished</td></tr>
-  <tr><td>An action fails (library ops, uploads, settings, readers, book cards, and similar)</td><td>Bell &rarr; <strong>Notifications</strong> tab</td><td>Immediately; stays until you dismiss it</td></tr>
-  <tr><td>A scheduled task fails and <strong>Error notifications</strong> is enabled for that task</td><td>Bell &rarr; <strong>Notifications</strong> tab</td><td>After the scheduled run fails; stays until dismissed</td></tr>
-  <tr><td>A scheduled task succeeds but did nothing (zero items)</td><td>Usually suppressed from the bell</td><td>&mdash;</td></tr>
-  <tr><td>History of scheduled or manual runs (success or failure details)</td><td>Settings &rarr; Tasks &rarr; expand <strong>Recent runs</strong> on a task card</td><td>Anytime after a run; this is the detailed log, not the bell inbox</td></tr>
-  <tr><td>New failure arrives while you are using Fable</td><td>Bell icon may pulse (crimson for ERROR, orange for WARN) and the badge updates</td><td>Brief pulse highlight, then the failure remains in the inbox</td></tr>
-</table>
-
-<p>Configure whether scheduled failures appear in the inbox with the per-task <strong>Error notifications</strong> toggle under Settings &rarr; Tasks. When that toggle is on, scheduled failures go to the Notifications tab; successful runs are recorded under <strong>Recent runs</strong> only.</p>
-
-<div class="callout tip">
-  <strong>Tip:</strong> If something &ldquo;didn&rsquo;t work&rdquo; but you missed the moment it failed, open the bell and check the <strong>Notifications</strong> tab first. Live progress belongs on <strong>Tasks</strong>; lasting problems belong on <strong>Notifications</strong>.
-</div>
-
-<h3>What You Can Do</h3>
+<h3 id="customize-navigation">Customize Navigation</h3>
 <ul>
   <li><strong>Resize sidebars</strong> &mdash; Drag the edge of either sidebar to make it wider or narrower</li>
   <li><strong>Reorder sidebar items</strong> &mdash; Click <strong>Re-order</strong> next to the sidebar controls, then drag rows to customize the sidebar list; click <strong>Re-order</strong> again to save</li>
   <li><strong>Collapse sections</strong> &mdash; Click section headers to expand or collapse groups; Fable remembers each section&rsquo;s open/closed state in this browser so it survives refresh</li>
   <li><strong>Synchronize layout settings across devices</strong> &mdash; Your sidebar heading visibility, HOME shortcuts, and media type order are saved directly to your account so they follow you on any browser or device you use</li>
-  <li><strong>Read the User Guide in the built-in reader</strong> &mdash; The footer link opens this guide directly; if you want to highlight it or take notes, you can import the PDF into a library like any other book</li>
   <li><strong>Browse by folder</strong> &mdash; Click the folder button in the book toolbar to open the directory explorer</li>
   <li><strong>Toggle browser fullscreen mode</strong> &mdash; Click the fullscreen icon in the topbar to hide browser tabs and let Fable take up the entire screen</li>
-  <li><strong>Clear failure history</strong> &mdash; Open the bell, switch to <strong>Notifications</strong>, and click <strong>Dismiss All</strong></li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Switching between sidebar views does not reload your books from scratch&mdash;Fable remembers where you were, so navigation is instant. Failure notifications in the bell are saved securely, so they won&rsquo;t disappear if your server restarts. The popover closes automatically when there is nothing left to show (no running tasks, no failures, and no active highlights).
+  <strong>Good to Know:</strong> Sidebar open/closed state and toolbar arrangement can be browser- and layout-specific, while account-backed choices such as HOME shortcut visibility follow your account.
 </div>
 <nav class="section-nav">
   <a href="sec3.html" class="nav-link nav-prev">← Previous: 3. The Dashboard</a>
   <a href="sec5.html" class="nav-link nav-next">Next: 5. Libraries →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

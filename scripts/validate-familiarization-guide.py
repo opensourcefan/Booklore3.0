@@ -4,11 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,14 @@ DOCS = ROOT / "fable-ui" / "public" / "docs"
 MODULAR = DOCS / "guide"
 SINGLE = DOCS / "Fable-Familiarization-Guide.html"
 INDEX = MODULAR / "index.html"
+README = ROOT / "README.md"
+BACKEND_BUILD = ROOT / "fable-api" / "build.gradle"
+FRONTEND_PACKAGE = ROOT / "fable-ui" / "package.json"
 SECTION_START = "<!-- ==================== SECTION {number} ==================== -->"
+GUIDE_HOME_START = "<!-- ==================== GUIDE HOME START ==================== -->"
+GUIDE_HOME_END = "<!-- ==================== GUIDE HOME END ==================== -->"
+SINGLE_TOC_START = "<!-- ==================== TABLE OF CONTENTS ==================== -->"
+SINGLE_TOC_END = "<!-- ==================== TABLE OF CONTENTS END ==================== -->"
 RAW_MARKDOWN = re.compile(r"(?<!\*)\*\*[^*\n]+\*\*(?!\*)")
 VERSION = re.compile(r"Version\s+([0-9.]+)\s+&mdash;\s+([^<]+)<br>")
 
@@ -67,11 +75,32 @@ def links_for_single_page(block: str) -> str:
         anchor = match.group("anchor")
         return f'href="#{anchor or f"sec{section}"}"'
 
-    return re.sub(
+    converted = re.sub(
         r'href="sec(?P<section>\d+)\.html(?:#(?P<anchor>[^"]+))?"',
         replace,
         block,
     )
+    return converted.replace('href="index.html"', 'href="#guide-home"')
+
+
+def marked_block(document: str, start_marker: str, end_marker: str) -> str:
+    start = document.find(start_marker)
+    end = document.find(end_marker, start)
+    if start < 0 or end < 0:
+        raise ValueError(f"missing marked block {start_marker} / {end_marker}")
+    return document[start : end + len(end_marker)]
+
+
+def single_page_toc() -> str:
+    navigation = links_for_single_page(navigation_block(read(INDEX)))
+    navigation = navigation.replace(
+        '<nav id="sidebar-toc">',
+        f'{SINGLE_TOC_START}\n<div class="toc">',
+        1,
+    )
+    navigation = navigation.replace("<h2>Contents</h2>", "<h2>Workflow Chapters</h2>", 1)
+    navigation = navigation.replace("</nav>", f"</div>\n{SINGLE_TOC_END}", 1)
+    return navigation
 
 
 def navigation_block(document: str) -> str:
@@ -98,6 +127,18 @@ def sync_modular_navigation() -> None:
 
 def sync_single_page() -> None:
     single = read(SINGLE)
+    canonical_navigation = links_for_single_page(navigation_block(read(INDEX)))
+    single = single.replace(navigation_block(single), canonical_navigation, 1)
+
+    canonical_home = links_for_single_page(
+        marked_block(read(INDEX), GUIDE_HOME_START, GUIDE_HOME_END)
+    )
+    current_home = marked_block(single, GUIDE_HOME_START, GUIDE_HOME_END)
+    single = single.replace(current_home, canonical_home, 1)
+
+    current_toc = marked_block(single, SINGLE_TOC_START, SINGLE_TOC_END)
+    single = single.replace(current_toc, single_page_toc(), 1)
+
     for number in range(1, 31):
         modular_block = links_for_single_page(
             section_block(read(MODULAR / f"sec{number}.html"), number, modular=True)
@@ -140,6 +181,30 @@ def validate_links(errors: list[str]) -> None:
 
 def validate_parity(errors: list[str]) -> None:
     single = read(SINGLE)
+    expected_home = links_for_single_page(
+        marked_block(read(INDEX), GUIDE_HOME_START, GUIDE_HOME_END)
+    )
+    actual_home = marked_block(single, GUIDE_HOME_START, GUIDE_HOME_END)
+    if expected_home != actual_home:
+        errors.append(
+            "guide home: modular index and single-page front matter differ "
+            f"(run {Path(__file__).name} --sync)"
+        )
+
+    expected_single_navigation = links_for_single_page(navigation_block(read(INDEX)))
+    if navigation_block(single) != expected_single_navigation:
+        errors.append(
+            "single-page sidebar navigation differs from modular index "
+            f"(run {Path(__file__).name} --sync)"
+        )
+
+    actual_toc = marked_block(single, SINGLE_TOC_START, SINGLE_TOC_END)
+    if actual_toc != single_page_toc():
+        errors.append(
+            "single-page workflow table of contents differs from modular index "
+            f"(run {Path(__file__).name} --sync)"
+        )
+
     for number in range(1, 31):
         expected = links_for_single_page(
             section_block(read(MODULAR / f"sec{number}.html"), number, modular=True)
@@ -179,19 +244,83 @@ def validate_versions(errors: list[str]) -> None:
         if f"<td>{version}</td>" not in maintenance:
             errors.append(f"maintenance log has no entry for cover version {version}")
 
+    backend_match = re.search(r"^version\s*=\s*['\"]([^'\"]+)['\"]", read(BACKEND_BUILD), re.MULTILINE)
+    frontend_version = json.loads(read(FRONTEND_PACKAGE)).get("version")
+    if not backend_match or not frontend_version:
+        errors.append("could not read backend and frontend app versions")
+    elif backend_match.group(1) != frontend_version:
+        errors.append(
+            f"app versions differ: backend={backend_match.group(1)} frontend={frontend_version}"
+        )
+    elif f"App <code>v{frontend_version}</code>" not in read(MODULAR / "sec30.html"):
+        errors.append(
+            f"maintenance log has no entry for current app version v{frontend_version}"
+        )
+
+
+def validate_navigation(errors: list[str]) -> None:
+    canonical = navigation_block(read(INDEX))
+    ordered_sections = [
+        int(value)
+        for value in re.findall(r'href="sec(\d+)\.html(?:#[^"]+)?"', canonical)
+    ]
+    first_occurrences = list(dict.fromkeys(ordered_sections))
+    if first_occurrences != list(range(1, 31)):
+        errors.append(
+            "canonical sidebar must link Sections 1-30 in numeric order; "
+            f"found {first_occurrences}"
+        )
+
+    for number in range(1, 31):
+        document = read(MODULAR / f"sec{number}.html")
+        if number > 1 and f'href="sec{number - 1}.html" class="nav-link nav-prev"' not in document:
+            errors.append(f"sec{number}.html: previous link does not target sec{number - 1}.html")
+        if number < 30 and f'href="sec{number + 1}.html" class="nav-link nav-next"' not in document:
+            errors.append(f"sec{number}.html: next link does not target sec{number + 1}.html")
+
+
+def validate_readme_links(errors: list[str]) -> None:
+    for target_text in re.findall(r"\[[^\]]+\]\(([^)]+)\)", read(README)):
+        target_text = target_text.strip().split(maxsplit=1)[0]
+        url = urlsplit(target_text)
+        if url.scheme or url.netloc or not url.path:
+            continue
+        target = (README.parent / unquote(url.path)).resolve()
+        if not target.exists():
+            errors.append(f"README.md: missing linked file {target_text}")
+
 
 def validate_content(errors: list[str]) -> None:
     paths = [SINGLE, INDEX, *(MODULAR / f"sec{number}.html" for number in range(1, 31))]
     for path in paths:
-        for match in RAW_MARKDOWN.finditer(read(path)):
-            line = read(path).count("\n", 0, match.start()) + 1
+        content = read(path)
+        for match in RAW_MARKDOWN.finditer(content):
+            line = content.count("\n", 0, match.start()) + 1
             errors.append(f"{path.name}:{line}: raw Markdown emphasis {match.group(0)}")
+        if "Fable 3.0" in content:
+            errors.append(f"{path.name}: stale Fable 3.0 guide branding")
+        if 'class="guide-badge guide-badge-ogg"' in content:
+            errors.append(f"{path.name}: OGG is not a supported audiobook extension")
 
     required = {
         MODULAR / "sec6.html": ['id="staging-lifecycle"'],
         MODULAR / "sec17.html": ['id="embedding"'],
-        INDEX: ["What Do You Want to Do?", "sec6.html#staging-lifecycle"],
-        SINGLE: ["What Do You Want to Do?", 'href="#staging-lifecycle"'],
+        INDEX: [
+            GUIDE_HOME_START,
+            GUIDE_HOME_END,
+            "What Do You Want to Do?",
+            "Guide Home &amp; Workflow Paths",
+            "sec6.html#staging-lifecycle",
+        ],
+        SINGLE: [
+            GUIDE_HOME_START,
+            GUIDE_HOME_END,
+            SINGLE_TOC_START,
+            SINGLE_TOC_END,
+            "What Do You Want to Do?",
+            'href="#guide-home"',
+            'href="#staging-lifecycle"',
+        ],
     }
     for path, markers in required.items():
         content = read(path)
@@ -205,7 +334,7 @@ def main() -> int:
     argument_parser.add_argument(
         "--sync",
         action="store_true",
-        help="replace single-page section bodies with canonical modular content",
+        help="synchronize modular navigation plus single-page home, navigation, and section bodies",
     )
     args = argument_parser.parse_args()
 
@@ -217,6 +346,8 @@ def main() -> int:
     validate_links(errors)
     validate_parity(errors)
     validate_versions(errors)
+    validate_navigation(errors)
+    validate_readme_links(errors)
     validate_content(errors)
 
     if errors:

@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -688,8 +708,24 @@
   <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from Fable. The modular section bodies are the editing source for user-facing content; run <code>scripts/validate-familiarization-guide.py --sync</code> to synchronize the single-page guide, then run it without <code>--sync</code> to verify links, anchors, versions, and parity. Update the README&rsquo;s <strong>Familiarization Guide</strong> section when its path or delivery changes. Record changes below to track guide accuracy over time.
 </div>
 
+<h3>Guide Maintenance Checklist</h3>
+<ol>
+  <li><strong>Classify the change:</strong> identify affected personas, permissions, UI routes, deployment settings, storage modes, background work, and destructive or irreversible outcomes.</li>
+  <li><strong>Verify implementation facts:</strong> check current enums, defaults, environment variables, controllers/services, visible UI labels, permission gates, task behavior, and file locations. Do not copy assumptions from an older guide entry.</li>
+  <li><strong>Update workflow hubs:</strong> lead with the user&rsquo;s goal and persona path, then link to detailed procedures. Include prerequisites, expected outcomes, failure boundaries, and the next related workflow.</li>
+  <li><strong>Add advisories:</strong> call out secret redaction, immediate effects, file mutation/movement, provider limits, cooperative cancellation, server-time schedules, restart behavior, proxy trust, backup coverage, and recovery rollback where applicable.</li>
+  <li><strong>Maintain terminology:</strong> align the glossary with current product vocabulary and link high-impact terms to their authoritative workflow sections.</li>
+  <li><strong>Preserve modular structure:</strong> keep section markers, unique IDs, valid HTML, and previous/next links intact. The modular section bodies own chapter content; <code>guide/index.html</code> owns workflow-home content and canonical sidebar navigation.</li>
+  <li><strong>Version once:</strong> add one newest-first maintenance row with date, next guide version, relevant app version, scope, and material limitations.</li>
+  <li><strong>Synchronize:</strong> run <code>scripts/validate-familiarization-guide.py --sync</code> to distribute canonical sidebar navigation and regenerate the single-page workflow home, sidebar, and chapter bodies; never hand-edit generated parity content.</li>
+  <li><strong>Validate:</strong> run the validator again without <code>--sync</code> to check HTML, anchors, local links, navigation order, previous/next targets, guide/app versions, and modular/single-page parity. Review the single-page diff and run the frontend production build when guide assets will ship.</li>
+  <li><strong>Review delivery surfaces:</strong> check the guide home, README, <code>.rules_storage/codespace.md</code>, and packaged <code>dist/app/browser/docs</code> output for stale paths, versions, or recovery instructions.</li>
+  <li><strong>Manual outcome review:</strong> test links and scan each changed section as the invited reader, contributor, and administrator personas; verify warnings are adjacent to the action they qualify.</li>
+</ol>
+
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-21</td><td>1.1.135</td><td>Rebuilt all 29 user chapters around task-oriented workflow hubs and evidence-backed <strong>Plan Ahead</strong>, <strong>Be Careful</strong>, and <strong>Good to Know</strong> advisories. Corrected setup, formats, readers, statistics, metadata/provider limits, AI prerequisites, delivery/device behavior, Forward Auth, settings effects, task semantics, coordinated recovery, audit limits, persona routing, glossary terms, and guide synchronization. Added a hierarchical Guide Home, stronger parity/version/link validation, current README recovery guidance, and CI validation. App <code>v4.16.18</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.134</td><td>Documented persistent Staged-inbox ISBN exception badges: amber identifies a completed check with no valid ISBN, red identifies OCR or another technical check failure, and tooltips retain the reason and check time. Successful retries clear prior badges; normal library cards and Phone Mode remain unchanged. App <code>v4.16.17</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.133</td><td>Rebuilt the guide around novice task journeys: Books now owns adding, Staging, Review, Completed, Release, bulk actions, and file management; Metadata Manager now matches vocabulary cleanup; Libraries, BookDrop, Settings, Devices, Accounts, Backup/Restore, and cross-chapter paths reflect the current UI. Added goal-based navigation plus automated modular/single-page link and parity validation.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.132</td><td>Closed the July guide audit gaps: synchronized cover versions; corrected username-change guidance and AI Search links; documented ISBN Discovery settings, all device layout modes, per-browser/touch toolbar and resize behavior, and personal versus shared BookDrop inboxes. Updated both guide formats.</td></tr>
@@ -824,7 +860,7 @@
   <tr><td>2026-04-04</td><td>1.1.2</td><td>Documented AI totals in Library Statistics and refreshed guide after book browser and shelf-row UI fixes</td></tr>
   <tr><td>2026-04-04</td><td>1.1.1</td><td>Reviewed guide after README badge repair; no feature workflow changes required in user-facing instructions</td></tr>
   <tr><td>2026-04-02</td><td>1.1</td><td>Added directory explorer documentation to interface, browsing, and filtering sections</td></tr>
-  <tr><td>2026-03-30</td><td>1.0</td><td>Initial guide created &mdash; covers all Fable 3.0 features</td></tr>
+  <tr><td>2026-03-30</td><td>1.0</td><td>Initial guide created &mdash; covers all Fable features</td></tr>
 </table>
 
 <hr>
@@ -833,7 +869,7 @@
   <a href="index.html" class="nav-link nav-next">Guide Home →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

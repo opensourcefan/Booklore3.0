@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html" class="active">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -685,12 +705,12 @@
 <h2 id="sec17">17. Search and Filtering <span class="section-icon"><i class="pi pi-search"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Topbar search bar <i class="pi pi-search"></i>, or book browser filter sidebar <i class="pi pi-filter"></i></p>
 
-<h3>Global Search</h3>
-<p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN. The topbar search pulls lightweight server results as you type, so it stays responsive even before a large browser view has finished warming up.</p>
+<h3 id="global-search">Global Search</h3>
+<p>Type in the search bar to find books across your collection by <strong>title, author name, or ISBN</strong>. Description text is not part of ordinary metadata search. The topbar search requests lightweight server results as you type; network latency and catalog size can still affect when results appear.</p>
 
-<h3>AI Search</h3>
+<h3 id="ai-search">AI Search</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> AI Search <i class="pi pi-sparkles"></i> sparkle icon, or Settings <i class="pi pi-chevron-right"></i> AI Settings <i class="pi pi-chevron-right"></i> AI Search</p>
-<p>If you have configured Fable with an AI model provider (or are using a built-in Fable Preset) <strong>and</strong> you have embedded books, you can leverage natural language search to find books based on themes, characters, concepts, or general queries. Books must be embedded first — see <a href="#embedding">What Is Embedding?</a> below. For full details on configuring AI providers, models, profiles, and tuning parameters, see <a href="sec24.html">Section 24: Application Settings &rarr; AI Search &amp; Embedding Tuning</a>.</p>
+<p>AI Search requires the AI feature to be enabled, its sidecar service to be running and reporting ready, and the needed models/providers to be configured. An embedding model is required to index and retrieve book content; an LLM is also required for workflows that generate answers, summaries, or other text. Each user owns a separate set of embeddings, so one user&rsquo;s completed indexing does not make the same books searchable for another user. Supported source formats are <strong>EPUB, PDF, and CBX</strong>. See <a href="#embedding">What Is Embedding?</a> and <a href="sec24.html">Application Settings &rarr; AI Search &amp; Embedding Tuning</a>.</p>
 <ul>
   <li><strong>From Search Bars:</strong> Click the sparkly blue <strong>AI Search</strong> <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> located inside the topbar or library search input fields to open the AI Search Dialog and submit your query.</li>
   <li><strong>From Book Cards:</strong> Look for the <strong><span class="guide-badge guide-badge-ais">AIS</span></strong> badge on individual books in your library. Clicking this badge will open AI Search directly on that specific book, allowing you to ask questions about its contents, summarize it, or explore its themes.</li>
@@ -707,6 +727,10 @@
   <li><span class="guide-badge guide-badge-ais-mismatched">AIS</span> <strong>Orange on black</strong> — Book was embedded with a different AI model than the one currently configured. The embeddings are stale and the book needs to be re-embedded. Click to see which model was used.</li>
 </ul>
 
+<div class="callout info">
+  <strong>Plan Ahead:</strong> Extraction, OCR where needed, chunking, and embedding can take substantial time and CPU, especially for large PDFs or comic archives. A marked badge means queued or awaiting processing, not that a completion time is guaranteed. Status can lag while the sidecar starts, downloads a model, processes another item, or reports an error; confirm the service is ready before troubleshooting a book.
+</div>
+
 <p><strong>Save to Notepad:</strong> When you find a useful AI response, click <strong>Add to Notepad</strong> to save the snippet for later. See <a href="sec11.html">Bookmarks, Annotations, and the Notebook</a> for the wider note-review workflow.</p>
 
 <p><strong>Sparkle Button Status Indicators</strong> — The sparkle <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> in the search bars uses color and animation to reflect the AI Search service state:</p>
@@ -718,13 +742,7 @@
   <li><span style="color:#00d2ff;"><strong>Flashing cyan (800ms grey↔cyan)</strong></span> — A search is currently in progress. Results will appear in the dialog when ready.</li>
 </ul>
 
-<div class="callout info">
-  <strong>Zero Configuration Needed:</strong>
-  <p>Fable comes with everything you need built-in! The AI search engine runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your <code>.env</code> file and enjoy.</p>
-  <p><strong>Configuration and tuning</strong> (LLM profiles, RAG techniques, embedding models, OCR, search parameters, and advanced retrieval settings) are covered in <a href="sec24.html">Section 24: Application Settings &rarr; AI Search &amp; Embedding Tuning</a>.</p>
-</div>
-
-<h3>Filters</h3>
+<h3 id="filters">Filters</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Book browser <i class="pi pi-chevron-right"></i> filter sidebar <i class="pi pi-filter"></i> (right side)</p>
 <table>
   <tr><th>Filter</th><th>Options</th></tr>
@@ -775,8 +793,8 @@
   </ul>
 </div>
 
-<h3>Duplicate Review Belongs to Libraries</h3>
-<p>Duplicate Review is launched from a specific library&rsquo;s menu, so its setup and ownership belong with <a href="sec5.html">Libraries</a>. Search and filters can help you inspect a suspected group first, but start the non-destructive duplicate scan from the library menu.</p>
+<h3 id="duplicate-review">Duplicate Review Belongs to Libraries</h3>
+<p>Duplicate Review is launched from a specific library&rsquo;s menu. Its canonical instructions are in <a href="sec5.html">Libraries &amp; Storage</a>. Search and filters can help inspect a suspected group, but use Section 5 for the non-destructive duplicate workflow.</p>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
@@ -784,11 +802,11 @@
   <li>Save filter combinations as presets (use Magic Shelves instead)</li>
 </ul>
 <nav class="section-nav">
-  <a href="sec16.html" class="nav-link nav-prev">← Previous: 16. Metadata Manager</a>
+  <a href="sec16.html" class="nav-link nav-prev">← Previous: 16. Standardize Shared Values</a>
   <a href="sec18.html" class="nav-link nav-next">Next: 18. AI Panel Detection →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

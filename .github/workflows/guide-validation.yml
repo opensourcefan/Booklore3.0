@@ -1,0 +1,37 @@
+name: Familiarization Guide Validation
+
+on:
+  pull_request:
+    paths:
+      - 'fable-ui/public/docs/**'
+      - 'scripts/validate-familiarization-guide.py'
+      - 'README.md'
+      - 'fable-api/build.gradle'
+      - 'fable-ui/package.json'
+      - '.github/workflows/guide-validation.yml'
+  push:
+    branches:
+      - develop
+      - master
+    paths:
+      - 'fable-ui/public/docs/**'
+      - 'scripts/validate-familiarization-guide.py'
+      - 'README.md'
+      - 'fable-api/build.gradle'
+      - 'fable-ui/package.json'
+      - '.github/workflows/guide-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-guide:
+    name: Validate Guide Links and Parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Validate Familiarization Guide
+        run: python3 scripts/validate-familiarization-guide.py

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>16. Metadata Manager — Fable Familiarization Guide</title>
+<title>16. Metadata Manager — Standardize Shared Values — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html" class="active">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html" class="active">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -682,15 +702,15 @@
   <p style="font-size:8.5pt; margin:0.75rem 1rem;"><a href="sec30.html">Appendix: Document Maintenance Log</a></p>
 </nav>
 <!-- ==================== SECTION 16 ==================== -->
-<h2 id="sec16">16. Metadata Manager &mdash; Vocabulary Management <span class="section-icon"><i class="pi pi-sliders-h"></i></span></h2>
+<h2 id="sec16">16. Metadata Manager &mdash; Standardize Shared Values <span class="section-icon"><i class="pi pi-sliders-h"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Metadata Manager <i class="pi pi-tags"></i></p>
 
-<p>The Metadata Manager standardizes repeated vocabulary values already assigned to books. It is not the selected-book bulk editor or metadata fetch screen; those workflows are covered in <a href="sec15.html">Metadata</a>.</p>
+<p>Use <strong>Metadata Manager &mdash; Standardize Shared Values</strong> when the same author, genre/category, mood, tag, series, publisher, or language is shared by many books and needs consolidation. It changes reusable values across every affected book. It is not the selected-book bulk editor or metadata fetch screen; those workflows belong in the <a href="sec15.html#choose-metadata-task">Metadata workflow hub</a>.</p>
 
-<h3>Choose a Vocabulary</h3>
+<h3 id="choose-shared-value">Choose a Shared Value Type</h3>
 <p>Open the tab for <strong>Authors</strong>, <strong>Genres/Categories</strong>, <strong>Moods</strong>, <strong>Tags</strong>, <strong>Series</strong>, <strong>Publishers</strong>, or <strong>Languages</strong>. Each tab title shows its number of distinct values.</p>
 
-<h3>Find and Inspect Values</h3>
+<h3 id="inspect-shared-values">Find and Inspect Values</h3>
 <ol>
   <li>Search within the active tab to narrow values by text.</li>
   <li>Sort the value column alphabetically or sort the <strong>Books</strong> column by usage count.</li>
@@ -698,14 +718,14 @@
   <li>Use the book count beside a value to estimate the impact before changing it. Pagination offers 25, 50, or 100 rows per page.</li>
 </ol>
 
-<h3>Select Variants</h3>
+<h3 id="select-shared-values">Select Variants</h3>
 <ul>
-  <li>Select rows individually, or use the header checkbox to select all rows currently represented by the table or search result.</li>
+  <li>Select rows individually, or use the header checkbox to select the rows in the current filtered table scope. Do not assume it includes values hidden by another tab, filter, or search.</li>
   <li>Use <strong>Select Similar</strong> on a row to select values whose normalized text contains one another; review the selection because similarity is text-based, not semantic.</li>
   <li>Use <strong>Clear Selection</strong> before starting a different cleanup group.</li>
 </ul>
 
-<h3>Rename or Split One Value</h3>
+<h3 id="rename-split-value">Rename or Split One Value</h3>
 <ol>
   <li>Choose <strong>Rename/Split</strong> on the value.</li>
   <li>Enter one replacement to rename it.</li>
@@ -713,7 +733,7 @@
 </ol>
 <p>Series, Publishers, and Languages are single-value fields. They can be renamed to one target but cannot be split into several values for the same book.</p>
 
-<h3>Merge or Split Selected Values</h3>
+<h3 id="merge-selected-values">Merge or Split Selected Values</h3>
 <ol>
   <li>Select at least two variants, such as <em>English</em>, <em>en</em>, and <em>en-US</em>.</li>
   <li>Choose <strong>Merge/Split Selected</strong>.</li>
@@ -721,22 +741,31 @@
   <li>Confirm only after checking the displayed source values and affected-book total.</li>
 </ol>
 
-<h3>Delete Values</h3>
-<p>Delete one row with its trash action, or select rows and choose <strong>Delete Selected</strong>. Deletion removes those vocabulary values from every affected book; it does not delete the books.</p>
+<h3 id="delete-shared-values">Delete Values</h3>
+<p>Delete one row with its trash action, or select rows and choose <strong>Delete Selected</strong>. Deletion removes those shared values from every affected book; it does not delete the books. Deleting a series assignment removes that series relationship from affected books; if the series is left unused, it no longer appears as an active series entry for browsing.</p>
+
+<h3 id="operation-summary">Operation Summary</h3>
+<table>
+  <tr><th>Operation</th><th>Scope and effect</th></tr>
+  <tr><td>Rename</td><td>Replaces one shared source value on every book that uses it.</td></tr>
+  <tr><td>Split</td><td>For supported multi-value fields, replaces one source with several values on every affected book.</td></tr>
+  <tr><td>Merge selected</td><td>Replaces all selected variants with one standardized target across affected books.</td></tr>
+  <tr><td>Delete</td><td>Removes the selected values or relationships from every affected book; books themselves remain.</td></tr>
+</table>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Rename, split, merge, and delete operations update every book using the source values and cannot be undone. The confirmation dialogs show counts; verify them and start with a small cleanup. If file write-back is enabled in <a href="sec24.html">Metadata Settings</a>, updates may also rewrite supported files and take substantially longer.
+  <strong>Be Careful:</strong> Rename, split, merge, and delete are broad, irreversible operations across every book using the source values. Confirm the filtered selection, source values, and affected-book count before proceeding. These operations can also cause supported book files or related metadata artifacts to be rewritten according to the active persistence path; do not assume a visible write-back toggle is the only gate. File rewrites can take substantially longer and can change file hashes or timestamps.
 </div>
 
 <div class="callout tip">
   <strong>Why standardize?</strong> Clean vocabulary prevents duplicate author or series pages and produces more reliable <a href="sec9.html">Magic Shelves</a>, <a href="sec13.html">series browsing</a>, <a href="sec14.html">Story Arc preparation</a>, and <a href="sec17.html">search filters</a>.
 </div>
 <nav class="section-nav">
-  <a href="sec15.html" class="nav-link nav-prev">← Previous: 15. Metadata</a>
+  <a href="sec15.html" class="nav-link nav-prev">← Previous: 15. Metadata Workflows</a>
   <a href="sec17.html" class="nav-link nav-next">Next: 17. Search and Filtering →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

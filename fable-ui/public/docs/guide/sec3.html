@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html" class="active">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -687,18 +707,22 @@
 
 <p>The Dashboard is the first screen you see after logging in. Use it to resume reading and to spot recent activity; use the task pages linked below when you need to import, review, organize, or maintain books.</p>
 
-<h3>What You Can Do</h3>
+<h3 id="configure-dashboard">Configure the Dashboard</h3>
 <ul>
   <li>See library statistics at a glance (total books, reading progress, and media breakdown)</li>
   <li>Access recently added books, continue-reading shortcuts, and other quick-start content rows</li>
   <li>Configure dashboard sections by hovering over the <strong>Dashboard</strong> option in the left sidebar and clicking the <strong>gear icon</strong> that appears. You can enable up to <strong>20</strong> horizontal rows (scrollers)&mdash;such as <strong>Continue Reading</strong>, <strong>Continue Listening</strong>, <strong>Recently Added</strong>, <strong>Discover Something New</strong>, <strong>Magic Shelf</strong>, and <strong>Currently Reading</strong></li>
-  <li>Customize each row’s target library filter, width, and item count, and lock the layout to prevent accidental drag-and-drop reordering</li>
+  <li>Customize each row&rsquo;s target library filter, width, and item count from <strong>1 to 20</strong>, and lock the layout to prevent accidental drag-and-drop reordering</li>
   <li>Add books to the optional <strong>Currently Reading</strong> row from a book’s <strong>More Actions &rarr; Currently Reading</strong> menu item to access them with a single click</li>
   <li>Enjoy a fully responsive layout that automatically adapts grid widths when viewed on desktop, tablet, or mobile screens</li>
   <li>Jump to any section of the app using the sidebar navigation</li>
 </ul>
 
-<h3>Where to Go for Common Tasks</h3>
+<div class="callout info">
+  <strong>Good to Know:</strong> Dashboard and layout choices can be browser-specific, while account-backed preferences follow the signed-in account. Expect the same account to look different in another browser until that browser&rsquo;s local layout is configured.
+</div>
+
+<h3 id="open-common-task">Open the Page for Your Task</h3>
 <ul>
   <li><strong>New books waiting for attention:</strong> open HOME &rarr; <strong>Staging</strong>, then follow <a href="sec6.html#staging-lifecycle">Section 6: Staging lifecycle</a>.</li>
   <li><strong>Add files:</strong> compare direct Upload, host-folder scan, and BookDrop in <a href="sec6.html">Section 6</a>; use <a href="sec7.html">Section 7</a> for BookDrop review and finalization.</li>
@@ -707,7 +731,7 @@
   <li><strong>Search:</strong> use standard or AI-powered search as described in <a href="sec17.html">Section 17</a>.</li>
 </ul>
 
-<h3>What You Can&rsquo;t Do</h3>
+<h3 id="dashboard-limitations">Know the Dashboard Limits</h3>
 <ul>
   <li>Place dashboard panels at arbitrary pixel positions outside the row-and-grid system</li>
 </ul>
@@ -716,7 +740,7 @@
   <a href="sec4.html" class="nav-link nav-next">Next: 4. Navigating the Interface →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>

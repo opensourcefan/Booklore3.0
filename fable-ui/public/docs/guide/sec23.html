@@ -130,7 +130,7 @@
     margin: 1.8cm 2cm;
     background: var(--outer-bg);
     @bottom-center {
-      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      content: "Fable Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
       color: #919ca9;
       font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -637,11 +637,16 @@
 <button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
 <nav id="sidebar-toc">
   <h2>Contents</h2>
+  <p style="font-size:9pt; margin:0.5rem 1rem 0.8rem;"><a href="index.html"><strong>Guide Home &amp; Workflow Paths</strong></a></p>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Start and orient</strong></p>
   <ol>
     <li><a href="sec1.html">1. What Is Fable?</a></li>
-    <li><a href="sec2.html">2. Getting Started &amp; Your First Books</a></li>
+    <li><a href="sec2.html">2. Getting Started &mdash; First-Time Setup</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Add and organize books</strong></p>
+  <ol start="5">
     <li><a href="sec5.html">5. Libraries &amp; Storage</a></li>
     <li><a href="sec6.html">6. Books &mdash; Add, Stage, and Manage</a>
       <ol>
@@ -651,6 +656,9 @@
     <li><a href="sec7.html">7. BookDrop Imports</a></li>
     <li><a href="sec8.html">8. Shelves</a></li>
     <li><a href="sec9.html">9. Magic Shelves</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Read and track progress</strong></p>
+  <ol start="10">
     <li><a href="sec10.html">10. Reading Books</a>
       <ol>
         <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
@@ -659,20 +667,32 @@
         <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
       </ol>
     </li>
-    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
-    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec11.html">11. Bookmarks, Annotations &amp; Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress &amp; Statistics</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Enrich, organize, and discover</strong></p>
+  <ol start="13">
     <li><a href="sec13.html">13. Series and Authors</a></li>
     <li><a href="sec14.html">14. Story Arcs</a></li>
-    <li><a href="sec15.html">15. Edit &amp; Fetch Book Information</a></li>
-    <li><a href="sec16.html">16. Clean Up Metadata Values</a></li>
+    <li><a href="sec15.html">15. Metadata &mdash; Edit, Fetch, Review &amp; Write Back</a>
+      <ol>
+        <li><a href="sec16.html">16. Metadata Manager &mdash; Standardize Shared Values</a></li>
+      </ol>
+    </li>
     <li><a href="sec17.html">17. Search and Filtering</a></li>
     <li><a href="sec18.html">18. AI Panel Detection</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Connect people and devices</strong></p>
+  <ol start="19">
     <li><a href="sec19.html">19. OPDS Feeds</a></li>
     <li><a href="sec20.html">20. Kobo, KOReader &amp; Device Sync</a></li>
     <li><a href="sec21.html">21. Send Books by Email</a></li>
     <li><a href="sec22.html">22. User Accounts, Profiles &amp; Permissions</a></li>
     <li><a href="sec23.html" class="active">23. Authentication &amp; Login Methods</a></li>
-    <li><a href="sec24.html">24. Application Settings Guide</a></li>
+  </ol>
+  <p style="font-size:8pt; margin:0.75rem 1rem 0.25rem; text-transform:uppercase; letter-spacing:0.06em;"><strong>Administer, protect, and recover</strong></p>
+  <ol start="24">
+    <li><a href="sec24.html">24. Application Settings</a></li>
     <li><a href="sec25.html">25. Background Tasks</a></li>
     <li><a href="sec26.html">26. Backup and Restore</a></li>
     <li><a href="sec27.html">27. Audit Logs</a></li>
@@ -683,9 +703,9 @@
 </nav>
 <!-- ==================== SECTION 23 ==================== -->
 <h2 id="sec23">23. Authentication &mdash; Login Methods <span class="section-icon"><i class="pi pi-lock"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> OIDC tab</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Local/OIDC: login page and Settings <i class="pi pi-chevron-right"></i> OIDC &nbsp;|&nbsp; Forward Auth: deployment environment and trusted reverse proxy</p>
 
-<p>The current supported login methods are <strong>Local Login</strong> and <strong>OIDC Login</strong>. The Settings page does not currently provide a Forward Auth mode.</p>
+<p>Fable supports three authentication paths: <strong>Local</strong>, <strong>OIDC</strong>, and environment-configured <strong>Forward Auth</strong> (called remote authentication in configuration). OIDC has an admin Settings page; Forward Auth does not.</p>
 
 <h3>Local Password</h3>
 <p>The default method &mdash; log in with your username and password. Simplest option for personal and multi-user use. Passwords are stored securely (hashed). Sessions use JWT tokens that auto-refresh.</p>
@@ -701,19 +721,34 @@
   <li>Choose provisioning, local-account linking, group mappings, default libraries/permissions, session duration, and any mobile redirect URIs your deployment needs.</li>
   <li>Test a non-admin login and an admin login in a private browser window before enabling <strong>OIDC-Only Mode</strong>.</li>
 </ol>
+<p><strong>OIDC provisioning:</strong> When auto-provisioning is enabled, a first login can create an account using the configured default permissions and default shared libraries. It does not create a personal library under <code>/books/_users</code>. Review the provisioned account in Settings &rarr; Users after first login.</p>
 
 <h3>Forward Auth (Reverse Proxy)</h3>
-<div class="callout info">
-  <strong>Supported boundary:</strong> Fable currently has no Forward Auth toggle, trusted-header field, header-name mapping, or backend authentication mode exposed by this release. A reverse proxy may protect network access, but Fable still requires Local Login or OIDC. Do not inject identity headers and assume Fable will create or authenticate that user. Use the verified OIDC flow above when integrating Authentik, Authelia, Keycloak, Pocket ID, or another provider that offers OIDC.
+<p>Forward Auth trusts identity headers supplied to Fable&rsquo;s remote-login endpoint by an authentication-aware reverse proxy. Configure it in the deployment environment; there is <strong>no Settings UI</strong> for this mode.</p>
+<table>
+  <tr><th>Environment variable</th><th>Default / purpose</th></tr>
+  <tr><td><code>REMOTE_AUTH_ENABLED</code></td><td><code>false</code>; enables the remote-auth login endpoint.</td></tr>
+  <tr><td><code>REMOTE_AUTH_CREATE_NEW_USERS</code></td><td><code>true</code>; allows a valid forwarded identity to create a Fable account when no matching user exists.</td></tr>
+  <tr><td><code>REMOTE_AUTH_HEADER_NAME</code></td><td><code>Remote-Name</code>; display-name header.</td></tr>
+  <tr><td><code>REMOTE_AUTH_HEADER_USER</code></td><td><code>Remote-User</code>; username header.</td></tr>
+  <tr><td><code>REMOTE_AUTH_HEADER_EMAIL</code></td><td><code>Remote-Email</code>; email header and fallback account lookup when username is absent.</td></tr>
+  <tr><td><code>REMOTE_AUTH_HEADER_GROUPS</code></td><td><code>Remote-Groups</code>; group-membership header.</td></tr>
+  <tr><td><code>REMOTE_AUTH_ADMIN_GROUP</code></td><td>No default; an exact matching forwarded group grants Admin during provisioning.</td></tr>
+  <tr><td><code>REMOTE_AUTH_GROUPS_DELIMITER</code></td><td><code>\s+</code>; regular expression used to split the groups header.</td></tr>
+</table>
+<p><strong>Forward Auth provisioning:</strong> New remote users inherit the OIDC auto-provisioning defaults for non-admin permissions and shared-library IDs. A user in <code>REMOTE_AUTH_ADMIN_GROUP</code> is provisioned as Admin and mapped to all current libraries. Forward Auth does not create a personal library. If new-user creation is disabled, pre-create and map the account in Settings.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Forward Auth fully trusts the configured identity headers. Never let a client send them directly to Fable. The only proxy allowed to reach Fable must remove incoming copies and set fresh, verified values after authentication. Restrict direct network access, use HTTPS at the trusted edge, and test that spoofed headers from an unauthenticated client are stripped. Otherwise a client could impersonate another user or inject an admin group.
 </div>
 
 <div class="callout warning">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>Never expose Fable directly to the internet.</strong> Use HTTPS and a properly secured reverse proxy.</li>
+    <li><strong>Never expose Fable directly to the internet.</strong> Use HTTPS and a properly secured reverse proxy; Forward Auth additionally requires network isolation from untrusted clients.</li>
     <li><strong>OIDC requires exact URL and claim configuration.</strong> An incorrect issuer, redirect URI, client credential, scope, or username claim can prevent login or provisioning.</li>
     <li><strong>Local Login remains available to admins.</strong> In OIDC-Only Mode the supported admin entry point is <code>/login?local=true</code>; it still requires the valid local password.</li>
-    <li><strong>Test before switching modes.</strong> Keep a working admin session open until both ordinary and admin OIDC logins have succeeded.</li>
+    <li><strong>Test before switching modes.</strong> Keep a working local admin session open until ordinary/admin OIDC or Forward Auth tests have succeeded, including denied, spoofed-header, and new-user cases.</li>
   </ul>
 </div>
 <nav class="section-nav">
@@ -721,7 +756,7 @@
   <a href="sec24.html" class="nav-link nav-next">Next: 24. Application Settings →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>Fable Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
 </p>
 <script>
