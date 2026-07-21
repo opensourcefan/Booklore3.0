@@ -23,6 +23,7 @@ import {ReadStatusHelper} from '../../../helpers/read-status.helper';
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 import {BookSelectionService} from '../book-selection.service';
 import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
+import {DialogLauncherService} from '../../../../../shared/services/dialog-launcher.service';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -47,6 +48,9 @@ describe('BookCardComponent', () => {
     openMetadataRefreshDialog: ReturnType<typeof vi.fn>;
     openBookDetailsDialog: ReturnType<typeof vi.fn>;
     openFileMoverDialog: ReturnType<typeof vi.fn>;
+  };
+  let dialogLauncherMock: {
+    openIsbnDiscoveryDialog: ReturnType<typeof vi.fn>;
   };
 
   afterEach(() => {
@@ -76,6 +80,9 @@ describe('BookCardComponent', () => {
       openMetadataRefreshDialog: vi.fn(),
       openBookDetailsDialog: vi.fn(),
       openFileMoverDialog: vi.fn(),
+    };
+    dialogLauncherMock = {
+      openIsbnDiscoveryDialog: vi.fn(),
     };
 
     Object.defineProperty(window, 'matchMedia', {
@@ -131,7 +138,14 @@ describe('BookCardComponent', () => {
         { provide: ConfirmationService, useValue: { confirm: vi.fn() } },
         { provide: BookDialogHelperService, useValue: bookDialogHelperMock },
         { provide: BookNavigationService, useValue: {} },
-        { provide: AppSettingsService, useValue: { appSettings$: of({ diskType: 'LOCAL' }) } },
+        {
+          provide: AppSettingsService,
+          useValue: {
+            appSettings$: of({diskType: 'LOCAL'}),
+            getEnabledMetadataProviderNames: vi.fn(() => ['Google']),
+          },
+        },
+        {provide: DialogLauncherService, useValue: dialogLauncherMock},
         {
           provide: TranslocoService,
           useValue: {
@@ -304,7 +318,11 @@ describe('BookCardComponent', () => {
     const reviewHost = fixture.nativeElement.querySelector('.info-btn--review') as HTMLElement;
     const reviewButton = reviewHost.querySelector('button') as HTMLButtonElement;
     expect(reviewHost).toBeTruthy();
-    expect(reviewButton.querySelector('.pi-search')).toBeTruthy();
+    expect(reviewButton.querySelector('.pi-info')).toBeTruthy();
+
+    const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toMatch(/\.info-btn--review[\s\S]*border-color:\s*#f59e0b;[\s\S]*background:\s*#f59e0b;/);
 
     reviewButton.click();
 

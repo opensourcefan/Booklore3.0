@@ -1,0 +1,78 @@
+.isbn-discovery-dialog {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  color: var(--text-color);
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+  }
+
+  p {
+    margin-top: 0.25rem;
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+  }
+}
+
+.header-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 14%, transparent);
+  color: var(--task-color-metadata, #7e22ce);
+  font-size: 1.1rem;
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.25rem;
+
+  label {
+    font-weight: 700;
+  }
+}
+
+:host ::ng-deep .provider-select {
+  width: 100%;
+}
+
+.provider-hint,
+.provider-required {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.provider-hint {
+  color: var(--text-color-secondary);
+}
+
+.provider-required {
+  color: var(--p-red-500, #ef4444);
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 0.85rem 1.25rem 1.1rem;
+  border-top: 1px solid var(--p-content-border-color);
+}

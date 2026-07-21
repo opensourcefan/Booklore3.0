@@ -44,7 +44,7 @@ export interface LibraryRescanOptions {
 export interface TaskCreateRequest {
   taskType: TaskType;
   triggeredByCron?: boolean;
-  options?: LibraryRescanOptions | MetadataRefreshRequest | {bookIds: number[]} | null;
+  options?: LibraryRescanOptions | MetadataRefreshRequest | {bookIds: number[]; providers?: string[]} | null;
 }
 
 export interface TaskCreateResponse {

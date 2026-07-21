@@ -1,0 +1,48 @@
+<ng-container *transloco="let t; prefix: 'book.isbnDiscoveryDialog'">
+  <div class="isbn-discovery-dialog">
+    <header class="dialog-header">
+      <div class="header-icon">
+        <i class="pi pi-barcode" aria-hidden="true"></i>
+      </div>
+      <div>
+        <h2>{{ t('title') }}</h2>
+        <p>{{ t('description', {count}) }}</p>
+      </div>
+    </header>
+
+    <div class="dialog-body">
+      <label for="isbn-discovery-providers">{{ t('providersLabel') }}</label>
+      <p-multiselect
+        inputId="isbn-discovery-providers"
+        [options]="providers"
+        [(ngModel)]="selectedProviders"
+        [filter]="false"
+        [showToggleAll]="true"
+        display="chip"
+        appendTo="body"
+        [placeholder]="t('providersPlaceholder')"
+        styleClass="provider-select">
+      </p-multiselect>
+      <p class="provider-hint">{{ t('providersHint') }}</p>
+      @if (!canConfirm) {
+        <p class="provider-required">{{ t('providerRequired') }}</p>
+      }
+    </div>
+
+    <footer class="dialog-footer">
+      <p-button
+        [label]="t('cancel')"
+        severity="secondary"
+        outlined
+        (onClick)="cancel()">
+      </p-button>
+      <p-button
+        [label]="t('confirm')"
+        icon="pi pi-play"
+        severity="info"
+        [disabled]="!canConfirm"
+        (onClick)="confirm()">
+      </p-button>
+    </footer>
+  </div>
+</ng-container>

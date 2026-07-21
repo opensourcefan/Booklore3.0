@@ -18,6 +18,7 @@ import {AiScanDirectoryDialogComponent} from '../../features/settings/ai-setting
 import {BookdropFinalizeResultDialogComponent} from '../../features/bookdrop/component/bookdrop-finalize-result-dialog/bookdrop-finalize-result-dialog.component';
 import {BookdropFinalizeResult} from '../../features/bookdrop/service/bookdrop.service';
 import {MetadataReviewDialogComponent} from '../../features/metadata/component/metadata-review-dialog/metadata-review-dialog-component';
+import {IsbnDiscoveryDialogComponent} from '../../features/metadata/component/isbn-discovery-dialog/isbn-discovery-dialog.component';
 import {MetadataRefreshType} from '../../features/metadata/model/request/metadata-refresh-type.enum';
 import {MetadataFetchOptionsComponent} from '../../features/metadata/component/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {ShelfEditDialogComponent} from '../../features/book/components/shelf-edit-dialog/shelf-edit-dialog.component';
@@ -279,6 +280,17 @@ export class DialogLauncherService {
       data: {
         taskId,
         initialBookId,
+      },
+    });
+  }
+
+  openIsbnDiscoveryDialog(count: number, providers: string[]): DynamicDialogRef | null {
+    return this.openDialog(IsbnDiscoveryDialogComponent, {
+      showHeader: false,
+      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
+      data: {
+        count,
+        providers,
       },
     });
   }

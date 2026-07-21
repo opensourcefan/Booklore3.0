@@ -686,6 +686,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-20</td><td>1.1.130</td><td>Manual ISBN discovery now includes the standard metadata-provider multi-select, passes only selected providers to the task, and fills previously omitted metadata fields during later provider passes. App <code>v4.16.14</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.129</td><td>The topbar status pill now mirrors purple ISBN Fetch &rarr; green Metadata Fetch progress with a brief red failure state; Staging Review cards expose an orange action that opens the selected book&rsquo;s proposal directly. App <code>v4.16.13</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.128</td><td>ISBN progress now keeps an explicit purple ISBN Fetch &rarr; green Metadata Fetch stage track (red on ISBN failure) in the task card; Staging triage updates live from book events; Dismiss hides task notifications without deleting review proposals. App <code>v4.16.12</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.127</td><td>ISBN discovery also scans last N pages / back cover when front matter has no ISBN; wiping metadata on a Staging Completed book returns it to Staged (clears <code>lastMetadataFetchAt</code> / <code>isbnVerified</code>). App <code>v4.16.11</code>.</td></tr>

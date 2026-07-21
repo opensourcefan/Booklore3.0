@@ -59,12 +59,21 @@ public class IsbnMetadataFillService {
      * first successful provider becomes the base; later providers fill missing fields only.
      */
     public BookMetadata mergeByIsbn(String isbn, BookMetadata existingHints) {
+        return mergeByIsbn(isbn, existingHints, null);
+    }
+
+    public BookMetadata mergeByIsbn(
+            String isbn,
+            BookMetadata existingHints,
+            List<MetadataProvider> selectedProviders) {
         String cleaned = ParserUtils.cleanIsbn(isbn);
         if (!ParserUtils.isValidIsbnChecksum(cleaned)) {
             return null;
         }
 
-        List<MetadataProvider> providers = deriveProviderChain();
+        List<MetadataProvider> providers = selectedProviders == null || selectedProviders.isEmpty()
+                ? deriveProviderChain()
+                : new ArrayList<>(new LinkedHashSet<>(selectedProviders));
         BookMetadata merged = null;
         Book emptyBook = Book.builder().metadata(existingHints).build();
         FetchMetadataRequest request = FetchMetadataRequest.builder()
@@ -120,6 +129,11 @@ public class IsbnMetadataFillService {
      */
     @Transactional
     public IsbnFillOutcome fillBookFromIsbn(long bookId) {
+        return fillBookFromIsbn(bookId, null);
+    }
+
+    @Transactional
+    public IsbnFillOutcome fillBookFromIsbn(long bookId, List<MetadataProvider> selectedProviders) {
         AppSettings settings = appSettingService.getAppSettings();
         if (!settings.isIsbnDiscoveryEnabled()) {
             return IsbnFillOutcome.disabled(bookId);
@@ -172,7 +186,7 @@ public class IsbnMetadataFillService {
 
         emitPhaseProgress(MetadataBatchProgressNotification.PHASE_METADATA_FETCH,
                 "Metadata fetch — book " + bookProgressLabel() + "…");
-        BookMetadata merged = mergeByIsbn(isbn, existing);
+        BookMetadata merged = mergeByIsbn(isbn, existing, selectedProviders);
         if (merged == null) {
             // Verified ISBN with no provider hits: still clear unlocked fields and apply the ISBN.
             // Ambiguous (forceReview) discoveries stay in the review queue.
@@ -318,6 +332,22 @@ public class IsbnMetadataFillService {
         if (target.getGoodreadsReviewCount() == null && source.getGoodreadsReviewCount() != null) target.setGoodreadsReviewCount(source.getGoodreadsReviewCount());
         if (target.getHardcoverRating() == null && source.getHardcoverRating() != null) target.setHardcoverRating(source.getHardcoverRating());
         if (target.getHardcoverReviewCount() == null && source.getHardcoverReviewCount() != null) target.setHardcoverReviewCount(source.getHardcoverReviewCount());
+        if (target.getDoubanRating() == null && source.getDoubanRating() != null) target.setDoubanRating(source.getDoubanRating());
+        if (target.getDoubanReviewCount() == null && source.getDoubanReviewCount() != null) target.setDoubanReviewCount(source.getDoubanReviewCount());
+        if (target.getLubimyczytacRating() == null && source.getLubimyczytacRating() != null) target.setLubimyczytacRating(source.getLubimyczytacRating());
+        if (target.getRanobedbRating() == null && source.getRanobedbRating() != null) target.setRanobedbRating(source.getRanobedbRating());
+        if (target.getAudibleRating() == null && source.getAudibleRating() != null) target.setAudibleRating(source.getAudibleRating());
+        if (target.getAudibleReviewCount() == null && source.getAudibleReviewCount() != null) target.setAudibleReviewCount(source.getAudibleReviewCount());
+        if (target.getRating() == null && source.getRating() != null) target.setRating(source.getRating());
+        if (target.getAgeRating() == null && source.getAgeRating() != null) target.setAgeRating(source.getAgeRating());
+        if (isBlank(target.getContentRating()) && !isBlank(source.getContentRating())) target.setContentRating(source.getContentRating());
+        if (isBlank(target.getExternalUrl()) && !isBlank(source.getExternalUrl())) target.setExternalUrl(source.getExternalUrl());
+        if (target.getAudiobookMetadata() == null && source.getAudiobookMetadata() != null) {
+            target.setAudiobookMetadata(source.getAudiobookMetadata());
+        }
+        if (target.getComicMetadata() == null && source.getComicMetadata() != null) {
+            target.setComicMetadata(source.getComicMetadata());
+        }
         if (isBlank(target.getThumbnailUrl()) && !isBlank(source.getThumbnailUrl())) target.setThumbnailUrl(source.getThumbnailUrl());
         if ((target.getAuthors() == null || target.getAuthors().isEmpty())
                 && source.getAuthors() != null && !source.getAuthors().isEmpty()) {
@@ -334,6 +364,10 @@ public class IsbnMetadataFillService {
         if ((target.getTags() == null || target.getTags().isEmpty())
                 && source.getTags() != null && !source.getTags().isEmpty()) {
             target.setTags(source.getTags());
+        }
+        if ((target.getBookReviews() == null || target.getBookReviews().isEmpty())
+                && source.getBookReviews() != null && !source.getBookReviews().isEmpty()) {
+            target.setBookReviews(new ArrayList<>(source.getBookReviews()));
         }
     }
 

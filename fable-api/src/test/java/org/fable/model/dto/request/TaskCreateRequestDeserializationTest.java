@@ -1,5 +1,6 @@
 package org.fable.model.dto.request;
 
+import org.fable.model.enums.MetadataProvider;
 import org.fable.model.enums.TaskType;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
@@ -17,7 +18,8 @@ class TaskCreateRequestDeserializationTest {
                   "taskType": "ISBN_DISCOVERY",
                   "triggeredByCron": false,
                   "options": {
-                    "bookIds": [12, 34]
+                    "bookIds": [12, 34],
+                    "providers": ["Google", "Hardcover"]
                   }
                 }
                 """;
@@ -28,5 +30,7 @@ class TaskCreateRequestDeserializationTest {
         IsbnDiscoveryRequest options = request.getOptionsAs(IsbnDiscoveryRequest.class);
         assertThat(options).isNotNull();
         assertThat(options.getBookIds()).containsExactly(12L, 34L);
+        assertThat(options.getProviders())
+                .containsExactly(MetadataProvider.Google, MetadataProvider.Hardcover);
     }
 }

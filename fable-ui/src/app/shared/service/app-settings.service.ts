@@ -28,6 +28,11 @@ export interface PublicAppSettings {
 
 @Injectable({providedIn: 'root'})
 export class AppSettingsService {
+  private static readonly METADATA_PROVIDER_FALLBACK = [
+    'Amazon', 'Google', 'GoodReads', 'Hardcover', 'Comicvine',
+    'Douban', 'Lubimyczytac', 'Ranobedb', 'Audible'
+  ];
+
   private http = inject(HttpClient);
 
   private readonly apiUrl = `${API_CONFIG.BASE_URL}/api/v1/settings`;
@@ -77,6 +82,19 @@ export class AppSettingsService {
 
   get currentPublicSettings(): PublicAppSettings | null {
     return this.publicAppSettingsSubject.value;
+  }
+
+  getEnabledMetadataProviderNames(): string[] {
+    const providerSettings = this.currentAppSettings?.metadataProviderSettings;
+    const enabled = Object.entries(providerSettings ?? {})
+      .filter(([, value]) =>
+        !!value && typeof value === 'object' && 'enabled' in value
+        && Boolean((value as {enabled: unknown}).enabled))
+      .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+
+    return enabled.length > 0
+      ? enabled
+      : [...AppSettingsService.METADATA_PROVIDER_FALLBACK];
   }
 
   private fetchAppSettings(): Observable<AppSettings> {

@@ -1,4 +1,14 @@
 {
+  "isbnDiscoveryDialog": {
+    "title": "ISBN Discovery",
+    "description": "Discover ISBNs and fetch metadata for {{ count }} selected book(s).",
+    "providersLabel": "Metadata providers",
+    "providersPlaceholder": "Select providers",
+    "providersHint": "Only selected providers are queried. The first successful result is the base; later providers fill fields that are still missing.",
+    "providerRequired": "Select at least one metadata provider.",
+    "cancel": "Cancel",
+    "confirm": "Start ISBN Discovery"
+  },
   "browser": {
     "confirm": {
       "deleteMessage": "Are you sure you want to delete {{ count }} book(s)?\n\nThis will permanently remove the book files from your filesystem.\n\nThis action cannot be undone.",

@@ -52,11 +52,11 @@ export class TaskHelperService {
     );
   }
 
-  isbnDiscoveryTask(bookIds: number[]) {
+  isbnDiscoveryTask(bookIds: number[], providers?: string[]) {
     const request: TaskCreateRequest = {
       taskType: TaskType.ISBN_DISCOVERY,
       triggeredByCron: false,
-      options: {bookIds}
+      options: {bookIds, providers}
     };
     return this.taskService.startTask(request).pipe(
       map((response): StartedTaskResult => {

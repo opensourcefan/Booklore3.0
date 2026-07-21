@@ -33,6 +33,7 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
+import {DialogLauncherService} from '../../../../../shared/services/dialog-launcher.service';
 
 import {AiSearchDialogService} from '../../ai-search-dialog/ai-search-dialog.component';
 import {BookSelectionService} from '../book-selection.service';
@@ -128,6 +129,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private bookNavigationService = inject(BookNavigationService);
   private cdr = inject(ChangeDetectorRef);
   private appSettingsService = inject(AppSettingsService);
+  private dialogLauncherService = inject(DialogLauncherService);
   private readonly t = inject(TranslocoService);
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(Injector);
@@ -898,24 +900,17 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             label: this.t.translate('book.card.menu.isbnDiscovery'),
             icon: 'pi pi-barcode',
             command: () => {
-              this.confirmationService.confirm({
-                message: this.t.translate('book.menuService.confirm.isbnDiscoveryMessage', {count: 1}),
-                header: this.t.translate('book.menuService.confirm.isbnDiscoveryHeader'),
-                icon: 'pi pi-barcode',
-                acceptLabel: this.t.translate('common.confirm'),
-                rejectLabel: this.t.translate('common.cancel'),
-                acceptButtonProps: {
-                  label: this.t.translate('common.confirm'),
-                  severity: 'info'
-                },
-                rejectButtonProps: {
-                  label: this.t.translate('common.cancel'),
-                  severity: 'secondary'
-                },
-                accept: () => {
-                  this.taskHelperService.isbnDiscoveryTask([book.id]).subscribe();
-                }
-              });
+              const dialogRef = this.dialogLauncherService.openIsbnDiscoveryDialog(
+                1,
+                this.appSettingsService.getEnabledMetadataProviderNames()
+              );
+              dialogRef?.onClose
+                .pipe(take(1), takeUntil(this.destroy$))
+                .subscribe((providers: string[] | undefined) => {
+                  if (providers?.length) {
+                    this.taskHelperService.isbnDiscoveryTask([book.id], providers).subscribe();
+                  }
+                });
             }
           }] : []),
           {

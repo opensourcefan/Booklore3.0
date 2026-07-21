@@ -113,7 +113,8 @@ public class IsbnDiscoveryTask implements Task {
 
             MetadataTaskContext.set(taskId, completed, total, reviewCount > 0);
             try {
-                IsbnMetadataFillService.IsbnFillOutcome outcome = isbnMetadataFillService.fillBookFromIsbn(bookId);
+                IsbnMetadataFillService.IsbnFillOutcome outcome =
+                        isbnMetadataFillService.fillBookFromIsbn(bookId, options != null ? options.getProviders() : null);
                 if (outcome.status() == IsbnMetadataFillService.IsbnFillOutcome.Status.NEEDS_REVIEW
                         && outcome.metadata() != null) {
                     MetadataFetchProposalEntity proposal = MetadataFetchProposalEntity.builder()

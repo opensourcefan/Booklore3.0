@@ -203,14 +203,15 @@
 
 .info-btn--review {
   ::ng-deep .p-button {
-    border-color: var(--p-orange-600, #ea580c);
-    background: var(--p-orange-600, #ea580c);
-    color: #fff;
+    border-color: #f59e0b;
+    background: #f59e0b;
+    color: #111;
 
     &:hover,
     &:focus-visible {
-      border-color: var(--p-orange-700, #c2410c);
-      background: var(--p-orange-700, #c2410c);
+      border-color: #d97706;
+      background: #d97706;
+      color: #fff;
     }
   }
 }

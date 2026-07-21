@@ -19,7 +19,7 @@ import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
-import {catchError, debounceTime, filter, map, shareReplay, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {catchError, debounceTime, filter, map, shareReplay, switchMap, take, takeUntil, tap} from 'rxjs/operators';
 import {BehaviorSubject, combineLatest, interval, Observable, of, Subject, Subscription} from 'rxjs';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
@@ -2441,29 +2441,23 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const count = this.selectedBooks.size;
-    this.confirmationService.confirm({
-      message: this.t.translate('book.menuService.confirm.isbnDiscoveryMessage', {count}),
-      header: this.t.translate('book.menuService.confirm.isbnDiscoveryHeader'),
-      icon: 'pi pi-barcode',
-      acceptLabel: this.t.translate('common.confirm'),
-      rejectLabel: this.t.translate('common.cancel'),
-      acceptButtonProps: {
-        label: this.t.translate('common.confirm'),
-        severity: 'info'
-      },
-      rejectButtonProps: {
-        label: this.t.translate('common.cancel'),
-        severity: 'secondary'
-      },
-      accept: () => {
-        this.taskHelperService.isbnDiscoveryTask(Array.from(this.selectedBooks)).subscribe(result => {
+    const bookIds = Array.from(this.selectedBooks);
+    const dialogRef = this.dialogLauncherService.openIsbnDiscoveryDialog(
+      bookIds.length,
+      this.appSettingsService.getEnabledMetadataProviderNames()
+    );
+    dialogRef?.onClose
+      .pipe(take(1), takeUntil(this.destroy$))
+      .subscribe((providers: string[] | undefined) => {
+        if (!providers?.length) {
+          return;
+        }
+        this.taskHelperService.isbnDiscoveryTask(bookIds, providers).subscribe(result => {
           if (result.success) {
             this.deselectAllBooks();
           }
         });
-      }
-    });
+      });
   }
 
   fetchMetadata(): void {
