@@ -98,7 +98,7 @@
     @if (showMetadataFetchStatus) {
       <button type="button" class="topbar-metadata-fetch-status" [ngClass]="metadataFetchStatusClasses" (click)="openMetadataFetchLog()">
         <i [ngClass]="metadataFetchIconClass"></i>
-        <span class="topbar-metadata-fetch-label">{{ t('metadataFetch') }}</span>
+        <span class="topbar-metadata-fetch-label">{{ metadataFetchLabel }}</span>
         <span class="topbar-metadata-fetch-summary">{{ metadataFetchSummary }}</span>
       </button>
     }

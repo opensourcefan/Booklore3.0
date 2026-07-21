@@ -287,6 +287,51 @@ describe('BookCardComponent', () => {
     expect(document.documentElement.style.overflow).toBe('');
   });
 
+  it('turns the details control into an orange review action when requested by Staging Review', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const book = createBook({
+      id: 81,
+      metadata: {title: 'Needs Review'} as Book['metadata'],
+      primaryFile: {id: 1, bookId: 81, fileName: 'needs-review.epub', bookType: 'EPUB'},
+    });
+    component.book = book;
+    component.reviewActionEnabled = true;
+    const reviewSpy = vi.spyOn(component.reviewRequested, 'emit');
+
+    fixture.detectChanges();
+
+    const reviewHost = fixture.nativeElement.querySelector('.info-btn--review') as HTMLElement;
+    const reviewButton = reviewHost.querySelector('button') as HTMLButtonElement;
+    expect(reviewHost).toBeTruthy();
+    expect(reviewButton.querySelector('.pi-search')).toBeTruthy();
+
+    reviewButton.click();
+
+    expect(reviewSpy).toHaveBeenCalledWith(book);
+    expect(bookDialogHelperMock.openBookDetailsDialog).not.toHaveBeenCalled();
+  });
+
+  it('keeps the normal details action in Phone Mode', () => {
+    const mobileUx = TestBed.inject(MobileUxService);
+    const phoneSpy = vi.spyOn(mobileUx, 'isPhone', 'get').mockReturnValue(true);
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    component.book = createBook({
+      id: 82,
+      metadata: {title: 'Phone Details'} as Book['metadata'],
+      primaryFile: {id: 1, bookId: 82, fileName: 'phone-details.epub', bookType: 'EPUB'},
+    });
+    component.reviewActionEnabled = true;
+
+    fixture.detectChanges();
+
+    expect(component.isReviewActionEnabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('.info-btn--review')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.info-btn .pi-info')).toBeTruthy();
+    phoneSpy.mockRestore();
+  });
+
   it('closes the inline mobile preview on popstate for Android back gesture support', () => {
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;

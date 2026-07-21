@@ -57,7 +57,12 @@ import {MagicShelf} from '../../../magic-shelf/service/magic-shelf.service';
 import {SidebarFilterTogglePrefService} from './filters/sidebar-filter-toggle-pref.service';
 import {MetadataRefreshType} from '../../../metadata/model/request/metadata-refresh-type.enum';
 import {TaskHelperService} from '../../../settings/task-management/task-helper.service';
-import {MetadataTaskService, StagingTriage, StagingTriageMode} from '../../service/metadata-task';
+import {
+  MetadataTaskService,
+  PendingMetadataReviewTask,
+  StagingTriage,
+  StagingTriageMode
+} from '../../service/metadata-task';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {MetadataProgressService} from '../../../../shared/service/metadata-progress.service';
 import {FilterLabelHelper} from './filter-label.helper';
@@ -97,7 +102,7 @@ import {
   GridViewportContext,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
-import {filterBooksByStagingTriage} from './staging-triage.filter';
+import {filterBooksByStagingTriage, findReviewTaskIdForBook} from './staging-triage.filter';
 import { ProgressBar } from 'primeng/progressbar';
 import { AiSearchDialogService } from '../ai-search-dialog/ai-search-dialog.component';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
@@ -240,6 +245,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private stagingCompletedBookIds = new Set<number>();
   private pendingReviewBookIds = new Set<number>();
   private pendingReviewPrimaryTaskId: string | null = null;
+  private pendingReviewTasks: PendingMetadataReviewTask[] = [];
   private lastStagingTriageSignature = '';
   aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isAiSearchActive = false;
@@ -1054,7 +1060,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           this.stagingInboxBookIds = new Set(triage.stagingBookIds ?? []);
           this.stagingCompletedBookIds = new Set(triage.completedBookIds ?? []);
           this.pendingReviewBookIds = new Set(triage.reviewBookIds ?? []);
-          this.pendingReviewPrimaryTaskId = triage.reviewTasks?.[0]?.taskId ?? null;
+          this.pendingReviewTasks = triage.reviewTasks ?? [];
+          this.pendingReviewPrimaryTaskId = this.pendingReviewTasks[0]?.taskId ?? null;
 
           if (this.stagingTriageMode === 'review' && this.pendingReviewCount === 0) {
             this.stagingTriageMode = 'staging';
@@ -1128,6 +1135,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.dialogLauncherService.openMetadataReviewDialog(this.pendingReviewPrimaryTaskId);
+  }
+
+  openBookMetadataReview(book: Book): void {
+    if (this.entityType !== EntityType.STAGING || this.stagingTriageMode !== 'review') {
+      return;
+    }
+    const taskId = findReviewTaskIdForBook(this.pendingReviewTasks, book.id);
+    if (!taskId) {
+      return;
+    }
+    this.dialogLauncherService.openMetadataReviewDialog(taskId, book.id);
   }
 
   get canShowStagingTriageChrome(): boolean {

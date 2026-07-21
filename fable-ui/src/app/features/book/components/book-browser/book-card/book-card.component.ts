@@ -69,6 +69,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Output() checkboxClick = new EventEmitter<{ index: number; book: Book; selected: boolean; shiftKey: boolean }>();
   @Output() menuToggled = new EventEmitter<boolean>();
   @Output() titleAreaActivated = new EventEmitter<Book>();
+  @Output() reviewRequested = new EventEmitter<Book>();
 
   @Input() index!: number;
   @Input() book!: Book;
@@ -85,6 +86,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() forceFileNameTitle = false;
   @Input() titleAreaInteractive = false;
   @Input() mobileViewerBooksContext: Book[] | null = null;
+  @Input() reviewActionEnabled = false;
 
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
   screenHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
@@ -362,6 +364,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     const shortEdge = Math.min(this.screenWidth, this.screenHeight);
     const longEdge = Math.max(this.screenWidth, this.screenHeight);
     return shortEdge <= this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+  }
+
+  get isReviewActionEnabled(): boolean {
+    return this.reviewActionEnabled && !this.mobileUx.isPhone;
   }
 
   /**
@@ -1233,6 +1239,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     } else {
       this.bookDialogHelperService.openBookDetailsDialog(book.id);
     }
+  }
+
+  onInfoAction(book: Book): void {
+    if (this.isReviewActionEnabled) {
+      this.reviewRequested.emit(book);
+      return;
+    }
+    this.openBookInfo(book);
   }
 
   private getDownloadMenuItems(book: Book): MenuItem[] {

@@ -98,13 +98,21 @@ describe('MetadataReviewDialogComponent', () => {
     clearNotification: vi.fn(),
   };
 
+  const dialogConfigMock = {
+    data: {
+      taskId: 'task-1',
+      initialBookId: undefined as number | undefined,
+    },
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    dialogConfigMock.data.initialBookId = undefined;
 
     await TestBed.configureTestingModule({
       imports: [MetadataReviewDialogComponent],
       providers: [
-        {provide: DynamicDialogConfig, useValue: {data: {taskId: 'task-1'}}},
+        {provide: DynamicDialogConfig, useValue: dialogConfigMock},
         {provide: DynamicDialogRef, useValue: dialogRefMock},
         {provide: MetadataTaskService, useValue: metadataTaskServiceMock},
         {
@@ -145,6 +153,15 @@ describe('MetadataReviewDialogComponent', () => {
 
     expect(component.proposals.map(proposal => proposal.proposalId)).toEqual([2, 3, 1]);
     expect(component.currentProposal?.proposalId).toBe(2);
+  });
+
+  it('starts on the book selected from the Staging Review card', () => {
+    dialogConfigMock.data.initialBookId = 22;
+
+    const {component} = createComponent();
+
+    expect(component.currentIndex).toBe(1);
+    expect(component.currentProposal?.bookId).toBe(22);
   });
 
   it('copy-all save-and-next waits for the save and accept calls before advancing', () => {

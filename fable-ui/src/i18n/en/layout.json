@@ -45,6 +45,8 @@
     "metadataFetchCompleted": "Completed",
     "metadataFetchCancelled": "Cancelled",
     "metadataFetchFailed": "Failed",
+    "isbnFetch": "ISBN Fetch",
+    "isbnFetchFailed": "ISBN Failed",
     "metadataFetchLogTitle": "Metadata Fetch Log",
     "metadataFetchLogLoading": "Loading metadata fetch log...",
     "metadataFetchLogLoadFailed": "Fable could not load the metadata fetch log right now.",

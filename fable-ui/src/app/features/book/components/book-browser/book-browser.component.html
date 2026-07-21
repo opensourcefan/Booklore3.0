@@ -924,9 +924,11 @@
                               [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
                               [showSubtitle]="showSubtitles"
                               [forceFileNameTitle]="isDirectoryScopedView"
+                              [reviewActionEnabled]="stagingTriageMode === 'review'"
                               (checkboxClick)="onCheckboxClicked($event)"
                               (bookClicked)="onBookClicked($event)"
                               (bookHoverEnded)="onBookHoverEnded($event)"
+                              (reviewRequested)="openBookMetadataReview($event)"
                               [isSelected]="selectedBooks.has(book.id)"
                               [useSquareCovers]="isAudiobookOnlyLibrary"
                               [overlayPreferenceService]="bookCardOverlayPreferenceService">

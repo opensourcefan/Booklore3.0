@@ -22,7 +22,10 @@ import {Popover} from 'primeng/popover';
 import {MetadataProgressService} from '../../../service/metadata-progress.service';
 import {filter, takeUntil, catchError} from 'rxjs/operators';
 import {Subject, Subscription, of, interval} from 'rxjs';
-import {MetadataBatchProgressNotification} from '../../../model/metadata-batch-progress.model';
+import {
+  MetadataBatchPhase,
+  MetadataBatchProgressNotification
+} from '../../../model/metadata-batch-progress.model';
 import {BookdropFileService} from '../../../../features/bookdrop/service/bookdrop-file.service';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {UnifiedNotificationBoxComponent} from '../../../components/unified-notification-popover/unified-notification-popover-component';
@@ -52,6 +55,7 @@ import {
   clearFullscreenTransientPointerUi
 } from '../../../util/fullscreen.util';
 import {GhostClickGuard, OVERLAY_GHOST_CLICK_MS} from '../../../util/overlay-dismiss.util';
+import {selectTopbarMetadataPhase} from './topbar-metadata-phase.util';
 
 @Component({
   selector: 'app-topbar',
@@ -152,11 +156,14 @@ export class AppTopBarComponent implements OnDestroy {
   private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private directoryTagDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private metadataFetchDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private topbarIsbnFailedTimer: ReturnType<typeof setTimeout> | undefined;
   private writeDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private aiSearchSingleDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
+  private topbarMetadataPhase: MetadataBatchPhase | null = null;
+  private topbarIsbnFailedLockedUntil = 0;
   private latestHasPendingFiles = false;
   private latestNotificationSeverity?: Severity;
   hasActiveLogNotification = false;
@@ -210,6 +217,7 @@ export class AppTopBarComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((tasks) => {
         this.latestTasks = tasks;
+        this.syncTopbarMetadataPhase();
         this.hasAnyTasks = Object.keys(tasks).length > 0;
         this.updateCompletedTaskCount();
         this.updateTaskVisibility(tasks);
@@ -353,6 +361,7 @@ export class AppTopBarComponent implements OnDestroy {
       )
       .subscribe(progress => {
         this.metadataFetchProgress = progress;
+        this.syncTopbarMetadataPhase();
         clearTimeout(this.metadataFetchDismissTimer);
         if (
           progress.taskStatus === TaskStatus.COMPLETED ||
@@ -430,6 +439,7 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.importDismissTimer);
     clearTimeout(this.directoryTagDismissTimer);
     clearTimeout(this.metadataFetchDismissTimer);
+    clearTimeout(this.topbarIsbnFailedTimer);
     clearTimeout(this.writeDismissTimer);
 
     this.searchActiveSub?.unsubscribe();
@@ -946,11 +956,15 @@ export class AppTopBarComponent implements OnDestroy {
 
   get metadataFetchStatusClasses(): Record<string, boolean> {
     const progress = this.displayedMetadataFetchProgress;
+    const phase = this.mobileUx.isPhone ? null : this.topbarMetadataPhase;
     return {
       'topbar-metadata-fetch-paused': this.isMetadataFetchPaused,
       'topbar-metadata-fetch-complete': progress?.taskStatus === TaskStatus.COMPLETED,
       'topbar-metadata-fetch-cancelled': progress?.taskStatus === TaskStatus.CANCELLED,
       'topbar-metadata-fetch-failed': progress?.taskStatus === TaskStatus.FAILED,
+      'topbar-metadata-fetch-phase-isbn': phase === MetadataBatchPhase.ISBN_DISCOVERY,
+      'topbar-metadata-fetch-phase-metadata': phase === MetadataBatchPhase.METADATA_FETCH,
+      'topbar-metadata-fetch-phase-isbn-failed': phase === MetadataBatchPhase.ISBN_FAILED,
     };
   }
 
@@ -1004,7 +1018,23 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get metadataFetchIconClass(): string {
+    if (!this.mobileUx.isPhone) {
+      if (this.topbarMetadataPhase === MetadataBatchPhase.ISBN_DISCOVERY) return 'pi pi-barcode';
+      if (this.topbarMetadataPhase === MetadataBatchPhase.ISBN_FAILED) return 'pi pi-times-circle';
+    }
     return this.isMetadataFetchPaused ? 'pi pi-pause-circle' : 'pi pi-cloud-download';
+  }
+
+  get metadataFetchLabel(): string {
+    if (!this.mobileUx.isPhone) {
+      if (this.topbarMetadataPhase === MetadataBatchPhase.ISBN_DISCOVERY) {
+        return this.translocoService.translate('layout.topbar.isbnFetch');
+      }
+      if (this.topbarMetadataPhase === MetadataBatchPhase.ISBN_FAILED) {
+        return this.translocoService.translate('layout.topbar.isbnFetchFailed');
+      }
+    }
+    return this.translocoService.translate('layout.topbar.metadataFetch');
   }
 
   get fullscreenTooltip(): string {
@@ -1298,6 +1328,38 @@ export class AppTopBarComponent implements OnDestroy {
       totalSteps: activeTask.total,
       taskStatus: TaskStatus.IN_PROGRESS,
     };
+  }
+
+  private syncTopbarMetadataPhase(): void {
+    const incomingPhase = this.resolveTopbarMetadataPhase();
+    const now = Date.now();
+
+    if (incomingPhase === MetadataBatchPhase.ISBN_FAILED) {
+      this.topbarMetadataPhase = MetadataBatchPhase.ISBN_FAILED;
+      this.topbarIsbnFailedLockedUntil = now + 2500;
+      clearTimeout(this.topbarIsbnFailedTimer);
+      this.topbarIsbnFailedTimer = setTimeout(() => {
+        this.topbarIsbnFailedLockedUntil = 0;
+        this.topbarIsbnFailedTimer = undefined;
+        this.syncTopbarMetadataPhase();
+      }, 2500);
+      return;
+    }
+
+    if (this.topbarIsbnFailedLockedUntil > now) {
+      this.topbarMetadataPhase = MetadataBatchPhase.ISBN_FAILED;
+      return;
+    }
+
+    clearTimeout(this.topbarIsbnFailedTimer);
+    this.topbarIsbnFailedTimer = undefined;
+    this.topbarIsbnFailedLockedUntil = 0;
+    this.topbarMetadataPhase = incomingPhase;
+  }
+
+  private resolveTopbarMetadataPhase(): MetadataBatchPhase | null {
+    const displayedTaskId = this.displayedMetadataFetchProgress?.taskId;
+    return selectTopbarMetadataPhase(this.latestTasks, displayedTaskId);
   }
 
   private getMetadataFetchResumeAt(): string | null {

@@ -364,6 +364,24 @@
     background: rgba(185, 28, 28, 0.08);
     color: var(--p-red-700, #b91c1c);
   }
+
+  &.topbar-metadata-fetch-phase-isbn {
+    border-color: var(--task-color-metadata, var(--p-purple-700, #7e22ce));
+    background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 8%, transparent);
+    color: var(--task-color-metadata, var(--p-purple-700, #7e22ce));
+  }
+
+  &.topbar-metadata-fetch-phase-metadata {
+    border-color: var(--p-green-700, #15803d);
+    background: rgba(21, 128, 61, 0.08);
+    color: var(--p-green-700, #15803d);
+  }
+
+  &.topbar-metadata-fetch-phase-isbn-failed {
+    border-color: var(--p-red-700, #b91c1c);
+    background: rgba(185, 28, 28, 0.08);
+    color: var(--p-red-700, #b91c1c);
+  }
 }
 
 .topbar-metadata-fetch-label {

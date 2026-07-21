@@ -67,7 +67,15 @@
     @if (_isSeriesViewActive) {
       <p-button [rounded]="true" icon="pi pi-info" class="info-btn" (click)="openSeriesInfo()" [ariaLabel]="'book.card.alt.viewSeriesInfo' | transloco"></p-button>
     } @else {
-      <p-button [rounded]="true" icon="pi pi-info" class="info-btn" (click)="openBookInfo(book)" [ariaLabel]="'book.card.alt.viewDetails' | transloco">
+      <p-button
+        [rounded]="true"
+        [icon]="isReviewActionEnabled ? 'pi pi-search' : 'pi pi-info'"
+        class="info-btn"
+        [class.info-btn--review]="isReviewActionEnabled"
+        (click)="onInfoAction(book)"
+        [pTooltip]="isReviewActionEnabled ? ('book.labels.openMetadataReview' | transloco) : ''"
+        tooltipPosition="top"
+        [ariaLabel]="(isReviewActionEnabled ? 'book.labels.openMetadataReview' : 'book.card.alt.viewDetails') | transloco">
       </p-button>
     }
 

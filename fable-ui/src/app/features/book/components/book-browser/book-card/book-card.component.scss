@@ -201,6 +201,20 @@
   top: 21%;
 }
 
+.info-btn--review {
+  ::ng-deep .p-button {
+    border-color: var(--p-orange-600, #ea580c);
+    background: var(--p-orange-600, #ea580c);
+    color: #fff;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--p-orange-700, #c2410c);
+      background: var(--p-orange-700, #c2410c);
+    }
+  }
+}
+
 .read-btn {
   bottom: 21%;
 }

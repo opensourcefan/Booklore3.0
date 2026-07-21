@@ -272,12 +272,13 @@ export class DialogLauncherService {
     });
   }
 
-  openMetadataReviewDialog(taskId: string): DynamicDialogRef | null {
+  openMetadataReviewDialog(taskId: string, initialBookId?: number): DynamicDialogRef | null {
     return this.openDialog(MetadataReviewDialogComponent, {
       showHeader: false,
       styleClass: `${DialogSize.FULL} ${DialogStyle.MINIMAL}`,
       data: {
         taskId,
+        initialBookId,
       },
     });
   }

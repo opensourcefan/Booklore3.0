@@ -1,5 +1,5 @@
 import {Book} from '../../model/book.model';
-import {StagingTriageMode} from '../../service/metadata-task';
+import {PendingMetadataReviewTask, StagingTriageMode} from '../../service/metadata-task';
 
 /**
  * Exclusive Staging triage filter used by the Staging browser tabs.
@@ -27,4 +27,11 @@ export function filterBooksByStagingTriage(
   }
 
   return source.filter(book => allowedIds.has(book.id));
+}
+
+export function findReviewTaskIdForBook(
+  tasks: PendingMetadataReviewTask[],
+  bookId: number
+): string | null {
+  return tasks.find(task => task.bookIds.includes(bookId))?.taskId ?? null;
 }

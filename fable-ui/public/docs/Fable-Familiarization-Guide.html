@@ -1814,11 +1814,13 @@
 <h3>Metadata Review Queue</h3>
 <ul>
   <li>The fetched-proposal dialog is titled <strong>Metadata Review</strong></li>
+  <li>In Staging &rarr; Review, each card&rsquo;s center Details control becomes an orange <strong>Review</strong> action; it opens the review dialog directly on that book&rsquo;s proposal</li>
   <li>In the Search Metadata detail comparison view, use the always-visible top control rail <i class="pi pi-angle-double-left guide-icon-inline"></i> buttons to copy missing fields or copy all fetched fields into the editable column</li>
   <li>Use <strong>Skip</strong> to move the current proposal to the end of the current review queue and jump straight to the next proposal</li>
   <li>Use the orange <strong>Copy All, Save & Next</strong> action in the top comparison header to run the common review routine in one step</li>
   <li><strong>Accept & Save</strong> waits for the metadata save itself to finish before the proposal is marked accepted, keeping the review queue and saved data in sync</li>
   <li>Use <strong>Tag & Next</strong> <i class="pi pi-tag guide-icon-inline"></i> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
+  <li>ISBN discovery is shown in both the topbar status pill and the task card: purple <strong>ISBN Fetch</strong> changes to green <strong>Metadata Fetch</strong>, with a brief red <strong>ISBN Failed</strong> state when discovery fails.</li>
   <li>Use <strong>Dismiss</strong> <i class="pi pi-times guide-icon-inline"></i> to hide a metadata-progress notification. Dismissing never deletes review proposals; review management remains in Staging &rarr; Review.</li>
   <li>In Search Metadata detail mode, <strong>Lock All</strong> <i class="pi pi-lock guide-icon-inline"></i>, <strong>Unlock All</strong> <i class="pi pi-lock guide-icon-inline"></i>, and <strong>Save Changes</strong> <i class="pi pi-save guide-icon-inline"></i> stay pinned in the top control rail so they remain reachable while scrolling</li>
   <li><strong>Finish & Close</strong> <i class="pi pi-check guide-icon-inline"></i> clears the matching topbar notification/task state when the review session is complete</li>
@@ -2718,7 +2720,8 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
-  <tr><td>2026-07-20</td><td>1.1.128</td><td>ISBN progress now keeps an explicit purple ISBN Fetch &rarr; green Metadata Fetch stage track (red on ISBN failure); Staging triage updates live from book events; Dismiss hides task notifications without deleting review proposals. App <code>v4.16.12</code>.</td></tr>
+  <tr><td>2026-07-20</td><td>1.1.129</td><td>The topbar status pill now mirrors purple ISBN Fetch &rarr; green Metadata Fetch progress with a brief red failure state; Staging Review cards expose an orange action that opens the selected book&rsquo;s proposal directly. App <code>v4.16.13</code>.</td></tr>
+  <tr><td>2026-07-20</td><td>1.1.128</td><td>ISBN progress now keeps an explicit purple ISBN Fetch &rarr; green Metadata Fetch stage track (red on ISBN failure) in the task card; Staging triage updates live from book events; Dismiss hides task notifications without deleting review proposals. App <code>v4.16.12</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.127</td><td>ISBN discovery also scans last N pages / back cover when front matter has no ISBN; wiping metadata on a Staging Completed book returns it to Staged (clears <code>lastMetadataFetchAt</code> / <code>isbnVerified</code>). App <code>v4.16.11</code>.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.126</td><td>Staging header tabs: label <strong>Staged</strong>; order <strong>Staged / Review | Completed / Release</strong>; Review orange; Completed and Release green; Release action beside Completed.</td></tr>
   <tr><td>2026-07-20</td><td>1.1.125</td><td>ISBN discovery PDF scan: OCR pages that lack ISBN-like text (not only blank pages), higher OCR DPI/PNG, spaced/OCR-tolerant ISBN matching so copyright-page ISBNs (e.g. page 4) are found when the AI Search OCR sidecar is available.</td></tr>

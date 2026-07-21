@@ -58,6 +58,7 @@ export class MetadataReviewDialogComponent implements OnInit {
 
   ngOnInit() {
     const taskId = this.config.data?.taskId;
+    const initialBookId = this.config.data?.initialBookId;
     if (!taskId) {
       this.dialogRef.close();
       return;
@@ -81,8 +82,11 @@ export class MetadataReviewDialogComponent implements OnInit {
                 return map;
               }, {} as Record<number, Book>);
               this.loading = false;
-              this.currentIndex = 0;
-              this.currentIndexSubject.next(0);
+              const requestedIndex = typeof initialBookId === 'number'
+                ? this.proposals.findIndex(proposal => proposal.bookId === initialBookId)
+                : -1;
+              this.currentIndex = requestedIndex >= 0 ? requestedIndex : 0;
+              this.currentIndexSubject.next(this.currentIndex);
               this.initialized = true;
             } else if (!this.initialized) {
               this.loading = true;

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {Book} from '../../model/book.model';
-import {filterBooksByStagingTriage} from './staging-triage.filter';
+import {filterBooksByStagingTriage, findReviewTaskIdForBook} from './staging-triage.filter';
 
 function book(id: number): Book {
   return {id} as Book;
@@ -41,5 +41,15 @@ describe('filterBooksByStagingTriage', () => {
   it('returns empty when the selected bucket has no matching loaded books', () => {
     expect(filterBooksByStagingTriage(books, 'completed', inbox, new Set(), review))
       .toEqual([]);
+  });
+
+  it('finds the review task containing the selected card book', () => {
+    const tasks = [
+      {taskId: 'task-a', proposalCount: 2, bookIds: [4, 5]},
+      {taskId: 'task-b', proposalCount: 1, bookIds: [9]},
+    ];
+
+    expect(findReviewTaskIdForBook(tasks, 9)).toBe('task-b');
+    expect(findReviewTaskIdForBook(tasks, 99)).toBeNull();
   });
 });
