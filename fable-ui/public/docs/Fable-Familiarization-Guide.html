@@ -1607,7 +1607,8 @@
 <table>
   <tr><th>Feature</th><th>Description</th></tr>
   <tr><td><i class="pi pi-copy"></i> Page navigation</td><td>Go to any page, use forward/back arrows, or type a page number</td></tr>
-  <tr><td><i class="pi pi-list"></i> Table of contents</td><td>Jump to chapters using the built-in outline (if the PDF has one)</td></tr>
+  <tr><td><i class="pi pi-bars"></i> Contents &amp; bookmarks panel</td><td>Open the left panel to jump by page or browse named bookmarks</td></tr>
+  <tr><td><i class="pi pi-list"></i> PDF outline / thumbs</td><td>Built-in PDF.js sidebar for the document outline and thumbnails (if present)</td></tr>
   <tr><td><i class="pi pi-images"></i> Page thumbnails</td><td>See small previews of all pages for quick navigation</td></tr>
   <tr><td><i class="pi pi-search-plus"></i> Zoom</td><td>Zoom in and out for easier reading</td></tr>
   <tr><td><i class="pi pi-pencil"></i> Highlights</td><td>Select text and highlight it in different colors</td></tr>
@@ -1631,7 +1632,7 @@
   <tr><td><i class="pi pi-list"></i> Chapter navigation</td><td>Use the table of contents to jump between chapters</td></tr>
   <tr><td><i class="pi pi-search-plus"></i> Adjust font size</td><td>Make text larger or smaller for comfortable reading</td></tr>
   <tr><td><i class="pi pi-arrows-v"></i> Adjust line spacing</td><td>Increase or decrease space between lines</td></tr>
-  <tr><td><i class="pi pi-bookmark"></i> Bookmarks</td><td>Save your place in the book</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Bookmarks</td><td>Name a marker for the current location; list and jump from the left sidebar</td></tr>
   <tr><td><i class="pi pi-pencil"></i> Highlights</td><td>Select text and highlight in colors</td></tr>
   <tr><td><i class="pi pi-comment"></i> Annotations</td><td>Write notes attached to highlighted text</td></tr>
   <tr><td><i class="pi pi-chart-bar"></i> Reading progress</td><td>Automatically tracked</td></tr>
@@ -1734,12 +1735,8 @@
 
 <table>
   <tr><th>Feature</th><th>Description</th></tr>
-  <tr><td><i class="pi pi-list"></i> Track listing</td><td>See all tracks/chapters in the audiobook</td></tr>
-  <tr><td><i class="pi pi-play"></i> Play / Pause</td><td>Standard audio controls</td></tr>
-  <tr><td><i class="pi pi-forward"></i> Seek / Scrub</td><td>Jump forward or backward within a track</td></tr>
-  <tr><td><i class="pi pi-step-forward"></i> Chapter navigation</td><td>Skip between tracks/chapters</td></tr>
-  <tr><td><i class="pi pi-forward"></i> Playback speed</td><td>Choose 0.5&times; through 2&times;</td></tr>
-  <tr><td><i class="pi pi-bookmark"></i> Position bookmarks</td><td>Save and return to a listening position, including its track when applicable</td></tr>
+  <tr><td><i class="pi pi-bars"></i> Left panel</td><td>Tracks/chapters and named bookmarks in one left sidebar (same pattern as other readers)</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Position bookmarks</td><td>Name a listening position (including track when applicable) and jump back from the left panel or Notebook</td></tr>
   <tr><td><i class="pi pi-clock"></i> Sleep timer</td><td>Stop after 15, 30, 45, or 60 minutes, or at the end of the chapter</td></tr>
   <tr><td><i class="pi pi-clock"></i> Duration display</td><td>See total and remaining time</td></tr>
   <tr><td><i class="pi pi-chart-bar"></i> Progress tracking</td><td>Automatically saves your listening position</td></tr>
@@ -1768,10 +1765,10 @@
 <h4>Bookmarks</h4>
 <p>Simple position markers with an optional label. Use them to mark pages you want to return to.</p>
 <ul>
-  <li><strong>Create:</strong> While reading, click the bookmark icon <i class="pi pi-bookmark guide-icon-inline"></i> at your current position</li>
-  <li><strong>Label:</strong> Give bookmarks descriptive names (e.g., &ldquo;Important chapter&rdquo;)</li>
-  <li><strong>Color coding:</strong> Assign colors to categorize bookmarks <i class="pi pi-palette guide-icon-inline"></i></li>
-  <li><strong>Navigate:</strong> Click any bookmark to jump back to that spot</li>
+  <li><strong>Create:</strong> While reading or listening, click the bookmark icon <i class="pi pi-bookmark guide-icon-inline"></i> at your current position and give it a name</li>
+  <li><strong>Label:</strong> Use descriptive names (e.g., &ldquo;Important chapter&rdquo;). A default title is offered if you leave the field blank</li>
+  <li><strong>Find in-reader:</strong> Open the left panel Bookmarks tab to jump or delete</li>
+  <li><strong>Navigate from Notebook:</strong> Click any bookmark to open the correct page or listening position</li>
   <li><strong>Delete:</strong> Remove bookmarks when no longer needed <i class="pi pi-trash guide-icon-inline"></i></li>
 </ul>
 
@@ -3377,6 +3374,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-21</td><td>1.1.140</td><td>Reader bookmark parity: EPUB/PDF/audiobook share nameable bookmarks in a left panel; Notebook PDF/CBX page jumps fixed. Guide secs 10–11 updated. CBX chrome unchanged. App <code>v4.16.23</code>.</td></tr>
   <tr><td>2026-07-21</td><td>1.1.139</td><td>Tablet/desktop-touch readers lock browser page-pinch so PDF/ebook/CBX zoom cannot leave the library chrome stuck expanded; Fullscreen/kiosk transitions reset <code>visualViewport</code>. App <code>v4.16.22</code>.</td></tr>
   <tr><td>2026-07-21</td><td>1.1.138</td><td>Desktop-touch book-card menus open Delete/Metadata/More Actions by click (not hover race). Bell dismissals persist across reload for the failure inbox and metadata task cards. App <code>v4.16.21</code>.</td></tr>
   <tr><td>2026-07-21</td><td>1.1.137</td><td>Fixed Staging Review counts after Release: triage now counts and groups fetched proposals only for books that remain staged, filters released IDs from review task entries, and returns an empty Review tab to Staging when its refreshed count reaches zero. App <code>v4.16.20</code>.</td></tr>
