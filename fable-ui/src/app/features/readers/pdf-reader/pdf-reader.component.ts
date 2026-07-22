@@ -35,8 +35,23 @@ import {
   releaseReaderBrowserZoomLock,
   shouldLockReaderBrowserZoom
 } from '../../../shared/util/visual-viewport.util';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overlay-dismiss.util';
 import {PdfScrollMode, PdfTouchNavigationHandler} from './pdf-touch-navigation.handler';
 import {needsRelayoutForPageViewModeTransition, resolvePdfViewerTopPx, PDF_TOOLBAR_HEIGHT_FALLBACK_PX} from './pdf-mode-transition.util';
+
+/** Mirrors pdf.js AnnotationEditorType for toolbar annotate actions. */
+const PDF_ANNOTATION_EDITOR_MODE = {
+  NONE: 0,
+  FREETEXT: 3,
+  HIGHLIGHT: 9,
+  INK: 15,
+} as const;
+
+/** Mirrors pdf.js CursorTool / ngx PdfCursorTools. */
+const PDF_CURSOR_TOOL = {
+  SELECT: 0,
+  HAND: 1,
+} as const;
 
 @Component({
   selector: 'app-pdf-reader',
@@ -130,6 +145,21 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private modeTransitionRafHandles: number[] = [];
   private modeTransitionTimers: ReturnType<typeof setTimeout>[] = [];
+
+  // Primary-toolbar overflow menus (Annotate / More)
+  annotateMenuOpen = false;
+  moreMenuOpen = false;
+  readonly annotationModes = PDF_ANNOTATION_EDITOR_MODE;
+  readonly cursorTools = PDF_CURSOR_TOOL;
+  annotationEditorMode: number = PDF_ANNOTATION_EDITOR_MODE.NONE;
+  cursorTool: number = PDF_CURSOR_TOOL.SELECT;
+  private readonly toolbarMenuDismissGuard = new GhostClickGuard();
+  private annotationModeListener: ((evt: unknown) => void) | null = null;
+  private cursorToolListener: ((evt: unknown) => void) | null = null;
+
+  get annotationEditorActive(): boolean {
+    return this.annotationEditorMode !== PDF_ANNOTATION_EDITOR_MODE.NONE;
+  }
 
   private bookService = inject(BookService);
   private userService = inject(UserService);
@@ -272,6 +302,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.loadAnnotations();
     this.initTouchNavigation();
     this.initResizeListener();
+    this.ensureToolbarToolListeners(app);
     // Toolbar chrome can settle after pagesLoaded; sync inset then refit so
     // page-fit / page-width account for the real header height.
     requestAnimationFrame(() => {
@@ -302,6 +333,14 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     if (this.scrollModeListener && app?.eventBus?.off) {
       app.eventBus.off('scrollmodechanged', this.scrollModeListener);
       this.scrollModeListener = null;
+    }
+    if (this.annotationModeListener && app?.eventBus?.off) {
+      app.eventBus.off('annotationeditormodechanged', this.annotationModeListener);
+      this.annotationModeListener = null;
+    }
+    if (this.cursorToolListener && app?.eventBus?.off) {
+      app.eventBus.off('cursortoolchanged', this.cursorToolListener);
+      this.cursorToolListener = null;
     }
 
     if (this.readingSessionService.isSessionActive()) {
@@ -727,6 +766,136 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       this.scrollMode = pdfViewer.scrollMode as ScrollModeType;
       this.syncTouchHandlerActive();
     }
+  }
+
+  private ensureToolbarToolListeners(app: {
+    eventBus?: {
+      on?: (name: string, listener: (evt: unknown) => void) => void;
+      off?: (name: string, listener: (evt: unknown) => void) => void;
+    };
+    pdfViewer?: { annotationEditorMode?: number };
+  } | null): void {
+    if (!app?.eventBus?.on) return;
+
+    if (!this.annotationModeListener) {
+      this.annotationModeListener = (evt: unknown) => {
+        const mode = (evt as { mode?: number })?.mode;
+        if (typeof mode === 'number') {
+          this.zone.run(() => {
+            this.annotationEditorMode = mode;
+          });
+        }
+      };
+      app.eventBus.on('annotationeditormodechanged', this.annotationModeListener);
+      if (typeof app.pdfViewer?.annotationEditorMode === 'number') {
+        this.annotationEditorMode = app.pdfViewer.annotationEditorMode;
+      }
+    }
+
+    if (!this.cursorToolListener) {
+      this.cursorToolListener = (evt: unknown) => {
+        const tool = (evt as { tool?: number })?.tool;
+        if (typeof tool === 'number') {
+          this.zone.run(() => {
+            this.cursorTool = tool;
+          });
+        }
+      };
+      app.eventBus.on('cursortoolchanged', this.cursorToolListener);
+    }
+  }
+
+  toggleAnnotateMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const opening = !this.annotateMenuOpen;
+    this.moreMenuOpen = false;
+    this.annotateMenuOpen = opening;
+    if (opening) {
+      this.toolbarMenuDismissGuard.arm();
+    }
+  }
+
+  toggleMoreMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const opening = !this.moreMenuOpen;
+    this.annotateMenuOpen = false;
+    this.moreMenuOpen = opening;
+    if (opening) {
+      this.toolbarMenuDismissGuard.arm();
+    }
+  }
+
+  closeToolbarMenus(): void {
+    this.annotateMenuOpen = false;
+    this.moreMenuOpen = false;
+  }
+
+  onToolbarMenuBackdropDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.toolbarMenuDismissGuard)) {
+      return;
+    }
+    this.closeToolbarMenus();
+  }
+
+  onAnnotateHighlight(): void {
+    this.toggleAnnotationEditorMode(PDF_ANNOTATION_EDITOR_MODE.HIGHLIGHT);
+    this.closeToolbarMenus();
+  }
+
+  onAnnotateText(): void {
+    this.toggleAnnotationEditorMode(PDF_ANNOTATION_EDITOR_MODE.FREETEXT);
+    this.closeToolbarMenus();
+  }
+
+  onAnnotateDraw(): void {
+    this.toggleAnnotationEditorMode(PDF_ANNOTATION_EDITOR_MODE.INK);
+    this.closeToolbarMenus();
+  }
+
+  onMorePan(): void {
+    this.setCursorTool(PDF_CURSOR_TOOL.HAND);
+    this.closeToolbarMenus();
+  }
+
+  onMoreSelectText(): void {
+    this.setCursorTool(PDF_CURSOR_TOOL.SELECT);
+    this.closeToolbarMenus();
+  }
+
+  onMorePrint(): void {
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    app?.eventBus?.dispatch('print');
+    this.closeToolbarMenus();
+  }
+
+  onMoreToggleExternalLinks(): void {
+    this.toggleExternalLinks();
+    this.closeToolbarMenus();
+  }
+
+  onMoreToggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+    this.closeToolbarMenus();
+  }
+
+  private toggleAnnotationEditorMode(mode: number): void {
+    const app = this.pdfNotification.onPDFJSInitSignal() as {
+      eventBus?: { dispatch: (name: string, payload?: unknown) => void };
+      pdfViewer?: { annotationEditorMode?: number };
+    } | null;
+    if (!app?.eventBus?.dispatch) return;
+    const current = app.pdfViewer?.annotationEditorMode ?? this.annotationEditorMode;
+    app.eventBus.dispatch('switchannotationeditormode', {
+      source: this,
+      mode: current === mode ? PDF_ANNOTATION_EDITOR_MODE.NONE : mode,
+    });
+  }
+
+  private setCursorTool(tool: number): void {
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    app?.eventBus?.dispatch('switchcursortool', {tool});
   }
 
   /**

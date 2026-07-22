@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "Prebaci na svijetli način",
-        "switchToDarkMode": "Prebaci na tamni način",
-        "closePdfReader": "Zatvori PDF čitač"
-    },
-    "toast": {
-        "failedToLoadBook": "Učitavanje knjige nije uspjelo"
-    }
+  "toolbar": {
+    "switchToLightMode": "Prebaci na svijetli način",
+    "switchToDarkMode": "Prebaci na tamni način",
+    "closePdfReader": "Zatvori PDF čitač",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": "Učitavanje knjige nije uspjelo"
+  }
 }

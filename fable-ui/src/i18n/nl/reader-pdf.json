@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "Schakel over naar de lichte modus",
-        "switchToDarkMode": "Schakel over naar de donkere modus",
-        "closePdfReader": "PDF lezer sluiten"
-    },
-    "toast": {
-        "failedToLoadBook": "Het laden van het boek is mislukt"
-    }
+  "toolbar": {
+    "switchToLightMode": "Schakel over naar de lichte modus",
+    "switchToDarkMode": "Schakel over naar de donkere modus",
+    "closePdfReader": "PDF lezer sluiten",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": "Het laden van het boek is mislukt"
+  }
 }

@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "Przełącz na tryb jasny",
-        "switchToDarkMode": "Przełącz na tryb ciemny",
-        "closePdfReader": "Zamknij czytnik PDF"
-    },
-    "toast": {
-        "failedToLoadBook": "Nie udało się załadować książki"
-    }
+  "toolbar": {
+    "switchToLightMode": "Przełącz na tryb jasny",
+    "switchToDarkMode": "Przełącz na tryb ciemny",
+    "closePdfReader": "Zamknij czytnik PDF",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": "Nie udało się załadować książki"
+  }
 }

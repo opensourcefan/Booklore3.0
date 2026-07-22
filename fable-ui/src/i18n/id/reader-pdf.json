@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "Beralih ke Mode Terang",
-        "switchToDarkMode": "Beralih ke Mode Gelap",
-        "closePdfReader": "Tutup Pembaca PDF"
-    },
-    "toast": {
-        "failedToLoadBook": ""
-    }
+  "toolbar": {
+    "switchToLightMode": "Beralih ke Mode Terang",
+    "switchToDarkMode": "Beralih ke Mode Gelap",
+    "closePdfReader": "Tutup Pembaca PDF",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": ""
+  }
 }

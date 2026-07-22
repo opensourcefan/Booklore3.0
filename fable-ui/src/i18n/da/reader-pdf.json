@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "",
-        "switchToDarkMode": "",
-        "closePdfReader": ""
-    },
-    "toast": {
-        "failedToLoadBook": ""
-    }
+  "toolbar": {
+    "switchToLightMode": "",
+    "switchToDarkMode": "",
+    "closePdfReader": "",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": ""
+  }
 }

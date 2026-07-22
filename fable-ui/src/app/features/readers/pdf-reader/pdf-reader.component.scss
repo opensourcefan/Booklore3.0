@@ -51,6 +51,10 @@
   }
 }
 
+::ng-deep .toolbar-btn.toolbar-btn--wide {
+  width: 56px;
+}
+
 ::ng-deep .toolbar-btn.fable-panel-btn {
   color: #6b7280;
 
@@ -129,11 +133,18 @@
 
   #toolbarViewerLeft,
   #toolbarViewerRight,
+  .pdf-toolbar-middle,
   pdf-zoom-toolbar {
     display: flex !important;
     align-items: center !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
+  }
+
+  .pdf-toolbar-middle {
+    flex: 0 1 auto;
+    gap: 0.15rem;
+    min-width: 0;
   }
 }
 
@@ -315,6 +326,64 @@
 ::ng-deep ngx-extended-pdf-viewer {
   display: block;
   width: 100%;
+}
+
+// ── Annotate / More overflow menus ──────────────────────────────────────────
+
+::ng-deep .pdf-toolbar-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+::ng-deep .pdf-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+}
+
+::ng-deep .pdf-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 12001;
+  min-width: 11.5rem;
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: #f4f4f5;
+  color: #18181b;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+
+  &.pdf-dark {
+    background: #2a2a2a;
+    color: #e8e8e8;
+    border-color: #444;
+  }
+}
+
+::ng-deep .pdf-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(128, 128, 128, 0.18);
+  }
+
+  &.active {
+    color: var(--p-primary-color, #80bdff);
+    font-weight: 600;
+  }
 }
 
 // ── Book Mode: dim controls that have no effect in Book Mode ────────────────

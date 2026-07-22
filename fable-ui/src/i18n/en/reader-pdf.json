@@ -9,7 +9,15 @@
     "enableExternalLinks": "Enable External Links",
     "openSidebar": "Contents and bookmarks",
     "togglePageImages": "Page thumbnails and outline",
-    "spreadDisabledInBookMode": "Page spread has no effect in Book Mode — Book Mode always shows facing pages."
+    "spreadDisabledInBookMode": "Page spread has no effect in Book Mode — Book Mode always shows facing pages.",
+    "annotate": "Annotate",
+    "annotateHighlight": "Highlight",
+    "annotateText": "Add text",
+    "annotateDraw": "Draw",
+    "more": "More tools",
+    "panDocument": "Pan document",
+    "selectText": "Select text",
+    "print": "Print"
   },
   "sidebar": {
     "contentsTab": "Contents",

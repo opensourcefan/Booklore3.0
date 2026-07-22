@@ -96,3 +96,53 @@ describe('pdf-reader template bindings (Book Mode regression)', () => {
     );
   });
 });
+
+describe('pdf-reader toolbar regroup', () => {
+  const template = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.html'),
+    'utf-8'
+  );
+  const scss = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.scss'),
+    'utf-8'
+  );
+
+  it('widens both Contents and Thumbs nav buttons', () => {
+    expect(template).toMatch(/class="[^"]*toolbar-btn--wide[^"]*fable-panel-btn/);
+    expect(template).toMatch(/class="[^"]*toolbar-btn--wide[^"]*pdfjs-thumbs-btn/);
+    expect(scss).toContain('.toolbar-btn--wide');
+    expect(scss).toMatch(/width:\s*56px/);
+  });
+
+  it('places rotate beside the zoom toolbar in the middle cluster', () => {
+    const middle = template.match(
+      /<div class="pdf-toolbar-middle"[\s\S]*?<\/div>/
+    )?.[0] ?? '';
+    expect(middle).toContain('<pdf-zoom-toolbar');
+    expect(middle).toContain('<pdf-rotate-page');
+  });
+
+  it('exposes Annotate and More overflow menus', () => {
+    expect(template).toContain('toggleAnnotateMenu');
+    expect(template).toContain('toggleMoreMenu');
+    expect(template).toContain('readerPdf.toolbar.annotate');
+    expect(template).toContain('readerPdf.toolbar.more');
+    expect(template).toContain('onAnnotateHighlight');
+    expect(template).toContain('onMorePan');
+    expect(template).toContain('onMoreSelectText');
+    expect(template).toContain('onMorePrint');
+  });
+
+  it('removes free-floating hand/select/print/editors/links/theme from the primary row', () => {
+    // These live under More / Annotate menus (eventBus), not as primary icons.
+    expect(template).not.toContain('<pdf-hand-tool');
+    expect(template).not.toContain('<pdf-select-tool');
+    expect(template).not.toContain('<pdf-print');
+    expect(template).not.toContain('<pdf-highlight-editor');
+    expect(template).not.toContain('<pdf-text-editor');
+    expect(template).not.toContain('<pdf-draw-editor');
+    // Theme / external-links are menu actions, not standalone primary buttons.
+    expect(template).not.toMatch(/\(click\)="isDarkTheme = !isDarkTheme"/);
+    expect(template).not.toMatch(/\(click\)="toggleExternalLinks\(\)"/);
+  });
+});

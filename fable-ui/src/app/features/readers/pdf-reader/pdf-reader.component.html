@@ -44,7 +44,7 @@
       <div id="toolbarViewerLeft" [class.pdf-dark]="isDarkTheme">
         <button
           type="button"
-          class="toolbar-btn fable-panel-btn"
+          class="toolbar-btn toolbar-btn--wide fable-panel-btn"
           [class.has-bookmarks]="bookmarks.length > 0"
           [title]="'readerPdf.toolbar.openSidebar' | transloco"
           (click)="openSidebar('bookmarks')">
@@ -54,7 +54,7 @@
         </button>
         <button
           type="button"
-          class="toolbar-btn pdfjs-thumbs-btn"
+          class="toolbar-btn toolbar-btn--wide pdfjs-thumbs-btn"
           [class.active]="pdfJsSidebarOpen"
           [title]="'readerPdf.toolbar.togglePageImages' | transloco"
           (click)="togglePdfJsSidebar()">
@@ -67,20 +67,48 @@
         <pdf-find-button></pdf-find-button>
         <pdf-paging-area></pdf-paging-area>
       </div>
-      <pdf-zoom-toolbar></pdf-zoom-toolbar>
+
+      <div class="pdf-toolbar-middle" [class.pdf-dark]="isDarkTheme">
+        <pdf-zoom-toolbar></pdf-zoom-toolbar>
+        <pdf-rotate-page></pdf-rotate-page>
+      </div>
+
       <div id="toolbarViewerRight" [class.pdf-dark]="isDarkTheme">
         <button class="toolbar-btn bookmark-btn" [class.active]="isCurrentPageBookmarked" [title]="isCurrentPageBookmarked ? ('readerPdf.toolbar.removeBookmark' | transloco) : ('readerPdf.toolbar.addBookmark' | transloco)" (click)="onToggleBookmark()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" [attr.fill]="isCurrentPageBookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
           </svg>
         </button>
-        <div class="verticalToolbarSeparator"></div>
-        <pdf-hand-tool></pdf-hand-tool>
-        <pdf-select-tool></pdf-select-tool>
-        <pdf-rotate-page></pdf-rotate-page>
-        @if (canPrint) {
-          <pdf-print></pdf-print>
-        }
+
+        <div class="pdf-toolbar-menu" [class.open]="annotateMenuOpen">
+          <button
+            type="button"
+            class="toolbar-btn pdf-menu-trigger"
+            [class.active]="annotateMenuOpen || annotationEditorActive"
+            [title]="'readerPdf.toolbar.annotate' | transloco"
+            [attr.aria-expanded]="annotateMenuOpen"
+            aria-haspopup="true"
+            (click)="toggleAnnotateMenu($event)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+          </button>
+          @if (annotateMenuOpen) {
+            <div class="pdf-menu-backdrop" tabindex="0" (keydown.enter)="closeToolbarMenus()" (pointerdown)="onToolbarMenuBackdropDismiss($event)" (click)="onToolbarMenuBackdropDismiss($event)"></div>
+            <div class="pdf-menu-dropdown" [class.pdf-dark]="isDarkTheme" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+              <button type="button" class="pdf-menu-item" [class.active]="annotationEditorMode === annotationModes.HIGHLIGHT" (click)="onAnnotateHighlight()">
+                <span>{{ 'readerPdf.toolbar.annotateHighlight' | transloco }}</span>
+              </button>
+              <button type="button" class="pdf-menu-item" [class.active]="annotationEditorMode === annotationModes.FREETEXT" (click)="onAnnotateText()">
+                <span>{{ 'readerPdf.toolbar.annotateText' | transloco }}</span>
+              </button>
+              <button type="button" class="pdf-menu-item" [class.active]="annotationEditorMode === annotationModes.INK" (click)="onAnnotateDraw()">
+                <span>{{ 'readerPdf.toolbar.annotateDraw' | transloco }}</span>
+              </button>
+            </div>
+          }
+        </div>
+
         <span class="pdf-spread-group"
               [class.pdf-inapplicable-in-book-mode]="pageViewMode === 'book'"
               [attr.title]="pageViewMode === 'book' ? ('readerPdf.toolbar.spreadDisabledInBookMode' | transloco) : null">
@@ -120,37 +148,44 @@
         </pdf-book-mode>
         <div class="verticalToolbarSeparator hiddenSmallView"></div>
         <pdf-toggle-secondary-toolbar></pdf-toggle-secondary-toolbar>
-        <div class="verticalToolbarSeparator"></div>
-        <pdf-highlight-editor></pdf-highlight-editor>
-        <pdf-text-editor></pdf-text-editor>
-        <pdf-draw-editor></pdf-draw-editor>
-        <div class="verticalToolbarSeparator"></div>
-        <button class="toolbar-btn" [class.active]="disableExternalLinks" [title]="disableExternalLinks ? ('readerPdf.toolbar.enableExternalLinks' | transloco) : ('readerPdf.toolbar.disableExternalLinks' | transloco)" (click)="toggleExternalLinks()">
-          @if (disableExternalLinks) {
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-              <line x1="2" y1="2" x2="22" y2="22"/>
+
+        <div class="pdf-toolbar-menu" [class.open]="moreMenuOpen">
+          <button
+            type="button"
+            class="toolbar-btn pdf-menu-trigger"
+            [class.active]="moreMenuOpen"
+            [title]="'readerPdf.toolbar.more' | transloco"
+            [attr.aria-expanded]="moreMenuOpen"
+            aria-haspopup="true"
+            (click)="toggleMoreMenu($event)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
             </svg>
-          } @else {
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-            </svg>
+          </button>
+          @if (moreMenuOpen) {
+            <div class="pdf-menu-backdrop" tabindex="0" (keydown.enter)="closeToolbarMenus()" (pointerdown)="onToolbarMenuBackdropDismiss($event)" (click)="onToolbarMenuBackdropDismiss($event)"></div>
+            <div class="pdf-menu-dropdown" [class.pdf-dark]="isDarkTheme" tabindex="0" (keydown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+              <button type="button" class="pdf-menu-item" [class.active]="cursorTool === cursorTools.HAND" (click)="onMorePan()">
+                <span>{{ 'readerPdf.toolbar.panDocument' | transloco }}</span>
+              </button>
+              <button type="button" class="pdf-menu-item" [class.active]="cursorTool === cursorTools.SELECT" (click)="onMoreSelectText()">
+                <span>{{ 'readerPdf.toolbar.selectText' | transloco }}</span>
+              </button>
+              @if (canPrint) {
+                <button type="button" class="pdf-menu-item" (click)="onMorePrint()">
+                  <span>{{ 'readerPdf.toolbar.print' | transloco }}</span>
+                </button>
+              }
+              <button type="button" class="pdf-menu-item" [class.active]="disableExternalLinks" (click)="onMoreToggleExternalLinks()">
+                <span>{{ disableExternalLinks ? ('readerPdf.toolbar.enableExternalLinks' | transloco) : ('readerPdf.toolbar.disableExternalLinks' | transloco) }}</span>
+              </button>
+              <button type="button" class="pdf-menu-item" (click)="onMoreToggleTheme()">
+                <span>{{ isDarkTheme ? ('readerPdf.toolbar.switchToLightMode' | transloco) : ('readerPdf.toolbar.switchToDarkMode' | transloco) }}</span>
+              </button>
+            </div>
           }
-        </button>
-        <div class="verticalToolbarSeparator"></div>
-        <button class="toolbar-btn" [title]="isDarkTheme ? ('readerPdf.toolbar.switchToLightMode' | transloco) : ('readerPdf.toolbar.switchToDarkMode' | transloco)" (click)="isDarkTheme = !isDarkTheme">
-          @if (isDarkTheme) {
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-            </svg>
-          } @else {
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-            </svg>
-          }
-        </button>
+        </div>
+
         <button id="closePdfReaderButton" class="close-reader-btn" [title]="'readerPdf.toolbar.closePdfReader' | transloco" (click)="closeReader()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6 6 18"/><path d="m6 6 12 12"/>

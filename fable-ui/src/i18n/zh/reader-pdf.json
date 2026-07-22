@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "切换到浅色模式",
-        "switchToDarkMode": "切换到深色模式",
-        "closePdfReader": "关闭 PDF 阅读器"
-    },
-    "toast": {
-        "failedToLoadBook": "加载书籍失败"
-    }
+  "toolbar": {
+    "switchToLightMode": "切换到浅色模式",
+    "switchToDarkMode": "切换到深色模式",
+    "closePdfReader": "关闭 PDF 阅读器",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": "加载书籍失败"
+  }
 }

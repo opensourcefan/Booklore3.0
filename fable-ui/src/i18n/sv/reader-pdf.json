@@ -1,10 +1,18 @@
 {
-    "toolbar": {
-        "switchToLightMode": "Växla till ljust läge",
-        "switchToDarkMode": "Växla till mörkt läge",
-        "closePdfReader": "Stäng PDF-läsaren"
-    },
-    "toast": {
-        "failedToLoadBook": "Kunde inte ladda boken"
-    }
+  "toolbar": {
+    "switchToLightMode": "Växla till ljust läge",
+    "switchToDarkMode": "Växla till mörkt läge",
+    "closePdfReader": "Stäng PDF-läsaren",
+    "annotateHighlight": "Highlight",
+    "selectText": "Select text",
+    "print": "Print",
+    "annotateDraw": "Draw",
+    "annotate": "Annotate",
+    "annotateText": "Add text",
+    "more": "More tools",
+    "panDocument": "Pan document"
+  },
+  "toast": {
+    "failedToLoadBook": "Kunde inte ladda boken"
+  }
 }
