@@ -31,7 +31,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #2a2a2a;
+  color: #5c5c5c;
   cursor: pointer;
   margin-left: 4px;
   margin-right: 2px;
@@ -39,11 +39,28 @@
 
   &:hover {
     background: rgba(0, 0, 0, 0.1);
+    color: #3a3a3a;
   }
 
   svg {
     flex-shrink: 0;
   }
+}
+
+::ng-deep .toolbar-btn.fable-panel-btn {
+  color: #6b7280;
+
+  &:hover {
+    color: #4b5563;
+  }
+
+  &.has-bookmarks {
+    color: #e63946;
+  }
+}
+
+::ng-deep .toolbar-btn.pdfjs-thumbs-btn.active {
+  color: #4a7bbf;
 }
 
 ::ng-deep .toolbar-btn.bookmark-btn.active {
@@ -52,11 +69,28 @@
 
 ::ng-deep .pdf-dark .toolbar-btn,
 ::ng-deep .pdf-dark .close-reader-btn {
-  color: #e8e8e8;
+  color: #c4c4c4;
 
   &:hover {
     background: rgba(255, 255, 255, 0.15);
+    color: #e8e8e8;
   }
+}
+
+::ng-deep .pdf-dark .toolbar-btn.fable-panel-btn {
+  color: #a3a3a3;
+
+  &:hover {
+    color: #e5e5e5;
+  }
+
+  &.has-bookmarks {
+    color: #ff6b6b;
+  }
+}
+
+::ng-deep .pdf-dark .toolbar-btn.pdfjs-thumbs-btn.active {
+  color: #7aa2ff;
 }
 
 ::ng-deep .pdf-dark .toolbar-btn.bookmark-btn.active {

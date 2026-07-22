@@ -1,6 +1,6 @@
 import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
+import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, PDFNotificationService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
 import {BookService} from '../../book/service/book.service';
 import {forkJoin, Subject, Subscription} from 'rxjs';
@@ -93,9 +93,11 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   sidebarTab: PdfSidebarTab = 'bookmarks';
   sidebarBookInfo: PdfSidebarBookInfo = {title: '', authors: '', coverUrl: null};
   sidebarPages: PdfSidebarPage[] = [];
+  pdfJsSidebarOpen = false;
   @ViewChild(PdfSidebarComponent) pdfSidebar?: PdfSidebarComponent;
   private sidebarBackHandle: MobileBackHandle | null = null;
   private sidebarCloseTimer: ReturnType<typeof setTimeout> | null = null;
+  private pdfJsSidebarListener: ((evt: unknown) => void) | null = null;
 
   private bookService = inject(BookService);
   private userService = inject(UserService);
@@ -108,6 +110,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private writeProgressService = inject(WriteProgressService);
   private location = inject(Location);
   private pdfViewerService = inject(NgxExtendedPdfViewerService);
+  private pdfNotification = inject(PDFNotificationService);
   private pdfAnnotationService = inject(PdfAnnotationService);
   private bookMarkService = inject(BookMarkService);
   private urlHelper = inject(UrlHelperService);
@@ -224,6 +227,10 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   onPdfPagesLoaded(event: { pagesCount: number }): void {
     this.totalPages = event.pagesCount;
     this.rebuildSidebarPages();
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    if (app) {
+      this.ensurePdfJsSidebarListener(app);
+    }
     const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
     this.readingSessionService.startSession(this.bookId, "PDF", this.page.toString(), percentage);
     this.readingSessionService.updateProgress(this.page.toString(), percentage);
@@ -243,6 +250,12 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     }
     this.sidebarBackHandle?.release(false);
     this.sidebarBackHandle = null;
+
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    if (this.pdfJsSidebarListener && app?.eventBus?.off) {
+      app.eventBus.off('sidebarviewchanged', this.pdfJsSidebarListener);
+      this.pdfJsSidebarListener = null;
+    }
 
     if (this.readingSessionService.isSessionActive()) {
       const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
@@ -322,6 +335,31 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     if (!this.sidebarBackHandle) {
       this.sidebarBackHandle = this.mobileBackNavigation.register(() => this.closeSidebar());
     }
+  }
+
+  togglePdfJsSidebar(): void {
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    if (!app?.pdfSidebar || !app.eventBus) {
+      return;
+    }
+    const newVisibility = !app.pdfSidebar.isOpen;
+    app.eventBus.dispatch('toggleSidebar', {visible: newVisibility});
+    this.pdfJsSidebarOpen = newVisibility;
+    this.ensurePdfJsSidebarListener(app);
+  }
+
+  private ensurePdfJsSidebarListener(app: {
+    eventBus?: {on?: (name: string, listener: (evt: unknown) => void) => void; off?: (name: string, listener: (evt: unknown) => void) => void};
+    pdfSidebar?: {isOpen?: boolean};
+  }): void {
+    if (this.pdfJsSidebarListener || !app.eventBus?.on) {
+      return;
+    }
+    this.pdfJsSidebarListener = () => {
+      this.pdfJsSidebarOpen = !!app.pdfSidebar?.isOpen;
+    };
+    app.eventBus.on('sidebarviewchanged', this.pdfJsSidebarListener);
+    this.pdfJsSidebarOpen = !!app.pdfSidebar?.isOpen;
   }
 
   closeSidebar(): void {
