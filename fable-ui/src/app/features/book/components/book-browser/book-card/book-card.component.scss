@@ -220,6 +220,30 @@
   bottom: 21%;
 }
 
+/* Touch press: keep centering transforms; never let global :active scale jump the button. */
+:host-context(body.touch-digitizer) {
+  .read-btn:active,
+  .info-btn:active,
+  a.read-btn:active {
+    transform: translateX(-50%);
+  }
+
+  .cover-container.center-info-btn .info-btn:active {
+    transform: translate(-50%, -50%);
+  }
+
+  .read-btn:active ::ng-deep .p-button,
+  .info-btn:active ::ng-deep .p-button,
+  .read-btn ::ng-deep .p-button:active,
+  .info-btn ::ng-deep .p-button:active {
+    transform: none;
+    filter: none;
+    box-shadow:
+      inset 0 0 0 999px color-mix(in srgb, var(--p-primary-color) 24%, transparent),
+      0 0 0 2px color-mix(in srgb, var(--p-primary-color) 45%, transparent);
+  }
+}
+
 .cover-container:hover .info-btn,
 .cover-container:hover .read-btn {
   opacity: 1;

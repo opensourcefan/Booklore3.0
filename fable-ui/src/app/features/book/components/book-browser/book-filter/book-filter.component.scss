@@ -172,6 +172,12 @@
   }
 }
 
+:host-context(body.touch-digitizer) .filter-row:active {
+  background-color: color-mix(in srgb, var(--p-primary-color) 20%, var(--p-surface-800, #27272a));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--p-primary-color) 45%, transparent);
+  border-radius: 4px;
+}
+
 :host ::ng-deep {
   @media (max-width: 768px) {
     p-accordion-header {

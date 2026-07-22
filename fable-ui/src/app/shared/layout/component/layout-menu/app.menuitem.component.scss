@@ -153,6 +153,16 @@
   }
 }
 
+:host-context(body.touch-digitizer) .menu-item-container:active {
+  background-color: color-mix(in srgb, var(--p-primary-color) 22%, var(--p-surface-800));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--p-primary-color) 45%, transparent);
+}
+
+:host-context(body.touch-digitizer) .layout-menuitem-root-text:active {
+  background-color: color-mix(in srgb, var(--p-primary-color) 22%, var(--p-surface-800));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--p-primary-color) 45%, transparent);
+}
+
 :host-context(.reorder-mode-active) .layout-menuitem-root-text,
 :host-context(.reorder-mode-active) .menu-item-container {
   border-radius: 0.8rem;

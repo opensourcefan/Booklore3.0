@@ -978,6 +978,18 @@ describe('BookCardComponent', () => {
     expect(scss).not.toMatch(/body\.layout-phone[^{]*\{[^}]*book-card--touch-chrome/);
   });
 
+  it('preserves read/info button centering transforms under touch-digitizer press', () => {
+    const scssPath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toContain(':host-context(body.touch-digitizer)');
+    expect(scss).toMatch(
+      /:host-context\(body\.touch-digitizer\)\s*\{[\s\S]*\.read-btn:active[\s\S]*transform:\s*translateX\(-50%\)/
+    );
+    expect(scss).toMatch(
+      /\.cover-container\.center-info-btn \.info-btn:active\s*\{[\s\S]*transform:\s*translate\(-50%,\s*-50%\)/
+    );
+  });
+
   it('long-press emits range select (shiftKey) when a selection is already active', () => {
     vi.useFakeTimers();
     const component = createComponent();

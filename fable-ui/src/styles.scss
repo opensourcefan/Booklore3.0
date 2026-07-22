@@ -468,12 +468,13 @@ button, a, .p-button, .p-link, [role="button"], .chapter-sort-item {
  * Body class `touch-digitizer` is set by MobileUxService when hasTouchInput && !isPhone.
  * Never applies under layout-phone — Phone Mode press styles stay untouched.
  *
- * Language: theme-primary inset wash (visible on light and dark chrome) + slight scale.
- * Avoids the prior darken-only filter that made many presses look like near-black holes.
+ * Language: theme-primary wash only — no transform. Scale fights absolute centering
+ * (e.g. book-card .read-btn translateX(-50%)) and makes controls jump sideways.
  */
 body.touch-digitizer {
-  --bl-touch-press-wash: color-mix(in srgb, var(--p-primary-color) 22%, transparent);
-  --bl-touch-press-ring: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
+  --bl-touch-press-wash: color-mix(in srgb, var(--p-primary-color) 24%, transparent);
+  --bl-touch-press-fill: color-mix(in srgb, var(--p-primary-color) 20%, var(--p-surface-800, #27272a));
+  --bl-touch-press-ring: color-mix(in srgb, var(--p-primary-color) 45%, transparent);
 
   button,
   a,
@@ -483,8 +484,12 @@ body.touch-digitizer {
   .chapter-sort-item,
   .topbar-item,
   .menu-item-container,
+  .menu-item-link,
+  .layout-menuitem-root-text,
   .dir-tree-node__body,
   .dir-tree-node__toggle,
+  .filter-row,
+  .p-accordionheader,
   .p-togglebutton,
   .p-tablist .p-tab,
   .p-select-option,
@@ -506,45 +511,84 @@ body.touch-digitizer {
   .icon-btn,
   .toolbar-btn,
   .control-btn,
-  .layout-menuitem-root-text,
   .layout-menuitem-link,
-  .layout-root-menuitem > .layout-menuitem-root-text {
+  .sidebar-heading-nav,
+  .sidebar-heading-link {
     -webkit-tap-highlight-color: transparent !important;
 
     &:active:not(:disabled):not(.p-disabled) {
-      transform: scale(0.98);
+      /* Cancel global scale/brightness from the Phone/desktop fallback rule. */
+      transform: none;
       filter: none;
-      /* Inset wash overlays existing backgrounds without replacing them. */
       box-shadow:
         inset 0 0 0 999px var(--bl-touch-press-wash),
         0 0 0 1px var(--bl-touch-press-ring);
-      transition: box-shadow 0.06s ease, transform 0.05s ease;
+      transition: box-shadow 0.06s ease, background-color 0.06s ease;
     }
   }
 
-  /* Sidebar / menu rows: primary wash without fighting route-active colors. */
-  .layout-menu ul a:active,
+  /* Sidebar rows — solid fill reads clearly on dark chrome (wash alone is easy to miss). */
   .menu-item-container:active,
-  .dir-tree-node__body:active {
-    background-color: color-mix(in srgb, var(--p-primary-color) 16%, transparent);
-    box-shadow: inset 0 0 0 999px var(--bl-touch-press-wash);
-    filter: none;
+  .layout-menuitem-root-text:active,
+  .menu-item-link:active {
+    background-color: var(--bl-touch-press-fill) !important;
+    box-shadow: inset 0 0 0 1px var(--bl-touch-press-ring);
     transform: none;
+    filter: none;
   }
 
-  /* Topbar icon chrome: light primary fill + ring. */
+  /* Filter panel rows / accordion headers. */
+  .filter-row:active,
+  .book-filter-container .p-accordionheader:active {
+    background-color: var(--bl-touch-press-fill) !important;
+    box-shadow: inset 0 0 0 1px var(--bl-touch-press-ring);
+    border-radius: 4px;
+    transform: none;
+    filter: none;
+  }
+
+  /* Topbar icon chrome. */
   .topbar-item:active:not(:disabled) {
     border-color: var(--primary-color, var(--p-primary-color));
     background-color: color-mix(in srgb, var(--p-primary-color) 18%, var(--card-background));
     box-shadow: 0 0 0 1px var(--bl-touch-press-ring);
     filter: none;
-    transform: scale(0.98);
+    transform: none;
   }
 
-  /* Filled PrimeNG buttons already use theme activeBackground — keep fill, drop darken. */
+  /*
+   * Book-card Read/Info wrappers are centered with translateX(-50%).
+   * Any :active transform (including the global scale rule) replaces that and jumps right.
+   */
+  .read-btn:active,
+  .info-btn:active,
+  a.read-btn:active {
+    transform: translateX(-50%) !important;
+    filter: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .cover-container.center-info-btn .info-btn:active {
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .read-btn:active .p-button,
+  .info-btn:active .p-button,
+  .read-btn .p-button:active,
+  .info-btn .p-button:active {
+    transform: none !important;
+    filter: none !important;
+    box-shadow:
+      inset 0 0 0 999px var(--bl-touch-press-wash),
+      0 0 0 2px var(--bl-touch-press-ring) !important;
+  }
+
+  /* Filled PrimeNG buttons — theme activeBackground + ring, no scale. */
   .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-link):not(.p-button-contrast) {
     &:active:not(:disabled):not(.p-disabled) {
       filter: brightness(1.06) saturate(1.05);
+      transform: none;
       box-shadow: 0 0 0 2px var(--bl-touch-press-ring);
     }
   }
@@ -560,6 +604,7 @@ body.touch-digitizer {
       transform: none !important;
       filter: none !important;
       box-shadow: none !important;
+      background-color: inherit;
     }
   }
 }
