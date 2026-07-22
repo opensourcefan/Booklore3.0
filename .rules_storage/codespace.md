@@ -218,15 +218,15 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend/frontend version: `4.16.22` (in `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest documented git tag: `v4.16.22`
+- Backend/frontend version: `4.16.24` (in `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest documented git tag: `v4.16.24`
 
 ### Documentation Parity
 
 - Canonical chapter sources: `fable-ui/public/docs/guide/sec1.html` through `sec30.html`
 - Canonical Guide Home and sidebar navigation: `fable-ui/public/docs/guide/index.html`
 - Generated single-page guide: `fable-ui/public/docs/Fable-Familiarization-Guide.html`
-- Synchronize with `python3 scripts/validate-familiarization-guide.py --sync`, then validate again without `--sync`.
+- Synchronize with `python3 scripts/validate-familiarization-guide.py --sync`, then validate again without `--sync` (local/manual; the GitHub Actions guide-validation workflow was removed).
 - Update the guide cover and newest Section 30 maintenance entry together. The validator also checks backend/frontend app-version agreement and local README links.
 - Review README guidance whenever setup, delivery, backup/recovery, authentication, or deployment paths change.
 
