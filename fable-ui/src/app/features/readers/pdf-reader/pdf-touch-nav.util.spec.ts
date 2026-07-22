@@ -3,6 +3,7 @@ import {
   isTouchTap,
   resolveCenterSwipeAction,
   resolveEdgeTapAction,
+  resolveEdgeTapNavigation,
   resolvePdfTouchNavConfig,
 } from './pdf-touch-nav.util';
 
@@ -35,6 +36,15 @@ describe('pdf-touch-nav.util', () => {
       expect(resolveEdgeTapAction(100, 1000)).toBe('previous');
       expect(resolveEdgeTapAction(900, 1000)).toBe('next');
       expect(resolveEdgeTapAction(500, 1000)).toBe('none');
+    });
+  });
+
+  describe('resolveEdgeTapNavigation', () => {
+    it('maps edge taps to page turns', () => {
+      expect(resolveEdgeTapNavigation(0, 0, 200, false, 100, 1000)).toBe('previous');
+      expect(resolveEdgeTapNavigation(0, 0, 200, false, 900, 1000)).toBe('next');
+      expect(resolveEdgeTapNavigation(0, 0, 200, false, 500, 1000)).toBe('none');
+      expect(resolveEdgeTapNavigation(30, 0, 200, false, 100, 1000)).toBe('none');
     });
   });
 

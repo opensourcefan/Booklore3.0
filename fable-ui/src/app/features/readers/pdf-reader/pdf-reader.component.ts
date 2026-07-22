@@ -24,8 +24,8 @@ import {PdfFooterComponent} from './layout/pdf-footer.component';
 import {
   PdfScrollMode,
   PdfTouchNavConfig,
-  isTouchTap,
   resolveCenterSwipeAction,
+  resolveEdgeTapNavigation,
   resolvePdfTouchNavConfig,
   TouchNavAction,
 } from './pdf-touch-nav.util';
@@ -645,38 +645,6 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  onEdgeTouchStart(event: TouchEvent): void {
-    const touch = event.changedTouches[0] ?? event.touches[0];
-    if (!touch) {
-      return;
-    }
-    this.touchStartX = touch.clientX;
-    this.touchStartY = touch.clientY;
-    this.touchStartTime = Date.now();
-    this.touchMoved = false;
-    this.touchIsMultiGesture = event.touches.length > 1;
-  }
-
-  onEdgeZoneTap(event: TouchEvent, action: TouchNavAction): void {
-    if (!this.touchNavEnabled || action === 'none') {
-      return;
-    }
-    const touch = event.changedTouches[0];
-    if (!touch) {
-      return;
-    }
-    const deltaX = touch.clientX - this.touchStartX;
-    const deltaY = touch.clientY - this.touchStartY;
-    const durationMs = Date.now() - this.touchStartTime;
-    if (!isTouchTap(deltaX, deltaY, durationMs, this.touchMoved)) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    this.isReaderTouchActive = false;
-    this.applyTouchNavAction(action);
-  }
-
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent): void {
     if (!this.touchNavEnabled || this.isTouchNavBlocked(event.target)) {
@@ -739,14 +707,35 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const action = resolveCenterSwipeAction(
+    if (this.pdfJsSidebarOpen && this.isWithinPdfSidebar(event.target)) {
+      return;
+    }
+
+    const deltaX = this.touchEndX - this.touchStartX;
+    const deltaY = this.touchEndY - this.touchStartY;
+    const durationMs = Date.now() - this.touchStartTime;
+
+    const edgeAction = resolveEdgeTapNavigation(
+      deltaX,
+      deltaY,
+      durationMs,
+      this.touchMoved,
+      this.touchEndX,
+      window.innerWidth,
+    );
+    if (edgeAction !== 'none') {
+      this.applyTouchNavAction(edgeAction);
+      return;
+    }
+
+    const swipeAction = resolveCenterSwipeAction(
       {x: this.touchStartX, y: this.touchStartY},
       {x: this.touchEndX, y: this.touchEndY},
       window.innerWidth,
       this.touchNavConfig.axis,
     );
-    if (action !== 'none') {
-      this.applyTouchNavAction(action);
+    if (swipeAction !== 'none') {
+      this.applyTouchNavAction(swipeAction);
     }
   }
 
@@ -763,13 +752,18 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     return !!el?.closest('#viewerContainer, #viewer');
   }
 
+  private isWithinPdfSidebar(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    return !!el?.closest('#sidebarContainer, #sidebarContent, #thumbnailView, #outlineView');
+  }
+
   private isTouchNavBlocked(target: EventTarget | null): boolean {
     const el = target as HTMLElement | null;
     if (!el) {
       return true;
     }
     return !!el.closest(
-      '.pdf-edge-zone, .pdf-footer, .pdf-sidebar, .bookmark-dialog-overlay, #toolbarContainer, #secondaryToolbar, .findbar, .editorParamsToolbar, .pdf-touch-hints',
+      '.pdf-footer, .pdf-sidebar, .sidebar-overlay, .bookmark-dialog-overlay, #toolbarContainer, #secondaryToolbar, .findbar, .editorParamsToolbar, .pdf-touch-hints, #sidebarContainer, #sidebarContent',
     );
   }
 
@@ -832,10 +826,22 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const modeChanged = next.modeLabelKey !== this.touchNavConfig.modeLabelKey
       || next.enabled !== this.touchNavConfig.enabled
       || next.axis !== this.touchNavConfig.axis;
+    const enabledChanged = next.enabled !== this.touchNavConfig.enabled;
     this.touchNavConfig = next;
+    if (enabledChanged) {
+      queueMicrotask(() => this.triggerPdfViewerResize());
+    }
     if (flashHints && next.enabled && modeChanged) {
       this.flashTouchHints();
     }
+  }
+
+  private triggerPdfViewerResize(): void {
+    window.dispatchEvent(new Event('resize'));
+    const app = this.pdfNotification.onPDFJSInitSignal() as {
+      eventBus?: {dispatch: (name: string, data?: unknown) => void};
+    } | undefined;
+    app?.eventBus?.dispatch('resize', {});
   }
 
   private flashTouchHints(): void {

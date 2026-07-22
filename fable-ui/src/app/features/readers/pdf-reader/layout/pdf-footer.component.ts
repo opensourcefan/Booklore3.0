@@ -12,7 +12,6 @@ import {ReaderIconComponent} from '../../ebook-reader/shared/icon.component';
 export class PdfFooterComponent {
   @Input() currentPage = 1;
   @Input() totalPages = 0;
-  @Input() visible = false;
 
   @Output() previousPage = new EventEmitter<void>();
   @Output() nextPage = new EventEmitter<void>();

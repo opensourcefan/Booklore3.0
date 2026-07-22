@@ -81,6 +81,20 @@ export function resolveEdgeTapAction(clientX: number, viewportWidth: number): To
   return 'none';
 }
 
+export function resolveEdgeTapNavigation(
+  deltaX: number,
+  deltaY: number,
+  durationMs: number,
+  moved: boolean,
+  clientX: number,
+  viewportWidth: number,
+): TouchNavAction {
+  if (!isTouchTap(deltaX, deltaY, durationMs, moved)) {
+    return 'none';
+  }
+  return resolveEdgeTapAction(clientX, viewportWidth);
+}
+
 export function resolveCenterSwipeAction(
   start: TouchPoint,
   end: TouchPoint,

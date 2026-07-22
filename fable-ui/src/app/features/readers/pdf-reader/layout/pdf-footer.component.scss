@@ -2,23 +2,13 @@ $text-primary: rgba(255, 255, 255, 0.95);
 $text-secondary: rgba(255, 255, 255, 0.6);
 $active-color: #4a90e2;
 
-.pdf-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  color: $text-primary;
-  transform: translateY(100%);
-  opacity: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  pointer-events: none;
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
 
-  &.visible {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
+.pdf-footer {
+  color: $text-primary;
 }
 
 .footer-content {
