@@ -10,6 +10,7 @@ import {ReaderIconComponent} from '../../ebook-reader/shared/icon.component';
   styleUrl: './pdf-footer.component.scss',
 })
 export class PdfFooterComponent {
+  @Input() visible = false;
   @Input() currentPage = 1;
   @Input() totalPages = 0;
 

@@ -26,22 +26,42 @@
   width: 100%;
   height: 100%;
   --pdf-footer-height: 0px;
+  --pdf-toolbar-height: 32px;
 
-  &.touch-nav-active {
+  &.pdf-footer-visible {
     --pdf-footer-height: calc(52px + env(safe-area-inset-bottom, 0px));
+  }
+
+  &:not(.pdf-chrome-header-visible) {
+    --pdf-toolbar-height: 0px;
   }
 }
 
 // Reserve footer space inside PDF.js layout (viewerContainer is absolute inset 32px 0 0).
-::ng-deep .pdf-reader-shell.touch-nav-active #viewerContainer {
+::ng-deep .pdf-reader-shell.pdf-footer-visible #viewerContainer {
   bottom: var(--pdf-footer-height) !important;
+}
+
+::ng-deep .pdf-reader-shell #toolbarContainer {
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+}
+
+::ng-deep .pdf-reader-shell:not(.pdf-chrome-header-visible) #toolbarContainer {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+::ng-deep .pdf-reader-shell #viewerContainer {
+  transition: top 0.25s ease-out, bottom 0.25s ease-out;
+  top: var(--pdf-toolbar-height) !important;
 }
 
 .pdf-touch-hints {
   position: absolute;
   left: 0;
   right: 0;
-  top: 32px;
+  top: var(--pdf-toolbar-height);
   bottom: var(--pdf-footer-height);
   display: flex;
   align-items: stretch;
@@ -146,6 +166,10 @@
   color: #e63946;
 }
 
+::ng-deep .toolbar-btn.pdf-chrome-pin-btn.active {
+  color: #4a7bbf;
+}
+
 ::ng-deep .pdf-dark .toolbar-btn,
 ::ng-deep .pdf-dark .close-reader-btn {
   color: #c4c4c4;
@@ -174,6 +198,10 @@
 
 ::ng-deep .pdf-dark .toolbar-btn.bookmark-btn.active {
   color: #ff6b6b;
+}
+
+::ng-deep .pdf-dark .toolbar-btn.pdf-chrome-pin-btn.active {
+  color: #7aa2ff;
 }
 
 ::ng-deep .close-reader-btn:hover {

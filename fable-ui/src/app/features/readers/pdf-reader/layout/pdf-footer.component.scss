@@ -13,6 +13,16 @@ $active-color: #4a90e2;
 
 .pdf-footer {
   color: $text-primary;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+
+  &.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .footer-content {
@@ -55,6 +65,9 @@ $active-color: #4a90e2;
 }
 
 .page-info {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
   padding: 6px 14px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 6px;

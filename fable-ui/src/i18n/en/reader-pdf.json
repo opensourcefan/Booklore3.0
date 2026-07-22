@@ -8,7 +8,9 @@
     "disableExternalLinks": "Disable External Links",
     "enableExternalLinks": "Enable External Links",
     "openSidebar": "Contents and bookmarks",
-    "togglePageImages": "Page thumbnails and outline"
+    "togglePageImages": "Page thumbnails and outline",
+    "pinBars": "Pin toolbar and footer",
+    "unpinBars": "Unpin toolbar and footer"
   },
   "sidebar": {
     "contentsTab": "Contents",
