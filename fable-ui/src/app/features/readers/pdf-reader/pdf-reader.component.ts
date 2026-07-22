@@ -36,6 +36,7 @@ import {
   shouldLockReaderBrowserZoom
 } from '../../../shared/util/visual-viewport.util';
 import {PdfScrollMode, PdfTouchNavigationHandler} from './pdf-touch-navigation.handler';
+import {needsRelayoutForPageViewModeTransition} from './pdf-mode-transition.util';
 
 @Component({
   selector: 'app-pdf-reader',
@@ -127,6 +128,8 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private scrollModeListener: ((evt: unknown) => void) | null = null;
   private resizeListener: (() => void) | null = null;
   private resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private modeTransitionRafHandles: number[] = [];
+  private modeTransitionTimers: ReturnType<typeof setTimeout>[] = [];
 
   private bookService = inject(BookService);
   private userService = inject(UserService);
@@ -310,6 +313,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.unlockReaderBrowserZoomIfNeeded();
     this.destroyTouchNavigation();
     this.destroyResizeListener();
+    this.cancelPendingModeTransitionWork();
   }
 
   private lockReaderBrowserZoomIfNeeded(): void {
@@ -730,11 +734,89 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
    * The scroll-mode buttons also emit `pageViewModeChange` in addition to
    * dispatching `switchscrollmode`, so a click on Vertical/Horizontal/etc.
    * from within book mode will correctly clear book mode via this path.
+   *
+   * When Book Mode is on either side of the transition, we force a viewer
+   * relayout — see `scheduleModeTransitionRelayout` for the full rationale.
    */
   onPageViewModeChange(mode: PageViewModeType): void {
-    if (this.pageViewMode !== mode) {
-      this.pageViewMode = mode;
+    if (this.pageViewMode === mode) return;
+    const previous = this.pageViewMode;
+    this.pageViewMode = mode;
+    if (needsRelayoutForPageViewModeTransition(previous, mode)) {
+      this.scheduleModeTransitionRelayout();
     }
+  }
+
+  /**
+   * Force pdf.js to relayout the viewer after a Book Mode transition.
+   *
+   * PageFlip (used by `pageViewMode === 'book'`) mutates the viewer's DOM
+   * during mount/teardown — overlay containers, absolute positioning and
+   * transformed canvases. After we flip to or from Book Mode, pdf.js does
+   * not always refit `page-fit` / `page-width` to the recalculated
+   * container geometry, and the current page loses its scroll anchor. The
+   * visible symptom is a tiny page pinned to the top-left corner.
+   *
+   * We wait for two animation frames so both Angular's `[(pageViewMode)]`
+   * commit and PageFlip's own DOM mutation have flushed, plus a small
+   * settle delay for any CSS transitions on the viewer chrome. Then we:
+   *   1. Re-dispatch the current fit-mode zoom via `scalechanged` so
+   *      pdf.js recalculates page geometry for the new container size.
+   *   2. Fire a synthetic `resize` on `window` so pdf.js's built-in
+   *      resize handler updates any container-dependent internal state
+   *      (padding, scroll extent, etc.). Our own resize listener is
+   *      debounced so it won't fight this pass.
+   *   3. On the next frame — once the scale change has applied — scroll
+   *      the current page back into view.
+   */
+  private scheduleModeTransitionRelayout(): void {
+    const rafOuter = requestAnimationFrame(() => {
+      const rafInner = requestAnimationFrame(() => {
+        const settle = setTimeout(() => {
+          this.forceViewerRelayout();
+          this.modeTransitionTimers = this.modeTransitionTimers.filter(t => t !== settle);
+        }, 50);
+        this.modeTransitionTimers.push(settle);
+      });
+      this.modeTransitionRafHandles.push(rafInner);
+    });
+    this.modeTransitionRafHandles.push(rafOuter);
+  }
+
+  private forceViewerRelayout(): void {
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    if (!app?.eventBus) return;
+
+    const fitModes: string[] = ['page-fit', 'page-width', 'auto'];
+    if (fitModes.includes(this.zoom as string)) {
+      app.eventBus.dispatch('scalechanged', {value: this.zoom});
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    const raf = requestAnimationFrame(() => {
+      if (this.page && this.page > 0) {
+        try {
+          this.pdfViewerService.scrollPageIntoView(this.page);
+        } catch {
+          // Viewer not ready — the scalechanged dispatch above will still refit.
+        }
+      }
+    });
+    this.modeTransitionRafHandles.push(raf);
+  }
+
+  private cancelPendingModeTransitionWork(): void {
+    for (const handle of this.modeTransitionRafHandles) {
+      cancelAnimationFrame(handle);
+    }
+    this.modeTransitionRafHandles = [];
+    for (const timer of this.modeTransitionTimers) {
+      clearTimeout(timer);
+    }
+    this.modeTransitionTimers = [];
   }
 
   private isPageBasedMode(): boolean {
