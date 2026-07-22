@@ -4,7 +4,11 @@ $active-color: #4a90e2;
 
 :host {
   display: block;
-  flex: 0 0 auto;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .pdf-footer {

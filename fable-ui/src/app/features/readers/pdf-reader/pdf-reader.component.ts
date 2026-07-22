@@ -268,6 +268,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.readingSessionService.startSession(this.bookId, "PDF", this.page.toString(), percentage);
     this.readingSessionService.updateProgress(this.page.toString(), percentage);
     this.loadAnnotations();
+    this.refreshViewerLayout();
   }
 
   onAnnotationEditorEvent(): void {
@@ -829,11 +830,27 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const enabledChanged = next.enabled !== this.touchNavConfig.enabled;
     this.touchNavConfig = next;
     if (enabledChanged) {
-      queueMicrotask(() => this.triggerPdfViewerResize());
+      this.refreshViewerLayout();
     }
     if (flashHints && next.enabled && modeChanged) {
       this.flashTouchHints();
     }
+  }
+
+  private refreshViewerLayout(): void {
+    queueMicrotask(() => {
+      this.triggerPdfViewerResize();
+      // Re-apply zoom after layout settles so page-fit / auto use the updated viewport.
+      setTimeout(() => {
+        const app = this.pdfNotification.onPDFJSInitSignal() as {
+          pdfViewer?: {currentScaleValue?: string | number; update?: () => void};
+        } | undefined;
+        app?.pdfViewer?.update?.();
+        if (app?.pdfViewer && this.zoom) {
+          app.pdfViewer.currentScaleValue = this.zoom;
+        }
+      }, 0);
+    });
   }
 
   private triggerPdfViewerResize(): void {

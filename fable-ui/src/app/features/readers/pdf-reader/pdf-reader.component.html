@@ -6,43 +6,41 @@
 
 @if (!isLoading) {
   <div class="pdf-reader-shell" [class.touch-nav-active]="touchNavEnabled">
-    <div class="pdf-viewer-stack">
-      <ngx-extended-pdf-viewer
-        [src]="bookData"
-        [authorization]="authorization"
-        [textLayer]="true"
-        [showHandToolButton]="true"
-        [height]="touchNavEnabled ? '100%' : 'auto'"
-        [theme]="isDarkTheme ? 'dark' : 'light'"
-        [page]="page"
-        [rotation]="rotation"
-        [zoom]="zoom"
-        [spread]="spread"
-        [enablePrint]="canPrint"
-        [customToolbar]="additionalButtons"
-        (pagesLoaded)="onPdfPagesLoaded($event)"
-        (pageChange)="onPageChange($event)"
-        (zoomChange)="onZoomChange($event)"
-        (spreadChange)="onSpreadChange($event)"
-        (annotationEditorEvent)="onAnnotationEditorEvent()"
-        (annotationLayerRendered)="onAnnotationLayerRendered($event)"
-        (linkAnnotationsAdded)="onLinkAnnotationsAdded($event)">
-      </ngx-extended-pdf-viewer>
+    <ngx-extended-pdf-viewer
+      [src]="bookData"
+      [authorization]="authorization"
+      [textLayer]="true"
+      [showHandToolButton]="true"
+      [height]="'auto'"
+      [theme]="isDarkTheme ? 'dark' : 'light'"
+      [page]="page"
+      [rotation]="rotation"
+      [zoom]="zoom"
+      [spread]="spread"
+      [enablePrint]="canPrint"
+      [customToolbar]="additionalButtons"
+      (pagesLoaded)="onPdfPagesLoaded($event)"
+      (pageChange)="onPageChange($event)"
+      (zoomChange)="onZoomChange($event)"
+      (spreadChange)="onSpreadChange($event)"
+      (annotationEditorEvent)="onAnnotationEditorEvent()"
+      (annotationLayerRendered)="onAnnotationLayerRendered($event)"
+      (linkAnnotationsAdded)="onLinkAnnotationsAdded($event)">
+    </ngx-extended-pdf-viewer>
 
-      @if (touchNavEnabled && showTouchHints) {
-        <div class="pdf-touch-hints" aria-hidden="true">
-          <div class="pdf-touch-hint edge left">
-            <span>{{ 'readerPdf.touch.previousPage' | transloco }}</span>
-          </div>
-          <div class="pdf-touch-hint center">
-            <span>{{ touchNavConfig.modeLabelKey | transloco }}</span>
-          </div>
-          <div class="pdf-touch-hint edge right">
-            <span>{{ 'readerPdf.touch.nextPage' | transloco }}</span>
-          </div>
+    @if (touchNavEnabled && showTouchHints) {
+      <div class="pdf-touch-hints" aria-hidden="true">
+        <div class="pdf-touch-hint edge left">
+          <span>{{ 'readerPdf.touch.previousPage' | transloco }}</span>
         </div>
-      }
-    </div>
+        <div class="pdf-touch-hint center">
+          <span>{{ touchNavConfig.modeLabelKey | transloco }}</span>
+        </div>
+        <div class="pdf-touch-hint edge right">
+          <span>{{ 'readerPdf.touch.nextPage' | transloco }}</span>
+        </div>
+      </div>
+    }
 
     @if (touchNavEnabled) {
       <app-pdf-footer
