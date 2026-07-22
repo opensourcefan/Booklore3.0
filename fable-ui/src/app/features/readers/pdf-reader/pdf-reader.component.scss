@@ -301,4 +301,23 @@
   height: 100%;
 }
 
+// ── Book Mode: dim controls that have no effect in Book Mode ────────────────
+// The three spread buttons (No / Odd / Even) are wrapped in .pdf-spread-group;
+// in Book Mode the viewer always shows facing pages via the PageFlip renderer,
+// so the spread setting is meaningless. We keep them visible (not hidden) but
+// mute the opacity and swallow clicks so users know they aren't part of the
+// Book Mode feature. Other scroll-flow buttons are intentionally left at full
+// opacity because clicking them is the way *out* of Book Mode.
+.pdf-spread-group {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 0.2s ease;
+
+  &.pdf-inapplicable-in-book-mode {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+}
+
 

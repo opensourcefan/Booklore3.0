@@ -71,4 +71,28 @@ describe('pdf-reader template bindings (Book Mode regression)', () => {
     const attrs = attrsOf(tag);
     expect(attrs).toContain('[scrollMode]="scrollMode"');
   });
+
+  it('wraps the three spread buttons in a .pdf-spread-group container', () => {
+    // The group wrapper is what carries the "book-mode inapplicable" state so
+    // the three spread controls can be dimmed together without hiding them.
+    const groupMatch = template.match(
+      /<span[^>]*class="pdf-spread-group"[\s\S]*?<\/span>/
+    );
+    expect(groupMatch, 'expected a <span class="pdf-spread-group"> wrapper').not.toBeNull();
+    const groupHtml = groupMatch![0];
+    expect(groupHtml).toContain('<pdf-no-spread');
+    expect(groupHtml).toContain('<pdf-odd-spread');
+    expect(groupHtml).toContain('<pdf-even-spread');
+  });
+
+  it('greys out the spread group whenever pageViewMode === "book"', () => {
+    // In Book Mode the viewer always shows facing pages via PageFlip, so the
+    // spread setting is a no-op. The wrapper must gain
+    // .pdf-inapplicable-in-book-mode so the SCSS opacity/pointer-events kicks
+    // in and users can see the buttons are not part of Book Mode.
+    const attrs = template.match(/<span[^>]*class="pdf-spread-group"([\s\S]*?)>/)?.[1] ?? '';
+    expect(attrs).toContain(
+      '[class.pdf-inapplicable-in-book-mode]="pageViewMode === \'book\'"'
+    );
+  });
 });

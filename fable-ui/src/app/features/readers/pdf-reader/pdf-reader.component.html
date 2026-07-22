@@ -81,9 +81,13 @@
         @if (canPrint) {
           <pdf-print></pdf-print>
         }
-        <pdf-no-spread [scrollMode]="scrollMode"></pdf-no-spread>
-        <pdf-even-spread [scrollMode]="scrollMode"></pdf-even-spread>
-        <pdf-odd-spread [scrollMode]="scrollMode"></pdf-odd-spread>
+        <span class="pdf-spread-group"
+              [class.pdf-inapplicable-in-book-mode]="pageViewMode === 'book'"
+              [attr.title]="pageViewMode === 'book' ? ('readerPdf.toolbar.spreadDisabledInBookMode' | transloco) : null">
+          <pdf-no-spread [scrollMode]="scrollMode"></pdf-no-spread>
+          <pdf-even-spread [scrollMode]="scrollMode"></pdf-even-spread>
+          <pdf-odd-spread [scrollMode]="scrollMode"></pdf-odd-spread>
+        </span>
         <pdf-infinite-scroll
           [pageViewMode]="pageViewMode"
           [scrollMode]="scrollMode"
