@@ -27,3 +27,23 @@ export function needsRelayoutForPageViewModeTransition(
   if (from === to) return false;
   return from === 'book' || to === 'book';
 }
+
+/**
+ * PDF.js theme defaults `#viewerContainer` to `inset: 32px 0 0`.
+ * ngx-extended-pdf-viewer then overwrites `style.top` from the measured
+ * toolbar height, flooring anything under 33px to `33px`.
+ *
+ * If the custom toolbar is taller than that top inset (or measurement races
+ * before layout), page-fit sizes against a container that is taller than the
+ * visible area under the header → a small vertical scrollbar.
+ */
+export const PDF_TOOLBAR_HEIGHT_FALLBACK_PX = 32;
+
+export function resolvePdfViewerTopPx(toolbarHeightPx: number | null | undefined): number {
+  const measured = Math.ceil(Number(toolbarHeightPx) || 0);
+  if (measured < 33) {
+    return 33;
+  }
+  return measured;
+}
+

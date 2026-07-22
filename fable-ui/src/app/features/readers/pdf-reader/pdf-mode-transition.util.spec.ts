@@ -1,7 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import type {PageViewModeType} from 'ngx-extended-pdf-viewer';
 
-import {needsRelayoutForPageViewModeTransition} from './pdf-mode-transition.util';
+import {
+  needsRelayoutForPageViewModeTransition,
+  resolvePdfViewerTopPx,
+  PDF_TOOLBAR_HEIGHT_FALLBACK_PX,
+} from './pdf-mode-transition.util';
 
 describe('needsRelayoutForPageViewModeTransition', () => {
   const allModes: PageViewModeType[] = [
@@ -46,5 +50,20 @@ describe('needsRelayoutForPageViewModeTransition', () => {
         expect(needsRelayoutForPageViewModeTransition(from, to)).toBe(false);
       }
     }
+  });
+});
+
+describe('resolvePdfViewerTopPx', () => {
+  it('floors short toolbars to 33px like ngx calcViewerPositionTop', () => {
+    expect(resolvePdfViewerTopPx(undefined)).toBe(33);
+    expect(resolvePdfViewerTopPx(null)).toBe(33);
+    expect(resolvePdfViewerTopPx(0)).toBe(33);
+    expect(resolvePdfViewerTopPx(PDF_TOOLBAR_HEIGHT_FALLBACK_PX)).toBe(33);
+    expect(resolvePdfViewerTopPx(32.4)).toBe(33);
+  });
+
+  it('uses the measured toolbar height when it is taller than the floor', () => {
+    expect(resolvePdfViewerTopPx(40)).toBe(40);
+    expect(resolvePdfViewerTopPx(40.2)).toBe(41);
   });
 });

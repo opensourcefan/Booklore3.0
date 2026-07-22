@@ -36,7 +36,7 @@ import {
   shouldLockReaderBrowserZoom
 } from '../../../shared/util/visual-viewport.util';
 import {PdfScrollMode, PdfTouchNavigationHandler} from './pdf-touch-navigation.handler';
-import {needsRelayoutForPageViewModeTransition} from './pdf-mode-transition.util';
+import {needsRelayoutForPageViewModeTransition, resolvePdfViewerTopPx, PDF_TOOLBAR_HEIGHT_FALLBACK_PX} from './pdf-mode-transition.util';
 
 @Component({
   selector: 'app-pdf-reader',
@@ -272,6 +272,12 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.loadAnnotations();
     this.initTouchNavigation();
     this.initResizeListener();
+    // Toolbar chrome can settle after pagesLoaded; sync inset then refit so
+    // page-fit / page-width account for the real header height.
+    requestAnimationFrame(() => {
+      this.syncViewerChromeInsets();
+      this.refitZoomAfterResize();
+    });
   }
 
   onAnnotationEditorEvent(): void {
@@ -784,6 +790,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   }
 
   private forceViewerRelayout(): void {
+    this.syncViewerChromeInsets();
     const app = this.pdfNotification.onPDFJSInitSignal();
     if (!app?.eventBus) return;
 
@@ -806,6 +813,29 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       }
     });
     this.modeTransitionRafHandles.push(raf);
+  }
+
+  /**
+   * Keep `#viewerContainer` top inset aligned with the real toolbar height.
+   * Prevents page-fit from sizing into chrome and leaving a few pixels of scroll.
+   */
+  private syncViewerChromeInsets(): void {
+    if (typeof document === 'undefined') return;
+    const toolbar =
+      document.getElementById('toolbarContainer') ??
+      document.getElementById('toolbarViewer');
+    const viewer = document.getElementById('viewerContainer');
+    if (!viewer) return;
+
+    const measured = toolbar?.getBoundingClientRect().height ?? PDF_TOOLBAR_HEIGHT_FALLBACK_PX;
+    const topPx = resolvePdfViewerTopPx(measured);
+    viewer.style.top = `${topPx}px`;
+    // Touch zones follow viewer top; keep --pdf-toolbar-height locked so the
+    // bar does not grow when we apply ngx's 33px floor.
+    (this.hostRef.nativeElement as HTMLElement).style.setProperty(
+      '--pdf-viewer-top',
+      `${topPx}px`
+    );
   }
 
   private cancelPendingModeTransitionWork(): void {
@@ -901,6 +931,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const fitModes: string[] = ['page-fit', 'page-width', 'auto'];
     if (!fitModes.includes(this.zoom as string)) return;
 
+    this.syncViewerChromeInsets();
     const app = this.pdfNotification.onPDFJSInitSignal();
     if (!app?.eventBus) return;
 

@@ -10,6 +10,10 @@
   /* Discourage browser double-tap zoom; PDF.js still owns two-finger page zoom. */
   touch-action: manipulation;
   overscroll-behavior: none;
+  /* Locked chrome height (must match PDF.js theme inset). */
+  --pdf-toolbar-height: 32px;
+  /* Viewer/touch-zone top; syncViewerChromeInsets may raise to ngx's 33px floor. */
+  --pdf-viewer-top: 33px;
 }
 
 .loading-container {
@@ -102,12 +106,23 @@
 }
 
 ::ng-deep {
+  /* Keep toolbar height stable so page-fit's viewerContainer top inset matches chrome. */
+  #toolbarContainer {
+    height: var(--pdf-toolbar-height, 32px) !important;
+    min-height: var(--pdf-toolbar-height, 32px) !important;
+    max-height: var(--pdf-toolbar-height, 32px) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
   #toolbarViewer {
     display: flex !important;
     width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
     justify-content: space-between !important;
     align-items: center !important;
-    min-height: 32px !important;
     box-sizing: border-box !important;
     flex-wrap: nowrap !important;
   }
@@ -242,8 +257,8 @@
 
 .pdf-touch-zones {
   position: fixed;
-  // Below toolbar (~40px), above sidebar/bookmark dialog overlays
-  top: 40px;
+  // Align with #viewerContainer top (synced via --pdf-viewer-top).
+  top: var(--pdf-viewer-top, var(--pdf-toolbar-height, 32px));
   left: 0;
   right: 0;
   bottom: 0;
@@ -294,11 +309,12 @@
 }
 
 // ── Viewer fill ─────────────────────────────────────────────────────────────
-
+// Do NOT force height: 100% here. ngx is bound with [height]="'auto'" so it can
+// size to the viewport minus toolbar via adjustHeight(); forcing 100% was a
+// known page-fit regression (see v4.16.27).
 ::ng-deep ngx-extended-pdf-viewer {
   display: block;
   width: 100%;
-  height: 100%;
 }
 
 // ── Book Mode: dim controls that have no effect in Book Mode ────────────────
