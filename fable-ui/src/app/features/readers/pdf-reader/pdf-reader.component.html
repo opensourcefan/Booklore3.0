@@ -27,6 +27,17 @@
     (linkAnnotationsAdded)="onLinkAnnotationsAdded($event)">
   </ngx-extended-pdf-viewer>
 
+  @if (showTouchZones) {
+    <div class="pdf-touch-zones" [class.fade-out]="touchZonesFading" aria-hidden="true">
+      <div class="pdf-touch-zone left">
+        <span>{{ 'readerPdf.touch.previous' | transloco }}</span>
+      </div>
+      <div class="pdf-touch-zone right">
+        <span>{{ 'readerPdf.touch.next' | transloco }}</span>
+      </div>
+    </div>
+  }
+
   <ng-template #additionalButtons>
     <div id="toolbarViewer">
       <div id="toolbarViewerLeft" [class.pdf-dark]="isDarkTheme">

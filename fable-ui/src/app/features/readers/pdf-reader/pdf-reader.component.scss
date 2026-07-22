@@ -238,3 +238,67 @@
   }
 }
 
+// ── Touch zone overlay ──────────────────────────────────────────────────────
+
+.pdf-touch-zones {
+  position: fixed;
+  // Below toolbar (~40px), above sidebar/bookmark dialog overlays
+  top: 40px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 11000;
+  animation: pdfTouchFadeIn 200ms ease forwards;
+
+  &.fade-out {
+    animation: pdfTouchFadeOut 400ms ease forwards;
+  }
+}
+
+.pdf-touch-zone {
+  width: 22%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, rgba(80, 200, 255, 0.18), rgba(80, 200, 255, 0));
+
+  span {
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.62);
+    border: 1px solid rgba(80, 200, 255, 0.45);
+    color: #e0f7ff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  &.right {
+    background: linear-gradient(270deg, rgba(80, 200, 255, 0.18), rgba(80, 200, 255, 0));
+  }
+}
+
+@keyframes pdfTouchFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pdfTouchFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+// ── Viewer fill ─────────────────────────────────────────────────────────────
+
+::ng-deep ngx-extended-pdf-viewer {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+

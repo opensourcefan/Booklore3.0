@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, PDFNotificationService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
@@ -35,6 +35,7 @@ import {
   releaseReaderBrowserZoomLock,
   shouldLockReaderBrowserZoom
 } from '../../../shared/util/visual-viewport.util';
+import {PdfScrollMode, PdfTouchNavigationHandler} from './pdf-touch-navigation.handler';
 
 @Component({
   selector: 'app-pdf-reader',
@@ -99,6 +100,17 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private sidebarCloseTimer: ReturnType<typeof setTimeout> | null = null;
   private pdfJsSidebarListener: ((evt: unknown) => void) | null = null;
 
+  // Touch navigation
+  showTouchZones = false;
+  touchZonesFading = false;
+  private touchHandler: PdfTouchNavigationHandler | null = null;
+  private touchZoneTimer: ReturnType<typeof setTimeout> | null = null;
+  private touchZoneFadeTimer: ReturnType<typeof setTimeout> | null = null;
+  private currentScrollMode: PdfScrollMode = PdfScrollMode.Vertical;
+  private scrollModeListener: ((evt: unknown) => void) | null = null;
+  private resizeListener: (() => void) | null = null;
+  private resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   private bookService = inject(BookService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
@@ -117,6 +129,8 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private readonly t = inject(TranslocoService);
   private readonly mobileUx = inject(MobileUxService);
+  private readonly zone = inject(NgZone);
+  private readonly hostRef = inject(ElementRef);
   private readerBrowserZoomLocked = false;
 
   ngOnInit(): void {
@@ -230,11 +244,14 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const app = this.pdfNotification.onPDFJSInitSignal();
     if (app) {
       this.ensurePdfJsSidebarListener(app);
+      this.ensureScrollModeListener(app);
     }
     const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
     this.readingSessionService.startSession(this.bookId, "PDF", this.page.toString(), percentage);
     this.readingSessionService.updateProgress(this.page.toString(), percentage);
     this.loadAnnotations();
+    this.initTouchNavigation();
+    this.initResizeListener();
   }
 
   onAnnotationEditorEvent(): void {
@@ -256,6 +273,10 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       app.eventBus.off('sidebarviewchanged', this.pdfJsSidebarListener);
       this.pdfJsSidebarListener = null;
     }
+    if (this.scrollModeListener && app?.eventBus?.off) {
+      app.eventBus.off('scrollmodechanged', this.scrollModeListener);
+      this.scrollModeListener = null;
+    }
 
     if (this.readingSessionService.isSessionActive()) {
       const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
@@ -270,6 +291,8 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     }
     this.updateProgress();
     this.unlockReaderBrowserZoomIfNeeded();
+    this.destroyTouchNavigation();
+    this.destroyResizeListener();
   }
 
   private lockReaderBrowserZoomIfNeeded(): void {
@@ -574,5 +597,194 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private toastError(summary: string, detail: string, life?: number): void {
     this.failureNotifications.reportSafe(summary, detail);
     this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
+  }
+
+  // ── Touch navigation ────────────────────────────────────────────────────
+
+  private initTouchNavigation(): void {
+    if (this.touchHandler) return;
+    if (this.mobileUx.isPhone) return;
+    if (!this.mobileUx.hasTouchInput) return;
+
+    const container = this.hostRef.nativeElement as HTMLElement;
+    if (!container) return;
+
+    this.touchHandler = new PdfTouchNavigationHandler({
+      container,
+      onPrev: () => {
+        this.zone.run(() => {
+          const step = this.getPageStep();
+          if (this.page > 1) {
+            this.page = Math.max(1, this.page - step);
+            this.updateBookmarkState();
+          }
+        });
+      },
+      onNext: () => {
+        this.zone.run(() => {
+          const step = this.getPageStep();
+          if (this.page < this.totalPages) {
+            this.page = Math.min(this.totalPages, this.page + step);
+            this.updateBookmarkState();
+          }
+        });
+      },
+      onFirstTouch: () => {
+        this.zone.run(() => this.dismissTouchZones());
+      },
+    });
+
+    // Activate if already in a page-based mode
+    this.syncTouchHandlerActive();
+  }
+
+  private destroyTouchNavigation(): void {
+    this.touchHandler?.destroy();
+    this.touchHandler = null;
+    if (this.touchZoneTimer) {
+      clearTimeout(this.touchZoneTimer);
+      this.touchZoneTimer = null;
+    }
+    if (this.touchZoneFadeTimer) {
+      clearTimeout(this.touchZoneFadeTimer);
+      this.touchZoneFadeTimer = null;
+    }
+  }
+
+  /**
+   * Returns how many pages to advance per tap/swipe.
+   * In spread modes (even/odd) and page-based scroll, advance by 2; otherwise 1.
+   */
+  private getPageStep(): number {
+    if (this.currentScrollMode === PdfScrollMode.Page && this.spread !== 'off') {
+      return 2;
+    }
+    return 1;
+  }
+
+  /** Activate touch handler only in page-based or horizontal scroll modes. */
+  private syncTouchHandlerActive(): void {
+    if (!this.touchHandler) return;
+    const isPageBased = this.currentScrollMode === PdfScrollMode.Page
+      || this.currentScrollMode === PdfScrollMode.Horizontal;
+    this.touchHandler.active = isPageBased;
+  }
+
+  private ensureScrollModeListener(app: {
+    eventBus?: {
+      on?: (name: string, listener: (evt: unknown) => void) => void;
+      off?: (name: string, listener: (evt: unknown) => void) => void;
+    };
+  }): void {
+    if (this.scrollModeListener || !app.eventBus?.on) return;
+
+    this.scrollModeListener = (evt: unknown) => {
+      const mode = (evt as { mode?: number })?.mode;
+      if (mode != null) {
+        this.currentScrollMode = mode as PdfScrollMode;
+        this.syncTouchHandlerActive();
+        // Flash touch zones when entering a page-based mode
+        if (this.isPageBasedMode()) {
+          this.flashTouchZones();
+        }
+      }
+    };
+    app.eventBus.on('scrollmodechanged', this.scrollModeListener);
+
+    // Read initial scroll mode from the viewer
+    const pdfViewer = (app as { pdfViewer?: { scrollMode?: number } }).pdfViewer;
+    if (pdfViewer?.scrollMode != null) {
+      this.currentScrollMode = pdfViewer.scrollMode as PdfScrollMode;
+      this.syncTouchHandlerActive();
+    }
+  }
+
+  private isPageBasedMode(): boolean {
+    return this.currentScrollMode === PdfScrollMode.Page
+      || this.currentScrollMode === PdfScrollMode.Horizontal;
+  }
+
+  /** Flash touch zone hints for 1.2s, then fade out. */
+  flashTouchZones(): void {
+    if (!this.mobileUx.hasTouchInput || this.mobileUx.isPhone) return;
+    if (!this.isPageBasedMode()) return;
+
+    // Clear any existing timers
+    if (this.touchZoneTimer) clearTimeout(this.touchZoneTimer);
+    if (this.touchZoneFadeTimer) clearTimeout(this.touchZoneFadeTimer);
+
+    this.showTouchZones = true;
+    this.touchZonesFading = false;
+
+    // Start fade-out after 1.2s
+    this.touchZoneTimer = setTimeout(() => {
+      this.touchZonesFading = true;
+      // Remove from DOM after fade animation (400ms)
+      this.touchZoneFadeTimer = setTimeout(() => {
+        this.showTouchZones = false;
+        this.touchZonesFading = false;
+        this.touchZoneFadeTimer = null;
+      }, 400);
+      this.touchZoneTimer = null;
+    }, 1200);
+  }
+
+  private dismissTouchZones(): void {
+    if (!this.showTouchZones) return;
+    if (this.touchZoneTimer) {
+      clearTimeout(this.touchZoneTimer);
+      this.touchZoneTimer = null;
+    }
+    if (this.touchZoneFadeTimer) {
+      clearTimeout(this.touchZoneFadeTimer);
+      this.touchZoneFadeTimer = null;
+    }
+    this.touchZonesFading = true;
+    this.touchZoneFadeTimer = setTimeout(() => {
+      this.showTouchZones = false;
+      this.touchZonesFading = false;
+      this.touchZoneFadeTimer = null;
+    }, 400);
+  }
+
+  // ── Orientation / resize zoom refit ─────────────────────────────────────
+
+  private initResizeListener(): void {
+    if (this.resizeListener || typeof window === 'undefined') return;
+
+    this.resizeListener = () => {
+      if (this.resizeDebounceTimer) clearTimeout(this.resizeDebounceTimer);
+      this.resizeDebounceTimer = setTimeout(() => {
+        this.resizeDebounceTimer = null;
+        this.refitZoomAfterResize();
+      }, 250);
+    };
+    window.addEventListener('resize', this.resizeListener);
+  }
+
+  private destroyResizeListener(): void {
+    if (this.resizeListener && typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.resizeListener);
+      this.resizeListener = null;
+    }
+    if (this.resizeDebounceTimer) {
+      clearTimeout(this.resizeDebounceTimer);
+      this.resizeDebounceTimer = null;
+    }
+  }
+
+  /**
+   * After an orientation change or window resize, re-dispatch the current zoom
+   * so PDF.js recalculates page-fit / page-width for the new viewport dimensions.
+   */
+  private refitZoomAfterResize(): void {
+    const fitModes: string[] = ['page-fit', 'page-width', 'auto'];
+    if (!fitModes.includes(this.zoom as string)) return;
+
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    if (!app?.eventBus) return;
+
+    // Re-dispatch the same zoom type so PDF.js recalculates for the new viewport
+    app.eventBus.dispatch('scalechanged', {value: this.zoom});
   }
 }

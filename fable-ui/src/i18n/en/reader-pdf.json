@@ -25,6 +25,10 @@
     "saveBookmark": "Save",
     "cancelBookmark": "Cancel"
   },
+  "touch": {
+    "previous": "← Prev",
+    "next": "Next →"
+  },
   "toast": {
     "failedToLoadBook": "Failed to load the book",
     "bookmarkAdded": "Bookmark added",
