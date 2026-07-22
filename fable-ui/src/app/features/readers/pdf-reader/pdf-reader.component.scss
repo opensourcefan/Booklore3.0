@@ -26,14 +26,9 @@
   width: 100%;
   height: 100%;
   --pdf-footer-height: 0px;
-  --pdf-toolbar-height: 32px;
 
   &.pdf-footer-visible {
     --pdf-footer-height: calc(52px + env(safe-area-inset-bottom, 0px));
-  }
-
-  &:not(.pdf-chrome-header-visible) {
-    --pdf-toolbar-height: 0px;
   }
 }
 
@@ -42,6 +37,7 @@
   bottom: var(--pdf-footer-height) !important;
 }
 
+// Auto-hide toolbar visually only — do not alter viewerContainer top (PDF.js owns that).
 ::ng-deep .pdf-reader-shell #toolbarContainer {
   transition: transform 0.25s ease-out, opacity 0.25s ease-out;
 }
@@ -52,16 +48,11 @@
   pointer-events: none;
 }
 
-::ng-deep .pdf-reader-shell #viewerContainer {
-  transition: top 0.25s ease-out, bottom 0.25s ease-out;
-  top: var(--pdf-toolbar-height) !important;
-}
-
 .pdf-touch-hints {
   position: absolute;
   left: 0;
   right: 0;
-  top: var(--pdf-toolbar-height);
+  top: 32px;
   bottom: var(--pdf-footer-height);
   display: flex;
   align-items: stretch;

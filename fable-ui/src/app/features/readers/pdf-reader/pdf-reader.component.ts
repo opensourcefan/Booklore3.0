@@ -163,6 +163,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   chromeFooterVisible = false;
   private visibilityManager!: ReaderHeaderFooterVisibilityManager;
   private touchChromeTimeout: ReturnType<typeof setTimeout> | null = null;
+  private footerLayoutActive = false;
 
   get touchNavEnabled(): boolean {
     return this.touchNavConfig.enabled;
@@ -190,7 +191,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       this.isChromePinned = this.visibilityManager.getIsPinned();
       this.chromeHeaderVisible = state.headerVisible;
       this.chromeFooterVisible = state.footerVisible;
-      this.refreshViewerLayout();
+      this.syncFooterLayoutIfNeeded();
     });
     this.writeProgressService.clear();
     this.annotationSaveSubscription = this.annotationSaveSubject
@@ -688,6 +689,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       clearTimeout(this.touchChromeTimeout);
       this.touchChromeTimeout = null;
     }
+    this.syncFooterLayoutIfNeeded();
   }
 
   @HostListener('document:mousemove', ['$event'])
@@ -921,11 +923,20 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const enabledChanged = next.enabled !== this.touchNavConfig.enabled;
     this.touchNavConfig = next;
     if (enabledChanged) {
-      this.refreshViewerLayout();
+      this.syncFooterLayoutIfNeeded();
     }
     if (flashHints && next.enabled && modeChanged) {
       this.flashTouchHints();
     }
+  }
+
+  private syncFooterLayoutIfNeeded(): void {
+    const next = this.pdfFooterLayoutActive;
+    if (next === this.footerLayoutActive) {
+      return;
+    }
+    this.footerLayoutActive = next;
+    this.refreshViewerLayout();
   }
 
   private refreshViewerLayout(): void {
@@ -973,7 +984,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
 
     this.chromeHeaderVisible = true;
     this.chromeFooterVisible = true;
-    this.refreshViewerLayout();
+    this.syncFooterLayoutIfNeeded();
 
     if (this.touchChromeTimeout) {
       clearTimeout(this.touchChromeTimeout);
