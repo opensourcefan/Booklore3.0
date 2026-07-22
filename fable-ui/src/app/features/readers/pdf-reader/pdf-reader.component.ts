@@ -32,7 +32,6 @@ import {
 import {PdfFooterComponent} from './layout/pdf-footer.component';
 import {
   isTouchTap,
-  PdfScrollMode,
   PdfTouchNavConfig,
   resolveCenterSwipeAction,
   resolveEdgeTapNavigation,
