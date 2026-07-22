@@ -1,0 +1,42 @@
+<div class="pdf-footer" [class.visible]="visible">
+  <div class="footer-content">
+    <button
+      type="button"
+      class="nav-btn"
+      (click)="firstPage.emit()"
+      [disabled]="!canGoPrevious"
+      [title]="'readerPdf.footer.firstPage' | transloco">
+      <app-reader-icon name="chevron-first" [size]="16" />
+    </button>
+    <button
+      type="button"
+      class="nav-btn"
+      (click)="previousPage.emit()"
+      [disabled]="!canGoPrevious"
+      [title]="'readerPdf.footer.previousPage' | transloco">
+      <app-reader-icon name="chevron-left" [size]="16" />
+    </button>
+
+    <div class="page-info">
+      <span class="current">{{ currentPage }}</span>
+      <span class="total">{{ 'readerPdf.footer.of' | transloco }} {{ totalPages }}</span>
+    </div>
+
+    <button
+      type="button"
+      class="nav-btn"
+      (click)="nextPage.emit()"
+      [disabled]="!canGoNext"
+      [title]="'readerPdf.footer.nextPage' | transloco">
+      <app-reader-icon name="chevron-right" [size]="16" />
+    </button>
+    <button
+      type="button"
+      class="nav-btn"
+      (click)="lastPage.emit()"
+      [disabled]="!canGoNext"
+      [title]="'readerPdf.footer.lastPage' | transloco">
+      <app-reader-icon name="chevron-last" [size]="16" />
+    </button>
+  </div>
+</div>

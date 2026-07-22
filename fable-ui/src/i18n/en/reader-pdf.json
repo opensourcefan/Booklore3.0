@@ -30,5 +30,20 @@
     "bookmarkAdded": "Bookmark added",
     "bookmarkRemoved": "Bookmark removed",
     "bookmarkFailed": "Failed to save bookmark"
+  },
+  "footer": {
+    "firstPage": "First page",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "lastPage": "Last page",
+    "of": "of"
+  },
+  "touch": {
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "singlePageHint": "Swipe up or down",
+    "bookModeHint": "Swipe left or right",
+    "horizontalHint": "Swipe left or right",
+    "wrappedHint": "Swipe to turn pages"
   }
 }

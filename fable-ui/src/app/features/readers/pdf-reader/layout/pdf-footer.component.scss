@@ -1,0 +1,80 @@
+$text-primary: rgba(255, 255, 255, 0.95);
+$text-secondary: rgba(255, 255, 255, 0.6);
+$active-color: #4a90e2;
+
+.pdf-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  color: $text-primary;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+
+  &.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.footer-content {
+  height: calc(52px + env(safe-area-inset-bottom, 0px));
+  padding: 0 16px env(safe-area-inset-bottom, 0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+  border-top: 1px solid #404040;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-btn {
+  background: rgba(51, 51, 51, 0.9);
+  border: 1px solid #555;
+  color: $text-primary;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background: #4a4a4a;
+    border-color: #666;
+  }
+
+  &:disabled {
+    background: #2a2a2a;
+    color: #666;
+    cursor: not-allowed;
+    border-color: #333;
+  }
+}
+
+.page-info {
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 96px;
+  text-align: center;
+
+  .current {
+    color: $active-color;
+    font-weight: 600;
+  }
+
+  .total {
+    color: $text-secondary;
+  }
+}

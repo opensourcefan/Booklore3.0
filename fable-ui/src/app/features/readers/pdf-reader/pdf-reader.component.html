@@ -5,6 +5,7 @@
 }
 
 @if (!isLoading) {
+  <div class="pdf-reader-shell" [class.touch-nav-active]="touchNavEnabled">
   <ngx-extended-pdf-viewer
     [src]="bookData"
     [authorization]="authorization"
@@ -26,6 +27,44 @@
     (annotationLayerRendered)="onAnnotationLayerRendered($event)"
     (linkAnnotationsAdded)="onLinkAnnotationsAdded($event)">
   </ngx-extended-pdf-viewer>
+
+  @if (touchNavEnabled) {
+    <div class="pdf-touch-nav" aria-hidden="true">
+      @if (showTouchHints) {
+        <div class="pdf-touch-hints">
+          <div class="pdf-touch-hint edge left">
+            <span>{{ 'readerPdf.touch.previousPage' | transloco }}</span>
+          </div>
+          <div class="pdf-touch-hint center">
+            <span>{{ touchNavConfig.modeLabelKey | transloco }}</span>
+          </div>
+          <div class="pdf-touch-hint edge right">
+            <span>{{ 'readerPdf.touch.nextPage' | transloco }}</span>
+          </div>
+        </div>
+      }
+      <div
+        class="pdf-edge-zone left"
+        (touchstart)="onEdgeTouchStart($event)"
+        (touchend)="onEdgeZoneTap($event, 'previous')">
+      </div>
+      <div
+        class="pdf-edge-zone right"
+        (touchstart)="onEdgeTouchStart($event)"
+        (touchend)="onEdgeZoneTap($event, 'next')">
+      </div>
+    </div>
+  }
+
+  <app-pdf-footer
+    [currentPage]="page"
+    [totalPages]="totalPages"
+    [visible]="touchNavEnabled"
+    (previousPage)="goToPreviousPage()"
+    (nextPage)="goToNextPage()"
+    (firstPage)="goToFirstPage()"
+    (lastPage)="goToLastPage()">
+  </app-pdf-footer>
 
   <ng-template #additionalButtons>
     <div id="toolbarViewer">
@@ -145,4 +184,5 @@
     (save)="onSaveBookmark($event)"
     (dismissed)="onCancelBookmark()">
   </app-bookmark-title-dialog>
+  </div>
 }

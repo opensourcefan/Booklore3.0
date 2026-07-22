@@ -21,6 +21,104 @@
   background: #1a1a1a;
 }
 
+.pdf-reader-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-touch-nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 32px;
+  bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  pointer-events: none;
+}
+
+.pdf-edge-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22%;
+  pointer-events: auto;
+  touch-action: manipulation;
+
+  &.left {
+    left: 0;
+  }
+
+  &.right {
+    right: 0;
+  }
+}
+
+.pdf-touch-hints {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pdf-touch-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
+  animation: pdf-touch-hint-fade 1.2s ease forwards;
+
+  span {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  &.edge {
+    width: 22%;
+
+    &.left {
+      background: linear-gradient(90deg, rgba(80, 200, 255, 0.22), rgba(80, 200, 255, 0));
+    }
+
+    &.right {
+      background: linear-gradient(270deg, rgba(80, 200, 255, 0.22), rgba(80, 200, 255, 0));
+    }
+  }
+
+  &.center {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes pdf-touch-hint-fade {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+::ng-deep .pdf-reader-shell.touch-nav-active ngx-extended-pdf-viewer {
+  display: block;
+  height: calc(100% - 52px - env(safe-area-inset-bottom, 0px));
+}
+
 ::ng-deep .toolbar-btn,
 ::ng-deep .close-reader-btn {
   display: flex;

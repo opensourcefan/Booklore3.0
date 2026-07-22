@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, PDFNotificationService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
@@ -20,6 +20,15 @@ import {
   PdfSidebarPage,
   PdfSidebarTab
 } from './layout/pdf-sidebar.component';
+import {PdfFooterComponent} from './layout/pdf-footer.component';
+import {
+  PdfScrollMode,
+  PdfTouchNavConfig,
+  isTouchTap,
+  resolveCenterSwipeAction,
+  resolvePdfTouchNavConfig,
+  TouchNavAction,
+} from './pdf-touch-nav.util';
 
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService} from 'primeng/api';
@@ -45,6 +54,7 @@ import {
     TranslocoPipe,
     BookmarkTitleDialogComponent,
     PdfSidebarComponent,
+    PdfFooterComponent,
   ],
   templateUrl: './pdf-reader.component.html',
   styleUrl: './pdf-reader.component.scss',
@@ -99,6 +109,23 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private sidebarCloseTimer: ReturnType<typeof setTimeout> | null = null;
   private pdfJsSidebarListener: ((evt: unknown) => void) | null = null;
 
+  // Touch navigation (paginated PDF modes)
+  touchNavConfig: PdfTouchNavConfig = {enabled: false, axis: 'horizontal', modeLabelKey: ''};
+  showTouchHints = false;
+  private pdfScrollMode = PdfScrollMode.VERTICAL;
+  private pdfPageViewMode = 'multiple';
+  private pdfViewModeListener: ((evt: unknown) => void) | null = null;
+  private pdfPageViewModeListener: ((evt: unknown) => void) | null = null;
+  private touchHintTimeout: ReturnType<typeof setTimeout> | null = null;
+  private isReaderTouchActive = false;
+  private touchMoved = false;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchEndX = 0;
+  private touchEndY = 0;
+  private touchStartTime = 0;
+  private touchIsMultiGesture = false;
+
   private bookService = inject(BookService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
@@ -118,6 +145,10 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private readonly t = inject(TranslocoService);
   private readonly mobileUx = inject(MobileUxService);
   private readerBrowserZoomLocked = false;
+
+  get touchNavEnabled(): boolean {
+    return this.touchNavConfig.enabled;
+  }
 
   ngOnInit(): void {
     this.lockReaderBrowserZoomIfNeeded();
@@ -230,6 +261,8 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const app = this.pdfNotification.onPDFJSInitSignal();
     if (app) {
       this.ensurePdfJsSidebarListener(app);
+      this.ensurePdfViewModeListeners(app);
+      this.syncPdfViewMode(app);
     }
     const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
     this.readingSessionService.startSession(this.bookId, "PDF", this.page.toString(), percentage);
@@ -255,6 +288,18 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     if (this.pdfJsSidebarListener && app?.eventBus?.off) {
       app.eventBus.off('sidebarviewchanged', this.pdfJsSidebarListener);
       this.pdfJsSidebarListener = null;
+    }
+    if (this.pdfViewModeListener && app?.eventBus?.off) {
+      app.eventBus.off('switchscrollmode', this.pdfViewModeListener);
+      this.pdfViewModeListener = null;
+    }
+    if (this.pdfPageViewModeListener && app?.eventBus?.off) {
+      app.eventBus.off('pageviewmodechanged', this.pdfPageViewModeListener);
+      this.pdfPageViewModeListener = null;
+    }
+    if (this.touchHintTimeout) {
+      clearTimeout(this.touchHintTimeout);
+      this.touchHintTimeout = null;
     }
 
     if (this.readingSessionService.isSessionActive()) {
@@ -574,5 +619,236 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private toastError(summary: string, detail: string, life?: number): void {
     this.failureNotifications.reportSafe(summary, detail);
     this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
+  }
+
+  goToPreviousPage(): void {
+    if (this.page > 1) {
+      this.page = this.page - 1;
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.totalPages > 0 && this.page < this.totalPages) {
+      this.page = this.page + 1;
+    }
+  }
+
+  goToFirstPage(): void {
+    if (this.page !== 1) {
+      this.page = 1;
+    }
+  }
+
+  goToLastPage(): void {
+    if (this.totalPages > 0 && this.page !== this.totalPages) {
+      this.page = this.totalPages;
+    }
+  }
+
+  onEdgeTouchStart(event: TouchEvent): void {
+    const touch = event.changedTouches[0] ?? event.touches[0];
+    if (!touch) {
+      return;
+    }
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.touchStartTime = Date.now();
+    this.touchMoved = false;
+    this.touchIsMultiGesture = event.touches.length > 1;
+  }
+
+  onEdgeZoneTap(event: TouchEvent, action: TouchNavAction): void {
+    if (!this.touchNavEnabled || action === 'none') {
+      return;
+    }
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      return;
+    }
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = touch.clientY - this.touchStartY;
+    const durationMs = Date.now() - this.touchStartTime;
+    if (!isTouchTap(deltaX, deltaY, durationMs, this.touchMoved)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.isReaderTouchActive = false;
+    this.applyTouchNavAction(action);
+  }
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent): void {
+    if (!this.touchNavEnabled || this.isTouchNavBlocked(event.target)) {
+      return;
+    }
+    if (!this.isWithinPdfViewer(event.target)) {
+      return;
+    }
+
+    this.isReaderTouchActive = true;
+    this.touchIsMultiGesture = event.touches.length > 1;
+    this.touchMoved = false;
+    this.touchStartTime = Date.now();
+    const touch = event.changedTouches[0] ?? event.touches[0];
+    if (!touch) {
+      return;
+    }
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.touchEndX = touch.clientX;
+    this.touchEndY = touch.clientY;
+  }
+
+  @HostListener('document:touchmove', ['$event'])
+  onTouchMove(event: TouchEvent): void {
+    if (!this.isReaderTouchActive) {
+      return;
+    }
+    if (event.touches.length > 1) {
+      this.touchIsMultiGesture = true;
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    this.touchEndX = touch.clientX;
+    this.touchEndY = touch.clientY;
+    if (Math.abs(this.touchEndX - this.touchStartX) > 8 || Math.abs(this.touchEndY - this.touchStartY) > 8) {
+      this.touchMoved = true;
+    }
+  }
+
+  @HostListener('document:touchend', ['$event'])
+  onTouchEnd(event: TouchEvent): void {
+    if (!this.isReaderTouchActive) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    if (touch) {
+      this.touchEndX = touch.clientX;
+      this.touchEndY = touch.clientY;
+    }
+
+    const wasActive = this.isReaderTouchActive;
+    this.isReaderTouchActive = false;
+
+    if (!wasActive || !this.touchNavEnabled || this.touchIsMultiGesture || this.isAnnotationEditingActive()) {
+      return;
+    }
+
+    const action = resolveCenterSwipeAction(
+      {x: this.touchStartX, y: this.touchStartY},
+      {x: this.touchEndX, y: this.touchEndY},
+      window.innerWidth,
+      this.touchNavConfig.axis,
+    );
+    if (action !== 'none') {
+      this.applyTouchNavAction(action);
+    }
+  }
+
+  private applyTouchNavAction(action: TouchNavAction): void {
+    if (action === 'previous') {
+      this.goToPreviousPage();
+    } else if (action === 'next') {
+      this.goToNextPage();
+    }
+  }
+
+  private isWithinPdfViewer(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    return !!el?.closest('#viewerContainer, #viewer');
+  }
+
+  private isTouchNavBlocked(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    if (!el) {
+      return true;
+    }
+    return !!el.closest(
+      '.pdf-edge-zone, .pdf-footer, .pdf-sidebar, .bookmark-dialog-overlay, #toolbarContainer, #secondaryToolbar, .findbar, .editorParamsToolbar, .pdf-touch-hints',
+    );
+  }
+
+  private isAnnotationEditingActive(): boolean {
+    const app = this.pdfNotification.onPDFJSInitSignal() as {
+      pdfViewer?: {annotationEditorMode?: number};
+    } | undefined;
+    const mode = app?.pdfViewer?.annotationEditorMode;
+    return mode != null && mode !== 0;
+  }
+
+  private ensurePdfViewModeListeners(app: {
+    eventBus?: {on?: (name: string, listener: (evt: unknown) => void) => void};
+  }): void {
+    if (!app.eventBus?.on) {
+      return;
+    }
+
+    if (!this.pdfViewModeListener) {
+      this.pdfViewModeListener = (evt: unknown) => {
+        const mode = (evt as {mode?: number}).mode;
+        if (typeof mode === 'number') {
+          this.pdfScrollMode = mode;
+          this.updateTouchNavState(true);
+        }
+      };
+      app.eventBus.on('switchscrollmode', this.pdfViewModeListener);
+    }
+
+    if (!this.pdfPageViewModeListener) {
+      this.pdfPageViewModeListener = (evt: unknown) => {
+        const pageViewMode = (evt as {pageViewMode?: string}).pageViewMode;
+        if (typeof pageViewMode === 'string') {
+          this.pdfPageViewMode = pageViewMode;
+          this.updateTouchNavState(true);
+        }
+      };
+      app.eventBus.on('pageviewmodechanged', this.pdfPageViewModeListener);
+    }
+  }
+
+  private syncPdfViewMode(app: {
+    pdfViewer?: {scrollMode?: number; pageViewMode?: string};
+  }): void {
+    if (typeof app.pdfViewer?.scrollMode === 'number') {
+      this.pdfScrollMode = app.pdfViewer.scrollMode;
+    }
+    if (typeof app.pdfViewer?.pageViewMode === 'string') {
+      this.pdfPageViewMode = app.pdfViewer.pageViewMode;
+    }
+    this.updateTouchNavState(false);
+  }
+
+  private updateTouchNavState(flashHints: boolean): void {
+    const next = resolvePdfTouchNavConfig(
+      this.pdfScrollMode,
+      this.pdfPageViewMode,
+      this.mobileUx.hasTouchInput,
+    );
+    const modeChanged = next.modeLabelKey !== this.touchNavConfig.modeLabelKey
+      || next.enabled !== this.touchNavConfig.enabled
+      || next.axis !== this.touchNavConfig.axis;
+    this.touchNavConfig = next;
+    if (flashHints && next.enabled && modeChanged) {
+      this.flashTouchHints();
+    }
+  }
+
+  private flashTouchHints(): void {
+    if (!this.touchNavEnabled) {
+      return;
+    }
+    this.showTouchHints = true;
+    if (this.touchHintTimeout) {
+      clearTimeout(this.touchHintTimeout);
+    }
+    this.touchHintTimeout = setTimeout(() => {
+      this.showTouchHints = false;
+      this.touchHintTimeout = null;
+    }, 1200);
   }
 }
