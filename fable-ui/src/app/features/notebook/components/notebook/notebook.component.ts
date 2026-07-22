@@ -26,6 +26,7 @@ import {BookService} from '../../../book/service/book.service';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
+import {parsePageCfi} from '../../../../shared/util/page-cfi.util';
 
 export interface DisplayNotebookEntry extends NotebookEntry {
   safeTextHtml?: SafeHtml;
@@ -383,17 +384,13 @@ export class NotebookComponent implements OnInit, OnDestroy {
       if (entry.trackIndex !== undefined && entry.trackIndex !== null) {
         queryParams.trackIndex = entry.trackIndex;
       }
-    } else if (bookType === 'PDF') {
-      if (entry.cfi && entry.cfi.startsWith('page=')) {
-        const pageNum = Number(entry.cfi.split('=')[1]);
-        if (!isNaN(pageNum)) {
-          queryParams.page = pageNum;
-        }
+    } else if (bookType === 'PDF' || bookType === 'CBX') {
+      const pageNum = parsePageCfi(entry.cfi);
+      if (pageNum != null) {
+        queryParams.page = pageNum;
       }
-    } else { // EPUB etc.
-      if (entry.cfi) {
-        queryParams.cfi = entry.cfi;
-      }
+    } else if (entry.cfi) {
+      queryParams.cfi = entry.cfi;
     }
 
     this.router.navigate([`/${baseUrl}/book/${entry.bookId}`], { queryParams });

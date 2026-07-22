@@ -1,4 +1,10 @@
 {
+  "bookmarkDialog": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "titleLabel": "Bookmark Title (optional)",
+    "titlePlaceholder": "e.g. Important chapter, Figure 3.2..."
+  },
   "bookUploader": {
     "title": "Upload Books",
     "description": "Upload your books to library or bookdrop folder",

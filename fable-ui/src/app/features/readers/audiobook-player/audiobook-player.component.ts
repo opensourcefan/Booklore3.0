@@ -25,8 +25,12 @@ import {PageTitleService} from '../../../shared/service/page-title.service';
 import {AuthService} from '../../../shared/service/auth.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+import {BookmarkTitleDialogComponent} from '../../../shared/components/bookmark-title-dialog/bookmark-title-dialog.component';
+import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overlay-dismiss.util';
+import {sortBookmarksChronological} from '../../../shared/util/sort-bookmarks.util';
 
-type AudiobookMobileSurface = 'trackList' | 'bookmarkList';
+type AudiobookMobileSurface = 'sidebar';
+type AudiobookSidebarTab = 'tracks' | 'bookmarks';
 
 @Component({
   selector: 'app-audiobook-player',
@@ -40,7 +44,8 @@ type AudiobookMobileSurface = 'trackList' | 'bookmarkList';
     Tooltip,
     SelectButton,
     Menu,
-    TranslocoDirective
+    TranslocoDirective,
+    BookmarkTitleDialogComponent,
   ],
   templateUrl: './audiobook-player.component.html',
   styleUrls: ['./audiobook-player.component.scss']
@@ -86,8 +91,15 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   currentTrackIndex = 0;
   audioSrc = '';
 
-  showTrackList = false;
-  showBookmarkList = false;
+  showSidebar = false;
+  sidebarClosing = false;
+  sidebarTab: AudiobookSidebarTab = 'tracks';
+  private readonly sidebarDismissGuard = new GhostClickGuard();
+  private sidebarCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  showBookmarkDialog = false;
+  bookmarkTitle = '';
+  bookmarkDefaultTitle = '';
 
   sleepTimerActive = false;
   sleepTimerRemaining = 0;
@@ -137,6 +149,10 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
+    if (this.sidebarCloseTimer) {
+      clearTimeout(this.sidebarCloseTimer);
+      this.sidebarCloseTimer = null;
+    }
     this.releaseAllMobileBackRegistrations(false);
     this.destroy$.next();
     this.destroy$.complete();
@@ -163,11 +179,8 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private syncMobileBackRegistrations(): void {
-    this.syncMobileBackSurface('trackList', this.showTrackList, () => {
-      this.showTrackList = false;
-    });
-    this.syncMobileBackSurface('bookmarkList', this.showBookmarkList, () => {
-      this.showBookmarkList = false;
+    this.syncMobileBackSurface('sidebar', this.showSidebar, () => {
+      this.closeSidebar();
     });
   }
 
@@ -318,7 +331,8 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
     this.audioLoading = false;
     this.audioInitialized = false;
 
-    this.showTrackList = false;
+    this.showSidebar = false;
+    this.sidebarClosing = false;
     this.coverUrl = undefined;
     this.bookCoverUrl = undefined;
   }
@@ -632,7 +646,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
     if (trackInfo?.durationMs) {
       this.duration = trackInfo.durationMs / 1000;
     }
-    this.showTrackList = false;
+    this.closeSidebar();
 
     const audio = this.audioElement?.nativeElement;
     if (audio) {
@@ -689,13 +703,13 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
         }
       };
       audio.addEventListener('canplay', seekAndPlay);
-      this.showTrackList = false;
+      this.closeSidebar();
       return;
     }
 
     audio.currentTime = chapter.startTimeMs / 1000;
     this.currentTime = chapter.startTimeMs / 1000;
-    this.showTrackList = false;
+    this.closeSidebar();
     this.updateMediaSessionMetadata();
     if (!this.isPlaying) {
       audio.play();
@@ -856,8 +870,43 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
-  toggleTrackList(): void {
-    this.showTrackList = !this.showTrackList;
+  openSidebar(tab: AudiobookSidebarTab = 'tracks'): void {
+    this.sidebarTab = tab;
+    this.sidebarClosing = false;
+    this.showSidebar = true;
+    this.sidebarDismissGuard.arm();
+    if (tab === 'bookmarks' && this.bookmarks.length === 0) {
+      this.loadBookmarks();
+    }
+  }
+
+  closeSidebar(): void {
+    if (!this.showSidebar || this.sidebarClosing) {
+      return;
+    }
+    this.sidebarClosing = true;
+    if (this.sidebarCloseTimer) {
+      clearTimeout(this.sidebarCloseTimer);
+    }
+    this.sidebarCloseTimer = setTimeout(() => {
+      this.showSidebar = false;
+      this.sidebarClosing = false;
+      this.sidebarCloseTimer = null;
+    }, 200);
+  }
+
+  onSidebarOverlayDismiss(event: Event): void {
+    if (!shouldDismissOverlay(event, this.sidebarDismissGuard)) {
+      return;
+    }
+    this.closeSidebar();
+  }
+
+  setSidebarTab(tab: AudiobookSidebarTab): void {
+    this.sidebarTab = tab;
+    if (tab === 'bookmarks' && this.bookmarks.length === 0) {
+      this.loadBookmarks();
+    }
   }
 
   closeReader(): void {
@@ -998,33 +1047,34 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
     this.bookMarkService.getBookmarksForBook(this.bookId)
       .pipe(takeUntil(this.destroy$))
       .subscribe(bookmarks => {
-        this.bookmarks = bookmarks;
+        this.bookmarks = sortBookmarksChronological(bookmarks);
       });
   }
 
-  toggleBookmarkList(): void {
-    this.showBookmarkList = !this.showBookmarkList;
-    if (this.showBookmarkList && this.bookmarks.length === 0) {
-      this.loadBookmarks();
-    }
+  openBookmarkDialog(): void {
+    this.bookmarkDefaultTitle = this.buildDefaultBookmarkTitle();
+    this.bookmarkTitle = '';
+    this.showBookmarkDialog = true;
   }
 
-  addBookmark(): void {
+  private buildDefaultBookmarkTitle(): string {
     const currentChapter = this.getCurrentChapter();
     const currentTrack = this.currentTrack;
 
-    let title: string;
     if (this.audiobookInfo.folderBased && currentTrack) {
-      title = `${currentTrack.title} - ${this.formatTime(this.currentTime)}`;
-    } else if (currentChapter) {
-      title = `${currentChapter.title} - ${this.formatTime(this.currentTime)}`;
-    } else {
-      title = this.t.translate('readerAudiobook.bookmarks.bookmarkAt', {time: this.formatTime(this.currentTime)});
+      return `${currentTrack.title} - ${this.formatTime(this.currentTime)}`;
     }
+    if (currentChapter) {
+      return `${currentChapter.title} - ${this.formatTime(this.currentTime)}`;
+    }
+    return this.t.translate('readerAudiobook.bookmarks.bookmarkAt', {time: this.formatTime(this.currentTime)});
+  }
 
+  onSaveBookmark(title: string): void {
+    const resolvedTitle = title.trim() || this.bookmarkDefaultTitle;
     const request: CreateBookMarkRequest = {
       bookId: this.bookId,
-      title: title,
+      title: resolvedTitle,
       positionMs: Math.round(this.currentTime * 1000),
       trackIndex: this.audiobookInfo.folderBased ? this.currentTrackIndex : undefined
     };
@@ -1033,11 +1083,13 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (bookmark) => {
-          this.bookmarks = [...this.bookmarks, bookmark];
+          this.bookmarks = sortBookmarksChronological([...this.bookmarks, bookmark]);
+          this.showBookmarkDialog = false;
+          this.bookmarkTitle = '';
           this.messageService.add({
             severity: 'success',
             summary: this.t.translate('readerAudiobook.toast.bookmarkAdded'),
-            detail: title
+            detail: resolvedTitle
           });
         },
         error: (err) => {
@@ -1049,6 +1101,11 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
           });
         }
       });
+  }
+
+  onCancelBookmark(): void {
+    this.showBookmarkDialog = false;
+    this.bookmarkTitle = '';
   }
 
   goToBookmark(bookmark: BookMark): void {
@@ -1088,7 +1145,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
         }
       };
       audio.addEventListener('canplay', seekAndPlay);
-      this.showBookmarkList = false;
+      this.closeSidebar();
       return;
     }
 
@@ -1105,7 +1162,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
       this.currentTime = targetPosition;
     }
 
-    this.showBookmarkList = false;
+    this.closeSidebar();
 
     if (!this.isPlaying) {
       setTimeout(() => {

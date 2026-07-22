@@ -1,0 +1,128 @@
+@if (isOpen) {
+  <div
+    class="sidebar-overlay"
+    tabindex="0"
+    (keydown.enter)="onOverlayDismiss()"
+    (pointerdown)="onOverlayDismiss($event)"
+    (click)="onOverlayDismiss($event)"
+    [class.closing]="closing">
+    <aside
+      class="sidebar"
+      tabindex="0"
+      (keydown.escape)="onOverlayDismiss()"
+      (keydown)="$event.stopPropagation()"
+      (pointerdown)="$event.stopPropagation()"
+      (click)="$event.stopPropagation()"
+      [class.closing]="closing">
+      <header class="sidebar-header">
+        @if (bookInfo.coverUrl) {
+          <img [src]="bookInfo.coverUrl" alt="" class="book-cover" />
+        }
+        <div class="book-meta">
+          <h2 class="book-title">{{ bookInfo.title }}</h2>
+          @if (bookInfo.authors) {
+            <p class="book-authors">{{ bookInfo.authors }}</p>
+          }
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <div class="tab-slot">
+          <button
+            type="button"
+            class="tab"
+            [class.active]="activeTab === 'pages'"
+            (click)="setActiveTab('pages')">
+            <app-reader-icon name="book" class="tab-icon"></app-reader-icon>
+            <span>{{ 'readerPdf.sidebar.contentsTab' | transloco }}</span>
+          </button>
+        </div>
+        <div class="tab-slot has-mobile-add">
+          <button
+            type="button"
+            class="tab"
+            [class.active]="activeTab === 'bookmarks'"
+            (click)="setActiveTab('bookmarks')">
+            <app-reader-icon name="bookmark" class="tab-icon"></app-reader-icon>
+            <span>{{ 'readerPdf.sidebar.bookmarksTab' | transloco }}</span>
+            @if (bookmarks.length > 0) {
+              <span class="badge">{{ bookmarks.length }}</span>
+            }
+          </button>
+          <button
+            type="button"
+            class="tab-add-btn"
+            (click)="onQuickAddBookmark($event)"
+            [attr.aria-label]="'readerPdf.toolbar.addBookmark' | transloco"
+            [title]="'readerPdf.toolbar.addBookmark' | transloco">
+            <app-reader-icon name="plus" [size]="12"></app-reader-icon>
+          </button>
+        </div>
+      </nav>
+
+      <div class="content">
+        @switch (activeTab) {
+          @case ('pages') {
+            @if (pages.length > 0) {
+              <ul class="page-list">
+                @for (page of pages; track page.pageNumber) {
+                  <li>
+                    <button
+                      type="button"
+                      class="page-row"
+                      [class.active]="isPageActive(page.pageNumber)"
+                      (click)="onPageClick(page.pageNumber)">
+                      <span class="page-number">{{ page.pageNumber }}</span>
+                      <span class="page-label">{{ page.displayName }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <div class="empty-state">
+                <app-reader-icon name="book" class="empty-icon" [size]="48" [strokeWidth]="1.5"></app-reader-icon>
+                <p>{{ 'readerPdf.sidebar.noPagesYet' | transloco }}</p>
+              </div>
+            }
+          }
+          @case ('bookmarks') {
+            @if (bookmarks.length > 0) {
+              <ul class="item-list">
+                @for (bookmark of bookmarks; track bookmark.id) {
+                  <li
+                    class="list-item"
+                    tabindex="0"
+                    (keydown.enter)="onBookmarkClick(bookmark.cfi)"
+                    (click)="onBookmarkClick(bookmark.cfi)">
+                    <div class="item-content">
+                      <span class="item-title">{{ bookmark.title }}</span>
+                      <span class="item-meta">
+                        @if (bookmarkPageLabel(bookmark.cfi)) {
+                          {{ 'readerPdf.sidebar.page' | transloco }} {{ bookmarkPageLabel(bookmark.cfi) }} ·
+                        }
+                        {{ bookmark.createdAt | date: 'MMM d, y' }}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      class="delete-btn"
+                      (click)="onDeleteBookmark($event, bookmark.id)"
+                      [attr.aria-label]="'readerPdf.sidebar.deleteBookmark' | transloco">
+                      <app-reader-icon name="trash" [size]="16"></app-reader-icon>
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <div class="empty-state">
+                <app-reader-icon name="bookmark" class="empty-icon" [size]="48" [strokeWidth]="1.5"></app-reader-icon>
+                <p>{{ 'readerPdf.sidebar.noBookmarksYet' | transloco }}</p>
+                <span class="empty-hint">{{ 'readerPdf.sidebar.bookmarkHint' | transloco }}</span>
+              </div>
+            }
+          }
+        }
+      </div>
+    </aside>
+  </div>
+}

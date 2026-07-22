@@ -5,6 +5,7 @@ import {TocItem} from 'epubjs';
 import {BookMark, BookMarkService} from '../../../../../shared/service/book-mark.service';
 import {Annotation} from '../../../../../shared/service/annotation.service';
 import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
+import {sortBookmarksChronological} from '../../../../../shared/util/sort-bookmarks.util';
 import {ReaderViewManagerService} from '../../core/view-manager.service';
 import {ReaderProgressService} from '../../state/progress.service';
 import {ReaderBookmarkService} from '../../features/bookmarks/bookmark.service';
@@ -74,6 +75,9 @@ export class ReaderSidebarService {
 
   private _showMetadata = new Subject<void>();
   showMetadata$ = this._showMetadata.asObservable();
+
+  private _bookmarkNameRequest = new Subject<{defaultTitle: string}>();
+  bookmarkNameRequest$ = this._bookmarkNameRequest.asObservable();
 
   get currentChapterHref(): string | null {
     return this.progressService.currentChapterHref;
@@ -227,7 +231,7 @@ export class ReaderSidebarService {
   private loadBookmarks(): void {
     this.bookMarkHttpService.getBookmarksForBook(this.bookId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(bookmarks => this._bookmarks.next(bookmarks));
+      .subscribe(bookmarks => this._bookmarks.next(sortBookmarksChronological(bookmarks)));
   }
 
   navigateToBookmark(cfi: string): void {
@@ -236,8 +240,8 @@ export class ReaderSidebarService {
       .subscribe(() => this.close());
   }
 
-  createBookmark(): void {
-    this.bookmarkService.createBookmarkAtCurrentPosition(this.bookId)
+  createBookmark(title?: string): void {
+    this.bookmarkService.createBookmarkAtCurrentPosition(this.bookId, title)
       .pipe(takeUntil(this.destroy$))
       .subscribe(success => {
         if (success) {
@@ -254,7 +258,9 @@ export class ReaderSidebarService {
     if (existingBookmark) {
       this.deleteBookmark(existingBookmark.id!);
     } else {
-      this.createBookmark();
+      this._bookmarkNameRequest.next({
+        defaultTitle: this.bookmarkService.getDefaultTitle(),
+      });
     }
   }
 

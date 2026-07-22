@@ -6,7 +6,17 @@
     "addBookmark": "Add Bookmark",
     "removeBookmark": "Remove Bookmark",
     "disableExternalLinks": "Disable External Links",
-    "enableExternalLinks": "Enable External Links"
+    "enableExternalLinks": "Enable External Links",
+    "openSidebar": "Contents and bookmarks"
+  },
+  "sidebar": {
+    "contentsTab": "Contents",
+    "bookmarksTab": "Bookmarks",
+    "page": "Page",
+    "deleteBookmark": "Delete bookmark",
+    "noBookmarksYet": "No bookmarks yet",
+    "bookmarkHint": "Tap the bookmark icon to save your place",
+    "noPagesYet": "Pages will appear when the document loads"
   },
   "bookmark": {
     "titleLabel": "Bookmark Title (optional)",

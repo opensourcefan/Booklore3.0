@@ -1,0 +1,44 @@
+@if (visible) {
+  <div
+    class="bookmark-dialog-overlay"
+    (pointerdown)="onOverlayDismiss($event)"
+    (click)="onOverlayDismiss($event)"
+    (keydown.escape)="onDismiss()"
+    tabindex="0"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'shared.bookmarkDialog.save' | transloco">
+    <div
+      class="bookmark-dialog"
+      (pointerdown)="$event.stopPropagation()"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      tabindex="0">
+      <div class="bookmark-dialog-header">
+        <span>{{ 'shared.bookmarkDialog.save' | transloco }}</span>
+        <button type="button" class="bookmark-dialog-close" (click)="onDismiss()">&times;</button>
+      </div>
+      <div class="bookmark-dialog-body">
+        <label for="sharedBookmarkTitle">{{ 'shared.bookmarkDialog.titleLabel' | transloco }}</label>
+        <input
+          #titleInput
+          id="sharedBookmarkTitle"
+          type="text"
+          class="bookmark-title-input"
+          [placeholder]="placeholder || ('shared.bookmarkDialog.titlePlaceholder' | transloco)"
+          [ngModel]="title"
+          (ngModelChange)="onTitleInput($event)"
+          (keydown.enter)="onSave()"
+        />
+      </div>
+      <div class="bookmark-dialog-footer">
+        <button type="button" class="bookmark-btn-cancel" (click)="onDismiss()">
+          {{ 'shared.bookmarkDialog.cancel' | transloco }}
+        </button>
+        <button type="button" class="bookmark-btn-save" (click)="onSave()">
+          {{ 'shared.bookmarkDialog.save' | transloco }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

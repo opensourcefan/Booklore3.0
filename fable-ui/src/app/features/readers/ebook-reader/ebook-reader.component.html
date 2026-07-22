@@ -86,4 +86,13 @@
   @if (showShortcutsHelp) {
     <app-ebook-shortcuts-help (dialogClose)="showShortcutsHelp = false"></app-ebook-shortcuts-help>
   }
+
+  <app-bookmark-title-dialog
+    [visible]="showBookmarkDialog"
+    [title]="bookmarkTitle"
+    [defaultTitle]="bookmarkDefaultTitle"
+    (titleChange)="bookmarkTitle = $event"
+    (save)="onBookmarkSave($event)"
+    (dismissed)="onBookmarkCancel()">
+  </app-bookmark-title-dialog>
 </div>

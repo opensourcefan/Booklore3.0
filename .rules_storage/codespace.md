@@ -169,7 +169,7 @@ fable-ui/src/app/
 │   ├── magic-shelf/      — Magic shelf rules editor
 │   ├── metadata/         — Metadata center (viewer, editor, picker, searcher)
 │   ├── notebook/         — Notebook feature
-│   ├── readers/          — CBX reader, ebook reader
+│   ├── readers/          — EPUB, PDF, CBX, audiobook readers (shared bookmark left-panel pattern except CBX chrome)
 │   ├── series-browser/   — Series browsing
 │   ├── settings/         — Settings pages
 │   └── stats/            — Reading statistics

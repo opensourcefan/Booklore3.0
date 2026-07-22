@@ -37,16 +37,16 @@
           [rounded]="true"
           [text]="true"
           severity="secondary"
-          (onClick)="toggleBookmarkList()"
+          (onClick)="openSidebar('bookmarks')"
           [pTooltip]="t('header.bookmarksTooltip')"
           tooltipPosition="bottom"
         />
         <p-button
-          icon="pi pi-list"
+          icon="pi pi-bars"
           [rounded]="true"
           [text]="true"
           severity="secondary"
-          (onClick)="toggleTrackList()"
+          (onClick)="openSidebar('tracks')"
           [pTooltip]="t('header.chaptersTracksTooltip')"
           tooltipPosition="bottom"
         />
@@ -241,7 +241,7 @@
           [rounded]="true"
           [text]="true"
           severity="secondary"
-          (onClick)="addBookmark()"
+          (onClick)="openBookmarkDialog()"
           size="small"
         />
 
@@ -288,118 +288,158 @@
       </div>
     </main>
 
-    <!-- Track/Chapter list sidebar -->
-    @if (showTrackList) {
-      <aside class="track-list-sidebar">
-        <div class="sidebar-header">
-          <h2>{{ audiobookInfo.folderBased ? t('sidebar.tracks') : t('sidebar.chapters') }}</h2>
-          <p-button
-            icon="pi pi-times"
-            [rounded]="true"
-            [text]="true"
-            severity="secondary"
-            (onClick)="toggleTrackList()"
-          />
-        </div>
-        <div class="sidebar-content">
-          @if (audiobookInfo.folderBased && audiobookInfo.tracks) {
-            <ul class="track-list">
-              @for (track of audiobookInfo.tracks; track track.index) {
-                <li
-                  class="track-item"
-                  [class.active]="track.index === currentTrackIndex"
-                  tabindex="0"
-                  (keydown.enter)="selectTrack(track)"
-                  (click)="selectTrack(track)"
-                >
-                  <span class="track-index">{{ track.index + 1 }}</span>
-                  <div class="track-details">
-                    <span class="track-name">{{ track.title }}</span>
-                    <span class="track-duration">{{ formatDuration(track.durationMs) }}</span>
-                  </div>
-                  @if (track.index === currentTrackIndex && isPlaying) {
-                    <i class="pi pi-volume-up playing-indicator"></i>
-                  }
-                </li>
+    <!-- Unified left sidebar: Tracks/Chapters + Bookmarks -->
+    @if (showSidebar) {
+      <div
+        class="reader-sidebar-overlay"
+        tabindex="0"
+        (keydown.enter)="closeSidebar()"
+        (pointerdown)="onSidebarOverlayDismiss($event)"
+        (click)="onSidebarOverlayDismiss($event)"
+        [class.closing]="sidebarClosing">
+        <aside
+          class="reader-sidebar"
+          tabindex="0"
+          (keydown.escape)="closeSidebar()"
+          (keydown)="$event.stopPropagation()"
+          (pointerdown)="$event.stopPropagation()"
+          (click)="$event.stopPropagation()"
+          [class.closing]="sidebarClosing">
+          <div class="sidebar-header">
+            <div class="sidebar-header-meta">
+              @if (coverUrl) {
+                <img [src]="coverUrl" [alt]="t('coverAlt')" class="sidebar-cover" (error)="onCoverError()" />
               }
-            </ul>
-          } @else if (audiobookInfo.chapters) {
-            <ul class="track-list">
-              @for (chapter of audiobookInfo.chapters; track chapter.index) {
-                <li
-                  class="track-item"
-                  [class.active]="getCurrentChapter()?.index === chapter.index"
-                  tabindex="0"
-                  (keydown.enter)="selectChapter(chapter)"
-                  (click)="selectChapter(chapter)"
-                >
-                  <span class="track-index">{{ chapter.index + 1 }}</span>
-                  <div class="track-details">
-                    <span class="track-name">{{ chapter.title }}</span>
-                    <span class="track-duration">{{ formatDuration(chapter.durationMs) }}</span>
-                  </div>
-                  @if (getCurrentChapter()?.index === chapter.index && isPlaying) {
-                    <i class="pi pi-volume-up playing-indicator"></i>
-                  }
-                </li>
+              <div class="sidebar-book-meta">
+                <h2>{{ audiobookInfo.title || t('untitled') }}</h2>
+                <p>{{ audiobookInfo.author || t('unknownAuthor') }}</p>
+              </div>
+            </div>
+            <p-button
+              icon="pi pi-times"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              (onClick)="closeSidebar()"
+            />
+          </div>
+
+          <nav class="sidebar-tabs">
+            <button
+              type="button"
+              class="sidebar-tab"
+              [class.active]="sidebarTab === 'tracks'"
+              (click)="setSidebarTab('tracks')">
+              <i class="pi pi-list"></i>
+              <span>{{ audiobookInfo.folderBased ? t('sidebar.tracks') : t('sidebar.chapters') }}</span>
+            </button>
+            <button
+              type="button"
+              class="sidebar-tab"
+              [class.active]="sidebarTab === 'bookmarks'"
+              (click)="setSidebarTab('bookmarks')">
+              <i class="pi pi-bookmark"></i>
+              <span>{{ t('bookmarks.title') }}</span>
+              @if (bookmarks.length > 0) {
+                <span class="sidebar-badge">{{ bookmarks.length }}</span>
               }
-            </ul>
-          }
-        </div>
-      </aside>
+            </button>
+          </nav>
+
+          <div class="sidebar-content">
+            @if (sidebarTab === 'tracks') {
+              @if (audiobookInfo.folderBased && audiobookInfo.tracks) {
+                <ul class="track-list">
+                  @for (track of audiobookInfo.tracks; track track.index) {
+                    <li
+                      class="track-item"
+                      [class.active]="track.index === currentTrackIndex"
+                      tabindex="0"
+                      (keydown.enter)="selectTrack(track)"
+                      (click)="selectTrack(track)"
+                    >
+                      <span class="track-index">{{ track.index + 1 }}</span>
+                      <div class="track-details">
+                        <span class="track-name">{{ track.title }}</span>
+                        <span class="track-duration">{{ formatDuration(track.durationMs) }}</span>
+                      </div>
+                      @if (track.index === currentTrackIndex && isPlaying) {
+                        <i class="pi pi-volume-up playing-indicator"></i>
+                      }
+                    </li>
+                  }
+                </ul>
+              } @else if (audiobookInfo.chapters) {
+                <ul class="track-list">
+                  @for (chapter of audiobookInfo.chapters; track chapter.index) {
+                    <li
+                      class="track-item"
+                      [class.active]="getCurrentChapter()?.index === chapter.index"
+                      tabindex="0"
+                      (keydown.enter)="selectChapter(chapter)"
+                      (click)="selectChapter(chapter)"
+                    >
+                      <span class="track-index">{{ chapter.index + 1 }}</span>
+                      <div class="track-details">
+                        <span class="track-name">{{ chapter.title }}</span>
+                        <span class="track-duration">{{ formatDuration(chapter.durationMs) }}</span>
+                      </div>
+                      @if (getCurrentChapter()?.index === chapter.index && isPlaying) {
+                        <i class="pi pi-volume-up playing-indicator"></i>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            } @else {
+              @if (bookmarks.length === 0) {
+                <div class="empty-bookmarks">
+                  <i class="pi pi-bookmark"></i>
+                  <p>{{ t('bookmarks.empty') }}</p>
+                  <span>{{ t('bookmarks.emptyHint') }}</span>
+                </div>
+              } @else {
+                <ul class="track-list">
+                  @for (bookmark of bookmarks; track bookmark.id) {
+                    <li
+                      class="track-item bookmark-item"
+                      tabindex="0"
+                      (keydown.enter)="goToBookmark(bookmark)"
+                      (click)="goToBookmark(bookmark)"
+                    >
+                      <i class="pi pi-bookmark-fill bookmark-icon"></i>
+                      <div class="track-details">
+                        <span class="track-name">{{ bookmark.title }}</span>
+                        <span class="track-duration">{{ formatBookmarkPosition(bookmark) }}</span>
+                      </div>
+                      <p-button
+                        icon="pi pi-trash"
+                        [rounded]="true"
+                        [text]="true"
+                        severity="danger"
+                        size="small"
+                        (onClick)="deleteBookmark($event, bookmark.id)"
+                        [pTooltip]="t('bookmarks.deleteTooltip')"
+                        tooltipPosition="left"
+                      />
+                    </li>
+                  }
+                </ul>
+              }
+            }
+          </div>
+        </aside>
+      </div>
     }
 
-    <!-- Bookmark list sidebar -->
-    @if (showBookmarkList) {
-      <aside class="track-list-sidebar bookmark-sidebar">
-        <div class="sidebar-header">
-          <h2>{{ t('bookmarks.title') }}</h2>
-          <p-button
-            icon="pi pi-times"
-            [rounded]="true"
-            [text]="true"
-            severity="secondary"
-            (onClick)="toggleBookmarkList()"
-          />
-        </div>
-        <div class="sidebar-content">
-          @if (bookmarks.length === 0) {
-            <div class="empty-bookmarks">
-              <i class="pi pi-bookmark"></i>
-              <p>{{ t('bookmarks.empty') }}</p>
-              <span>{{ t('bookmarks.emptyHint') }}</span>
-            </div>
-          } @else {
-            <ul class="track-list">
-              @for (bookmark of bookmarks; track bookmark.id) {
-                <li
-                  class="track-item bookmark-item"
-                  tabindex="0"
-                  (keydown.enter)="goToBookmark(bookmark)"
-                  (click)="goToBookmark(bookmark)"
-                >
-                  <i class="pi pi-bookmark-fill bookmark-icon"></i>
-                  <div class="track-details">
-                    <span class="track-name">{{ bookmark.title }}</span>
-                    <span class="track-duration">{{ formatBookmarkPosition(bookmark) }}</span>
-                  </div>
-                  <p-button
-                    icon="pi pi-trash"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="danger"
-                    size="small"
-                    (onClick)="deleteBookmark($event, bookmark.id)"
-                    [pTooltip]="t('bookmarks.deleteTooltip')"
-                    tooltipPosition="left"
-                  />
-                </li>
-              }
-            </ul>
-          }
-        </div>
-      </aside>
-    }
+    <app-bookmark-title-dialog
+      [visible]="showBookmarkDialog"
+      [title]="bookmarkTitle"
+      [defaultTitle]="bookmarkDefaultTitle"
+      (titleChange)="bookmarkTitle = $event"
+      (save)="onSaveBookmark($event)"
+      (dismissed)="onCancelBookmark()">
+    </app-bookmark-title-dialog>
   </div>
 } @else {
   <div class="loading-container">

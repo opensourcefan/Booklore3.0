@@ -24,15 +24,19 @@ export class ReaderBookmarkService {
     }
   }
 
-  createBookmarkAtCurrentPosition(bookId: number): Observable<boolean> {
+  getDefaultTitle(): string {
+    return this.currentChapterName || this.t.translate('readerEbook.sidebar.bookmarksTab');
+  }
+
+  createBookmarkAtCurrentPosition(bookId: number, title?: string): Observable<boolean> {
     const cfi = this.currentCFI;
     if (!cfi) {
       return of(false);
     }
 
-    const title = this.currentChapterName || 'Bookmark';
+    const resolvedTitle = (title?.trim() || this.getDefaultTitle());
 
-    return this.bookMarkService.createBookmark({bookId, cfi, title}).pipe(
+    return this.bookMarkService.createBookmark({bookId, cfi, title: resolvedTitle}).pipe(
       map(() => {
         this.messageService.add({
           severity: 'success',

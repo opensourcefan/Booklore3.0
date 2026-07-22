@@ -30,6 +30,15 @@
   <ng-template #additionalButtons>
     <div id="toolbarViewer">
       <div id="toolbarViewerLeft">
+        <button
+          type="button"
+          class="toolbar-btn"
+          [title]="'readerPdf.toolbar.openSidebar' | transloco"
+          (click)="openSidebar('bookmarks')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
         <pdf-toggle-sidebar></pdf-toggle-sidebar>
         <pdf-find-button></pdf-find-button>
         <pdf-paging-area></pdf-paging-area>
@@ -99,31 +108,29 @@
     </div>
   </ng-template>
 
-  @if (showBookmarkDialog) {
-    <div class="bookmark-dialog-overlay" (pointerdown)="onBookmarkOverlayDismiss($event)" (click)="onBookmarkOverlayDismiss($event)" (keydown.escape)="onCancelBookmark()" tabindex="0" role="dialog" aria-modal="true" aria-label="Bookmark dialog">
-      <div class="bookmark-dialog" (pointerdown)="$event.stopPropagation()" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
-        <div class="bookmark-dialog-header">
-          <span>{{ 'readerPdf.bookmark.saveBookmark' | transloco }}</span>
-          <button class="bookmark-dialog-close" (click)="onCancelBookmark()">&times;</button>
-        </div>
-        <div class="bookmark-dialog-body">
-          <label for="pdfBookmarkTitle">{{ 'readerPdf.bookmark.titleLabel' | transloco }}</label>
-          <input
-            #bookmarkTitleInput
-            id="pdfBookmarkTitle"
-            type="text"
-            class="bookmark-title-input"
-            [placeholder]="'readerPdf.bookmark.titlePlaceholder' | transloco"
-            [(ngModel)]="bookmarkTitle"
-            (keydown.enter)="onSaveBookmark()"
-          />
-        </div>
-        <div class="bookmark-dialog-footer">
-          <button class="bookmark-btn-cancel" (click)="onCancelBookmark()">{{ 'readerPdf.bookmark.cancelBookmark' | transloco }}</button>
-          <button class="bookmark-btn-save" (click)="onSaveBookmark()">{{ 'readerPdf.bookmark.saveBookmark' | transloco }}</button>
-        </div>
-      </div>
-    </div>
-  }
-}
+  <app-pdf-sidebar
+    [isOpen]="sidebarOpen"
+    [closing]="sidebarClosing"
+    [activeTab]="sidebarTab"
+    [bookInfo]="sidebarBookInfo"
+    [pages]="sidebarPages"
+    [bookmarks]="bookmarks"
+    [currentPage]="page"
+    (dismiss)="closeSidebar()"
+    (tabChange)="onSidebarTabChange($event)"
+    (pageSelect)="onSidebarPageSelect($event)"
+    (bookmarkSelect)="onSidebarBookmarkSelect($event)"
+    (bookmarkDelete)="onSidebarBookmarkDelete($event)"
+    (quickAddBookmark)="openBookmarkDialog()">
+  </app-pdf-sidebar>
 
+  <app-bookmark-title-dialog
+    [visible]="showBookmarkDialog"
+    [title]="bookmarkTitle"
+    [defaultTitle]="bookmarkDefaultTitle"
+    [placeholder]="'readerPdf.bookmark.titlePlaceholder' | transloco"
+    (titleChange)="bookmarkTitle = $event"
+    (save)="onSaveBookmark($event)"
+    (dismissed)="onCancelBookmark()">
+  </app-bookmark-title-dialog>
+}

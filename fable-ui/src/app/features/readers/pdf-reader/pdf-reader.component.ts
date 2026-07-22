@@ -1,6 +1,5 @@
-import {Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {FormsModule} from '@angular/forms';
 import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
 import {BookService} from '../../book/service/book.service';
@@ -12,6 +11,15 @@ import {AuthService} from '../../../shared/service/auth.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {PdfAnnotationService} from '../../../shared/service/pdf-annotation.service';
 import {BookMarkService, BookMark, CreateBookMarkRequest} from '../../../shared/service/book-mark.service';
+import {UrlHelperService} from '../../../shared/service/url-helper.service';
+import {sortBookmarksChronological} from '../../../shared/util/sort-bookmarks.util';
+import {BookmarkTitleDialogComponent} from '../../../shared/components/bookmark-title-dialog/bookmark-title-dialog.component';
+import {
+  PdfSidebarBookInfo,
+  PdfSidebarComponent,
+  PdfSidebarPage,
+  PdfSidebarTab
+} from './layout/pdf-sidebar.component';
 
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService} from 'primeng/api';
@@ -20,8 +28,8 @@ import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {ReadingSessionService} from '../../../shared/service/reading-session.service';
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {Location} from '@angular/common';
-import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overlay-dismiss.util';
 import {MobileUxService} from '../../../core/services/mobile-ux.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 import {
   acquireReaderBrowserZoomLock,
   releaseReaderBrowserZoomLock,
@@ -31,7 +39,13 @@ import {
 @Component({
   selector: 'app-pdf-reader',
   standalone: true,
-  imports: [NgxExtendedPdfViewerModule, ProgressSpinner, TranslocoPipe, FormsModule],
+  imports: [
+    NgxExtendedPdfViewerModule,
+    ProgressSpinner,
+    TranslocoPipe,
+    BookmarkTitleDialogComponent,
+    PdfSidebarComponent,
+  ],
   templateUrl: './pdf-reader.component.html',
   styleUrl: './pdf-reader.component.scss',
   host: {
@@ -70,9 +84,18 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   isCurrentPageBookmarked = false;
   showBookmarkDialog = false;
   bookmarkTitle = '';
-  private bookmarks: BookMark[] = [];
-  private readonly bookmarkDismissGuard = new GhostClickGuard();
-  @ViewChild('bookmarkTitleInput') bookmarkTitleInput!: ElementRef<HTMLInputElement>;
+  bookmarkDefaultTitle = '';
+  bookmarks: BookMark[] = [];
+
+  // Fable left sidebar
+  sidebarOpen = false;
+  sidebarClosing = false;
+  sidebarTab: PdfSidebarTab = 'bookmarks';
+  sidebarBookInfo: PdfSidebarBookInfo = {title: '', authors: '', coverUrl: null};
+  sidebarPages: PdfSidebarPage[] = [];
+  @ViewChild(PdfSidebarComponent) pdfSidebar?: PdfSidebarComponent;
+  private sidebarBackHandle: MobileBackHandle | null = null;
+  private sidebarCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   private bookService = inject(BookService);
   private userService = inject(UserService);
@@ -87,6 +110,8 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private pdfViewerService = inject(NgxExtendedPdfViewerService);
   private pdfAnnotationService = inject(PdfAnnotationService);
   private bookMarkService = inject(BookMarkService);
+  private urlHelper = inject(UrlHelperService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
   private readonly t = inject(TranslocoService);
   private readonly mobileUx = inject(MobileUxService);
   private readerBrowserZoomLocked = false;
@@ -124,6 +149,11 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
           const pdfPrefs = bookSetting;
 
           this.pageTitle.setBookPageTitle(pdfMeta);
+          this.sidebarBookInfo = {
+            title: pdfMeta.metadata?.title || pdfMeta.fileName || '',
+            authors: (pdfMeta.metadata?.authors || []).join(', '),
+            coverUrl: this.urlHelper.getDirectThumbnailUrl(pdfMeta.id, pdfMeta.metadata?.coverUpdatedOn),
+          };
 
           const globalOrIndividual = myself.userSettings.perBookSetting.pdf;
           if (globalOrIndividual === 'Global') {
@@ -193,6 +223,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
 
   onPdfPagesLoaded(event: { pagesCount: number }): void {
     this.totalPages = event.pagesCount;
+    this.rebuildSidebarPages();
     const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
     this.readingSessionService.startSession(this.bookId, "PDF", this.page.toString(), percentage);
     this.readingSessionService.updateProgress(this.page.toString(), percentage);
@@ -206,6 +237,13 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.sidebarCloseTimer) {
+      clearTimeout(this.sidebarCloseTimer);
+      this.sidebarCloseTimer = null;
+    }
+    this.sidebarBackHandle?.release(false);
+    this.sidebarBackHandle = null;
+
     if (this.readingSessionService.isSessionActive()) {
       const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
       this.readingSessionService.endSession(this.page.toString(), percentage);
@@ -257,7 +295,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private loadBookmarks(): void {
     this.bookMarkService.getBookmarksForBook(this.bookId).subscribe({
       next: (bookmarks) => {
-        this.bookmarks = bookmarks;
+        this.bookmarks = sortBookmarksChronological(bookmarks);
         this.updateBookmarkState();
       }
     });
@@ -268,22 +306,96 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.isCurrentPageBookmarked = this.bookmarks.some(b => b.cfi === pageStr);
   }
 
+  private rebuildSidebarPages(): void {
+    const pageLabel = this.t.translate('readerPdf.sidebar.page');
+    this.sidebarPages = Array.from({length: this.totalPages}, (_, i) => ({
+      pageNumber: i + 1,
+      displayName: `${pageLabel} ${i + 1}`,
+    }));
+  }
+
+  openSidebar(tab: PdfSidebarTab = 'bookmarks'): void {
+    this.sidebarTab = tab;
+    this.sidebarClosing = false;
+    this.sidebarOpen = true;
+    this.pdfSidebar?.armDismissGuard();
+    if (!this.sidebarBackHandle) {
+      this.sidebarBackHandle = this.mobileBackNavigation.register(() => this.closeSidebar());
+    }
+  }
+
+  closeSidebar(): void {
+    if (!this.sidebarOpen || this.sidebarClosing) {
+      return;
+    }
+    this.sidebarClosing = true;
+    this.sidebarBackHandle?.release();
+    this.sidebarBackHandle = null;
+    if (this.sidebarCloseTimer) {
+      clearTimeout(this.sidebarCloseTimer);
+    }
+    this.sidebarCloseTimer = setTimeout(() => {
+      this.sidebarOpen = false;
+      this.sidebarClosing = false;
+      this.sidebarCloseTimer = null;
+    }, 200);
+  }
+
+  onSidebarTabChange(tab: PdfSidebarTab): void {
+    this.sidebarTab = tab;
+  }
+
+  onSidebarPageSelect(pageNumber: number): void {
+    this.page = pageNumber;
+    this.updateBookmarkState();
+    this.closeSidebar();
+  }
+
+  onSidebarBookmarkSelect(pageNumber: number): void {
+    this.page = pageNumber;
+    this.updateBookmarkState();
+    this.closeSidebar();
+  }
+
+  onSidebarBookmarkDelete(bookmarkId: number): void {
+    this.bookMarkService.deleteBookmark(bookmarkId).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('readerPdf.toast.bookmarkRemoved'),
+          life: 2000,
+        });
+        this.loadBookmarks();
+      },
+      error: () => {
+        this.toastError(
+          this.t.translate('readerPdf.toast.bookmarkFailed'),
+          this.t.translate('readerPdf.toast.bookmarkFailed'),
+          3000,
+        );
+      },
+    });
+  }
+
   onToggleBookmark(): void {
     if (this.isCurrentPageBookmarked) {
       this.removeBookmark();
     } else {
-      this.showBookmarkDialog = true;
-      this.bookmarkTitle = '';
-      this.bookmarkDismissGuard.arm();
-      setTimeout(() => this.bookmarkTitleInput?.nativeElement?.focus(), 0);
+      this.openBookmarkDialog();
     }
   }
 
-  onSaveBookmark(): void {
+  openBookmarkDialog(): void {
+    this.bookmarkDefaultTitle = `${this.t.translate('readerPdf.sidebar.page')} ${this.page}`;
+    this.bookmarkTitle = '';
+    this.showBookmarkDialog = true;
+  }
+
+  onSaveBookmark(title: string): void {
     const request: CreateBookMarkRequest = {
       bookId: this.bookId,
       cfi: this.page.toString(),
-      title: this.bookmarkTitle.trim() || `${this.t.translate('readerCbx.sidebar.page')} ${this.page}`
+      title: title || this.bookmarkDefaultTitle,
     };
 
     this.bookMarkService.createBookmark(request).subscribe({
@@ -302,13 +414,6 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   onCancelBookmark(): void {
     this.showBookmarkDialog = false;
     this.bookmarkTitle = '';
-  }
-
-  onBookmarkOverlayDismiss(event: Event): void {
-    if (!shouldDismissOverlay(event, this.bookmarkDismissGuard)) {
-      return;
-    }
-    this.onCancelBookmark();
   }
 
   private removeBookmark(): void {

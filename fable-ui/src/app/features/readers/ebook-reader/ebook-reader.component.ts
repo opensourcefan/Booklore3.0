@@ -35,6 +35,7 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
+import {BookmarkTitleDialogComponent} from '../../../shared/components/bookmark-title-dialog/bookmark-title-dialog.component';
 import {
   addFullscreenChangeListener,
   exitAppFullscreen,
@@ -73,7 +74,8 @@ type EbookMobileSurface =
     ReaderNoteDialogComponent,
     EbookShortcutsHelpComponent,
     TranslocoPipe,
-    LoadingIndicatorComponent
+    LoadingIndicatorComponent,
+    BookmarkTitleDialogComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
@@ -149,6 +151,9 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   noteDialogData: NoteDialogData | null = null;
   isFullscreen = false;
   showShortcutsHelp = false;
+  showBookmarkDialog = false;
+  bookmarkTitle = '';
+  bookmarkDefaultTitle = '';
 
   get currentProgressData(): FoliateRelocateDetail | null {
     return this.progressService.currentProgressData;
@@ -179,6 +184,14 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.sidebarService.showMetadata$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.showMetadata = true);
+
+    this.sidebarService.bookmarkNameRequest$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({defaultTitle}) => {
+        this.bookmarkDefaultTitle = defaultTitle;
+        this.bookmarkTitle = '';
+        this.showBookmarkDialog = true;
+      });
 
     this.noteService.dialogState$
       .pipe(takeUntil(this.destroy$))
@@ -587,5 +600,16 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onNoteCancel(): void {
     this.noteService.closeDialog();
+  }
+
+  onBookmarkSave(title: string): void {
+    this.showBookmarkDialog = false;
+    this.bookmarkTitle = '';
+    this.sidebarService.createBookmark(title);
+  }
+
+  onBookmarkCancel(): void {
+    this.showBookmarkDialog = false;
+    this.bookmarkTitle = '';
   }
 }
