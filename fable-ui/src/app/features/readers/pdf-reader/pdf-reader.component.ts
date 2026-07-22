@@ -1,6 +1,6 @@
 import {Component, ElementRef, inject, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, PDFNotificationService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
+import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, PageViewModeType, PDFNotificationService, pdfDefaultOptions, ScrollModeType, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
 import {BookService} from '../../book/service/book.service';
 import {forkJoin, Subject, Subscription} from 'rxjs';
@@ -71,6 +71,23 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   page!: number;
   spread!: 'off' | 'even' | 'odd';
   zoom!: ZoomType;
+  /**
+   * PDF.js "page view mode". Bound both to `<ngx-extended-pdf-viewer>` and to
+   * the mode toolbar buttons. Without this wiring the buttons emit
+   * `pageViewModeChange` events into the void, so:
+   *   - `pdf-book-mode` looks toggleable but does nothing (its only exit path
+   *     is the Angular emitter — it never touches the pdf.js event bus).
+   *   - The scroll-mode buttons visually stick because their `[toggled]`
+   *     expressions depend on `pageViewMode` (`'book'`, `'infinite-scroll'`)
+   *     which never updates.
+   */
+  pageViewMode: PageViewModeType = 'multiple';
+  /**
+   * Mirror of pdf.js `scrollMode`, kept in sync via `scrollmodechanged`
+   * eventBus. Passed to the toolbar mode buttons so their `[toggled]`
+   * expressions render correctly (single-page = 3, vertical = 0, etc.).
+   */
+  scrollMode: ScrollModeType = ScrollModeType.vertical;
 
   bookData!: string;
   bookId!: number;
@@ -681,12 +698,14 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.scrollModeListener = (evt: unknown) => {
       const mode = (evt as { mode?: number })?.mode;
       if (mode != null) {
-        this.currentScrollMode = mode as PdfScrollMode;
-        this.syncTouchHandlerActive();
-        // Flash touch zones when entering a page-based mode
-        if (this.isPageBasedMode()) {
-          this.flashTouchZones();
-        }
+        this.zone.run(() => {
+          this.currentScrollMode = mode as PdfScrollMode;
+          this.scrollMode = mode as ScrollModeType;
+          this.syncTouchHandlerActive();
+          if (this.isPageBasedMode()) {
+            this.flashTouchZones();
+          }
+        });
       }
     };
     app.eventBus.on('scrollmodechanged', this.scrollModeListener);
@@ -695,7 +714,26 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     const pdfViewer = (app as { pdfViewer?: { scrollMode?: number } }).pdfViewer;
     if (pdfViewer?.scrollMode != null) {
       this.currentScrollMode = pdfViewer.scrollMode as PdfScrollMode;
+      this.scrollMode = pdfViewer.scrollMode as ScrollModeType;
       this.syncTouchHandlerActive();
+    }
+  }
+
+  /**
+   * Handles `pageViewModeChange` from the toolbar's mode buttons.
+   *
+   * The pdf-book-mode button only exposes an Angular EventEmitter (no pdf.js
+   * eventBus dispatch), so without this handler book mode was a no-op:
+   * clicking it did nothing visible, and it never appeared toggled because
+   * `[pageViewMode]` on the button was also unbound.
+   *
+   * The scroll-mode buttons also emit `pageViewModeChange` in addition to
+   * dispatching `switchscrollmode`, so a click on Vertical/Horizontal/etc.
+   * from within book mode will correctly clear book mode via this path.
+   */
+  onPageViewModeChange(mode: PageViewModeType): void {
+    if (this.pageViewMode !== mode) {
+      this.pageViewMode = mode;
     }
   }
 

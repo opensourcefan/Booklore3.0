@@ -16,6 +16,7 @@
     [rotation]="rotation"
     [zoom]="zoom"
     [spread]="spread"
+    [(pageViewMode)]="pageViewMode"
     [enablePrint]="canPrint"
     [customToolbar]="additionalButtons"
     (pagesLoaded)="onPdfPagesLoaded($event)"
@@ -80,15 +81,39 @@
         @if (canPrint) {
           <pdf-print></pdf-print>
         }
-        <pdf-no-spread></pdf-no-spread>
-        <pdf-even-spread></pdf-even-spread>
-        <pdf-odd-spread></pdf-odd-spread>
-        <pdf-infinite-scroll></pdf-infinite-scroll>
-        <pdf-horizontal-scroll></pdf-horizontal-scroll>
-        <pdf-vertical-scroll-mode></pdf-vertical-scroll-mode>
-        <pdf-wrapped-scroll-mode></pdf-wrapped-scroll-mode>
-        <pdf-single-page-mode></pdf-single-page-mode>
-        <pdf-book-mode></pdf-book-mode>
+        <pdf-no-spread [scrollMode]="scrollMode"></pdf-no-spread>
+        <pdf-even-spread [scrollMode]="scrollMode"></pdf-even-spread>
+        <pdf-odd-spread [scrollMode]="scrollMode"></pdf-odd-spread>
+        <pdf-infinite-scroll
+          [pageViewMode]="pageViewMode"
+          [scrollMode]="scrollMode"
+          (pageViewModeChange)="onPageViewModeChange($event)">
+        </pdf-infinite-scroll>
+        <pdf-horizontal-scroll
+          [pageViewMode]="pageViewMode"
+          [scrollMode]="scrollMode"
+          (pageViewModeChange)="onPageViewModeChange($event)">
+        </pdf-horizontal-scroll>
+        <pdf-vertical-scroll-mode
+          [pageViewMode]="pageViewMode"
+          [scrollMode]="scrollMode"
+          (pageViewModeChange)="onPageViewModeChange($event)">
+        </pdf-vertical-scroll-mode>
+        <pdf-wrapped-scroll-mode
+          [pageViewMode]="pageViewMode"
+          [scrollMode]="scrollMode"
+          (pageViewModeChange)="onPageViewModeChange($event)">
+        </pdf-wrapped-scroll-mode>
+        <pdf-single-page-mode
+          [pageViewMode]="pageViewMode"
+          [scrollMode]="scrollMode"
+          (pageViewModeChange)="onPageViewModeChange($event)">
+        </pdf-single-page-mode>
+        <pdf-book-mode
+          [pageViewMode]="pageViewMode"
+          [scrollMode]="scrollMode"
+          (pageViewModeChange)="onPageViewModeChange($event)">
+        </pdf-book-mode>
         <div class="verticalToolbarSeparator hiddenSmallView"></div>
         <pdf-toggle-secondary-toolbar></pdf-toggle-secondary-toolbar>
         <div class="verticalToolbarSeparator"></div>
