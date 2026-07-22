@@ -42,6 +42,11 @@ import {
   isAppFullscreen,
   toggleAppFullscreen
 } from '../../../shared/util/fullscreen.util';
+import {
+  acquireReaderBrowserZoomLock,
+  releaseReaderBrowserZoomLock,
+  shouldLockReaderBrowserZoom
+} from '../../../shared/util/visual-viewport.util';
 
 interface CbxPanelRegion {
   x: number;
@@ -290,6 +295,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private mobileUx = inject(MobileUxService);
+  private readerBrowserZoomLocked = false;
 
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
@@ -306,6 +312,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private resizeSub?: Subscription;
 
   ngOnInit() {
+    this.lockReaderBrowserZoomIfNeeded();
     this.writeProgressService.clear();
     this.loadJoystickDevicePreferences();
     this.removeFullscreenChangeListener = addFullscreenChangeListener(() => this.syncFullscreenFromBrowser());
@@ -2935,6 +2942,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
+    this.unlockReaderBrowserZoomIfNeeded();
     this.removeFullscreenChangeListener?.();
     this.removeFullscreenChangeListener = null;
     this.resizeSub?.unsubscribe();
@@ -2947,6 +2955,28 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.endReadingSession();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private lockReaderBrowserZoomIfNeeded(): void {
+    if (this.readerBrowserZoomLocked) {
+      return;
+    }
+    if (!shouldLockReaderBrowserZoom({
+      isPhone: this.mobileUx.isPhone,
+      hasTouchInput: this.mobileUx.hasTouchInput,
+    })) {
+      return;
+    }
+    acquireReaderBrowserZoomLock();
+    this.readerBrowserZoomLocked = true;
+  }
+
+  private unlockReaderBrowserZoomIfNeeded(): void {
+    if (!this.readerBrowserZoomLocked) {
+      return;
+    }
+    releaseReaderBrowserZoomLock();
+    this.readerBrowserZoomLocked = false;
   }
 
   private syncMobileBackRegistrations(): void {

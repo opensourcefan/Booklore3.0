@@ -21,6 +21,12 @@ import {ReadingSessionService} from '../../../shared/service/reading-session.ser
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {Location} from '@angular/common';
 import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overlay-dismiss.util';
+import {MobileUxService} from '../../../core/services/mobile-ux.service';
+import {
+  acquireReaderBrowserZoomLock,
+  releaseReaderBrowserZoomLock,
+  shouldLockReaderBrowserZoom
+} from '../../../shared/util/visual-viewport.util';
 
 @Component({
   selector: 'app-pdf-reader',
@@ -28,6 +34,9 @@ import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overla
   imports: [NgxExtendedPdfViewerModule, ProgressSpinner, TranslocoPipe, FormsModule],
   templateUrl: './pdf-reader.component.html',
   styleUrl: './pdf-reader.component.scss',
+  host: {
+    class: 'pdf-reader-host',
+  },
 })
 export class PdfReaderComponent implements OnInit, OnDestroy {
   constructor() {
@@ -79,8 +88,11 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private pdfAnnotationService = inject(PdfAnnotationService);
   private bookMarkService = inject(BookMarkService);
   private readonly t = inject(TranslocoService);
+  private readonly mobileUx = inject(MobileUxService);
+  private readerBrowserZoomLocked = false;
 
   ngOnInit(): void {
+    this.lockReaderBrowserZoomIfNeeded();
     this.disableExternalLinks = localStorage.getItem('fable_pdf_disable_external_links') === 'true';
     this.writeProgressService.clear();
     this.annotationSaveSubscription = this.annotationSaveSubject
@@ -206,6 +218,29 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       this.appSettingsSubscription.unsubscribe();
     }
     this.updateProgress();
+    this.unlockReaderBrowserZoomIfNeeded();
+  }
+
+  private lockReaderBrowserZoomIfNeeded(): void {
+    if (this.readerBrowserZoomLocked) {
+      return;
+    }
+    if (!shouldLockReaderBrowserZoom({
+      isPhone: this.mobileUx.isPhone,
+      hasTouchInput: this.mobileUx.hasTouchInput,
+    })) {
+      return;
+    }
+    acquireReaderBrowserZoomLock();
+    this.readerBrowserZoomLocked = true;
+  }
+
+  private unlockReaderBrowserZoomIfNeeded(): void {
+    if (!this.readerBrowserZoomLocked) {
+      return;
+    }
+    releaseReaderBrowserZoomLock();
+    this.readerBrowserZoomLocked = false;
   }
 
   closeReader = (): void => {

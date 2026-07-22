@@ -1,3 +1,7 @@
+import {
+  resetBrowserPageZoom
+} from './visual-viewport.util';
+
 /** Cross-browser Fullscreen helpers (standard API + WebKit aliases). */
 
 type FullscreenDocument = Document & {
@@ -59,9 +63,13 @@ export function toggleAppFullscreen(target: HTMLElement = document.documentEleme
  * transition. Chromium (esp. Wayland / desktop-touch) can drop pointerup while
  * keeping setPointerCapture or body.bl-resizing* classes, which steals hits from
  * library cards until reload.
+ *
+ * Also resets stuck browser page zoom (visualViewport.scale) that can leave the
+ * library "expanded" and hide fixed top chrome after tablet pinch-zoom in readers.
  */
 export function clearFullscreenTransientPointerUi(doc: Document = document): void {
   doc.body.classList.remove('bl-resizing', 'bl-resizing-vertical');
+  resetBrowserPageZoom(doc);
 }
 
 /**

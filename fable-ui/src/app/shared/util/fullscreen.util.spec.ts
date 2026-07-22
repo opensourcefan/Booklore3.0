@@ -25,10 +25,15 @@ describe('fullscreen.util', () => {
   });
 
   it('clearFullscreenTransientPointerUi removes stuck resize body classes', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+    document.head.appendChild(meta);
     document.body.classList.add('bl-resizing', 'bl-resizing-vertical');
     clearFullscreenTransientPointerUi();
     expect(document.body.classList.contains('bl-resizing')).toBe(false);
     expect(document.body.classList.contains('bl-resizing-vertical')).toBe(false);
+    meta.remove();
   });
 
   it('toggleAppFullscreen exits when the browser is already fullscreen', async () => {

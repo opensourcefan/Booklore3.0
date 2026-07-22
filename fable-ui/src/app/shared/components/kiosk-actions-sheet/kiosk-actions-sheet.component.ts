@@ -3,6 +3,7 @@ import {Button} from 'primeng/button';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {
   addFullscreenChangeListener,
+  clearFullscreenTransientPointerUi,
   isAppFullscreen,
   toggleAppFullscreen
 } from '../../util/fullscreen.util';
@@ -100,6 +101,7 @@ export class KioskActionsSheetComponent implements OnInit, OnDestroy {
     // Keep the user-activation gesture; close after the Fullscreen API settles
     // so Chromium (esp. Wayland/kiosk) does not drop the request.
     void toggleAppFullscreen().finally(() => {
+      clearFullscreenTransientPointerUi();
       this.syncFullscreenFromBrowser();
       this.close();
     });

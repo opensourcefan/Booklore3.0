@@ -41,6 +41,12 @@ import {
   isAppFullscreen,
   toggleAppFullscreen
 } from '../../../shared/util/fullscreen.util';
+import {MobileUxService} from '../../../core/services/mobile-ux.service';
+import {
+  acquireReaderBrowserZoomLock,
+  releaseReaderBrowserZoomLock,
+  shouldLockReaderBrowserZoom
+} from '../../../shared/util/visual-viewport.util';
 
 type EbookMobileSurface =
   | 'sidebar'
@@ -104,6 +110,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private readonly t = inject(TranslocoService);
   private writeProgressService = inject(WriteProgressService);
+  private readonly mobileUx = inject(MobileUxService);
+  private readerBrowserZoomLocked = false;
 
   public sidebarService = inject(ReaderSidebarService);
   public leftSidebarService = inject(ReaderLeftSidebarService);
@@ -147,6 +155,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnInit() {
+    this.lockReaderBrowserZoomIfNeeded();
     this.writeProgressService.clear();
     this.removeFullscreenChangeListener = addFullscreenChangeListener(() => this.syncFullscreenFromBrowser());
     this.syncFullscreenFromBrowser();
@@ -221,6 +230,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
+    this.unlockReaderBrowserZoomIfNeeded();
     this.removeFullscreenChangeListener?.();
     this.removeFullscreenChangeListener = null;
     this.releaseAllMobileBackRegistrations(false);
@@ -243,6 +253,28 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
+  }
+
+  private lockReaderBrowserZoomIfNeeded(): void {
+    if (this.readerBrowserZoomLocked) {
+      return;
+    }
+    if (!shouldLockReaderBrowserZoom({
+      isPhone: this.mobileUx.isPhone,
+      hasTouchInput: this.mobileUx.hasTouchInput,
+    })) {
+      return;
+    }
+    acquireReaderBrowserZoomLock();
+    this.readerBrowserZoomLocked = true;
+  }
+
+  private unlockReaderBrowserZoomIfNeeded(): void {
+    if (!this.readerBrowserZoomLocked) {
+      return;
+    }
+    releaseReaderBrowserZoomLock();
+    this.readerBrowserZoomLocked = false;
   }
 
   private syncMobileBackRegistrations(): void {

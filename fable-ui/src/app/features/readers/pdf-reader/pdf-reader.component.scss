@@ -1,8 +1,22 @@
+:host.pdf-reader-host {
+  display: block;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  background: #1a1a1a;
+  /* Discourage browser double-tap zoom; PDF.js still owns two-finger page zoom. */
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
 .loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100%;
   position: relative;
   background: #1a1a1a;
 }
