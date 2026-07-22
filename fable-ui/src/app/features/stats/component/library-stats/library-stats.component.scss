@@ -398,13 +398,13 @@
   top: 8px;
   right: 8px;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--p-surface-950, #09090b) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--p-primary-color, #80bdff) 35%, transparent);
   border-radius: 4px;
   padding: 6px;
   cursor: default;
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -412,13 +412,14 @@
   height: 28px;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.8);
+    background: color-mix(in srgb, var(--p-primary-color, #80bdff) 22%, var(--p-surface-900, #18181b));
     border-color: var(--primary-color, #80bdff);
   }
 
   &:active {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.1);
+    background: color-mix(in srgb, var(--p-primary-color, #80bdff) 32%, var(--p-surface-900, #18181b));
+    border-color: var(--primary-color, #80bdff);
+    cursor: grabbing;
   }
 
   .pi {

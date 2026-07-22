@@ -452,6 +452,7 @@ body.tablet-nav-gestures:not(.layout-phone) {
 }
 
 // Global Tactile Press Feedback for Touch UX
+// Phone Mode and mouse-only desktop keep this scale + brightness language.
 button, a, .p-button, .p-link, [role="button"], .chapter-sort-item {
   -webkit-tap-highlight-color: transparent !important;
   
@@ -459,6 +460,107 @@ button, a, .p-button, .p-link, [role="button"], .chapter-sort-item {
     transform: scale(0.97);
     filter: brightness(0.9) saturate(1.1);
     transition: transform 0.05s ease;
+  }
+}
+
+/*
+ * Unified press feedback for tablet + desktop-touch only.
+ * Body class `touch-digitizer` is set by MobileUxService when hasTouchInput && !isPhone.
+ * Never applies under layout-phone — Phone Mode press styles stay untouched.
+ *
+ * Language: theme-primary inset wash (visible on light and dark chrome) + slight scale.
+ * Avoids the prior darken-only filter that made many presses look like near-black holes.
+ */
+body.touch-digitizer {
+  --bl-touch-press-wash: color-mix(in srgb, var(--p-primary-color) 22%, transparent);
+  --bl-touch-press-ring: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
+
+  button,
+  a,
+  .p-button,
+  .p-link,
+  [role="button"],
+  .chapter-sort-item,
+  .topbar-item,
+  .menu-item-container,
+  .dir-tree-node__body,
+  .dir-tree-node__toggle,
+  .p-togglebutton,
+  .p-tablist .p-tab,
+  .p-select-option,
+  .p-listbox-option,
+  .p-menu-item-link,
+  .p-tieredmenu-item-content,
+  .p-contextmenu-item-content,
+  .p-autocomplete-option,
+  .p-chip,
+  .p-tag,
+  .p-paginator-page,
+  .p-paginator-first,
+  .p-paginator-prev,
+  .p-paginator-next,
+  .p-paginator-last,
+  .info-btn,
+  .read-btn,
+  .quick-layout-btn,
+  .icon-btn,
+  .toolbar-btn,
+  .control-btn,
+  .layout-menuitem-root-text,
+  .layout-menuitem-link,
+  .layout-root-menuitem > .layout-menuitem-root-text {
+    -webkit-tap-highlight-color: transparent !important;
+
+    &:active:not(:disabled):not(.p-disabled) {
+      transform: scale(0.98);
+      filter: none;
+      /* Inset wash overlays existing backgrounds without replacing them. */
+      box-shadow:
+        inset 0 0 0 999px var(--bl-touch-press-wash),
+        0 0 0 1px var(--bl-touch-press-ring);
+      transition: box-shadow 0.06s ease, transform 0.05s ease;
+    }
+  }
+
+  /* Sidebar / menu rows: primary wash without fighting route-active colors. */
+  .layout-menu ul a:active,
+  .menu-item-container:active,
+  .dir-tree-node__body:active {
+    background-color: color-mix(in srgb, var(--p-primary-color) 16%, transparent);
+    box-shadow: inset 0 0 0 999px var(--bl-touch-press-wash);
+    filter: none;
+    transform: none;
+  }
+
+  /* Topbar icon chrome: light primary fill + ring. */
+  .topbar-item:active:not(:disabled) {
+    border-color: var(--primary-color, var(--p-primary-color));
+    background-color: color-mix(in srgb, var(--p-primary-color) 18%, var(--card-background));
+    box-shadow: 0 0 0 1px var(--bl-touch-press-ring);
+    filter: none;
+    transform: scale(0.98);
+  }
+
+  /* Filled PrimeNG buttons already use theme activeBackground — keep fill, drop darken. */
+  .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-link):not(.p-button-contrast) {
+    &:active:not(:disabled):not(.p-disabled) {
+      filter: brightness(1.06) saturate(1.05);
+      box-shadow: 0 0 0 2px var(--bl-touch-press-ring);
+    }
+  }
+
+  /* Drag / resize grips: grab cursor only — no press wash. */
+  .drag-handle,
+  .bl-resize-handle,
+  .sidebar-drag-handle,
+  .child-drag-handle,
+  .cover-preview-resize-handle,
+  .reorder-handle {
+    &:active {
+      transform: none !important;
+      filter: none !important;
+      box-shadow: none !important;
+    }
   }
 }
 

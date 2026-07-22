@@ -162,6 +162,7 @@ export class MobileUxService implements OnDestroy {
         }
         // Re-evaluate header position class when breakpoint changes
         this.syncHeaderPositionClass();
+        this.syncTouchDigitizerClass();
       }
     });
 
@@ -171,6 +172,8 @@ export class MobileUxService implements OnDestroy {
     ]).subscribe(() => {
       this.syncHeaderPositionClass();
     });
+
+    this.syncTouchDigitizerClass();
   }
 
   /**
@@ -188,6 +191,18 @@ export class MobileUxService implements OnDestroy {
     } else {
       body.classList.remove('header-bottom');
     }
+  }
+
+  /**
+   * Marks tablet + desktop-touch sessions for press-feedback CSS.
+   * Never set under Phone Mode (`layout-phone`) — phone press styles stay untouched.
+   */
+  private syncTouchDigitizerClass(): void {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle(
+      'touch-digitizer',
+      this.hasTouchInput && !this.isPhone
+    );
   }
 
   private getBreakpointForCurrentViewport(): DeviceBreakpoint {

@@ -57,7 +57,13 @@ describe('MobileUxService hasTouchInput', () => {
 
   beforeEach(() => {
     TestBed.resetTestingModule();
-    document.body.classList.remove('header-bottom', 'layout-phone', 'layout-tablet', 'layout-desktop');
+    document.body.classList.remove(
+      'header-bottom',
+      'layout-phone',
+      'layout-tablet',
+      'layout-desktop',
+      'touch-digitizer'
+    );
     configurePrefs();
   });
 
@@ -150,7 +156,13 @@ describe('MobileUxService header-bottom class gating', () => {
     height: number;
   }): void {
     TestBed.resetTestingModule();
-    document.body.classList.remove('header-bottom', 'layout-phone', 'layout-tablet', 'layout-desktop');
+    document.body.classList.remove(
+      'header-bottom',
+      'layout-phone',
+      'layout-tablet',
+      'layout-desktop',
+      'touch-digitizer'
+    );
     Object.defineProperty(window, 'innerWidth', {configurable: true, value: options.width});
     Object.defineProperty(window, 'innerHeight', {configurable: true, value: options.height});
     layoutMode$ = new BehaviorSubject<LayoutMode>(options.layoutMode);
@@ -190,7 +202,13 @@ describe('MobileUxService header-bottom class gating', () => {
   afterEach(() => {
     service?.ngOnDestroy();
     TestBed.resetTestingModule();
-    document.body.classList.remove('header-bottom', 'layout-phone', 'layout-tablet', 'layout-desktop');
+    document.body.classList.remove(
+      'header-bottom',
+      'layout-phone',
+      'layout-tablet',
+      'layout-desktop',
+      'touch-digitizer'
+    );
   });
 
   it('applies header-bottom in forced phone mode when phone pref is bottom', async () => {
@@ -302,5 +320,168 @@ describe('MobileUxService header-bottom class gating', () => {
 
     tabletHeaderPosition$.next('top');
     expect(document.body.classList.contains('header-bottom')).toBe(false);
+  });
+});
+
+describe('MobileUxService touch-digitizer class', () => {
+  let service: MobileUxService;
+  let layoutMode$: BehaviorSubject<LayoutMode>;
+  let originalMaxTouchPoints: number;
+
+  async function waitForResizeDebounce(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 175));
+  }
+
+  function configure(options: {
+    layoutMode: LayoutMode;
+    width: number;
+    height: number;
+    maxTouchPoints: number;
+  }): void {
+    TestBed.resetTestingModule();
+    document.body.classList.remove(
+      'header-bottom',
+      'layout-phone',
+      'layout-tablet',
+      'layout-desktop',
+      'touch-digitizer'
+    );
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: options.width});
+    Object.defineProperty(window, 'innerHeight', {configurable: true, value: options.height});
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      configurable: true,
+      value: options.maxTouchPoints
+    });
+    layoutMode$ = new BehaviorSubject<LayoutMode>(options.layoutMode);
+
+    TestBed.configureTestingModule({
+      providers: [
+        MobileUxService,
+        {
+          provide: UiPreferencesService,
+          useValue: {
+            get layoutMode() {
+              return layoutMode$.value;
+            },
+            layoutMode$,
+            phoneBreakpoint: 767,
+            phoneBreakpoint$: new BehaviorSubject(767),
+            tabletBreakpoint: 1024,
+            tabletBreakpoint$: new BehaviorSubject(1024),
+            get headerPosition() {
+              return 'top';
+            },
+            headerPosition$: new BehaviorSubject<'top' | 'bottom'>('top'),
+            get tabletHeaderPosition() {
+              return 'top';
+            },
+            tabletHeaderPosition$: new BehaviorSubject<'top' | 'bottom'>('top'),
+            setLayoutMode: vi.fn((value: LayoutMode) => layoutMode$.next(value))
+          }
+        }
+      ]
+    });
+    service = TestBed.inject(MobileUxService);
+  }
+
+  beforeEach(() => {
+    originalMaxTouchPoints = navigator.maxTouchPoints;
+  });
+
+  afterEach(() => {
+    service?.ngOnDestroy();
+    TestBed.resetTestingModule();
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      configurable: true,
+      value: originalMaxTouchPoints
+    });
+    document.body.classList.remove(
+      'header-bottom',
+      'layout-phone',
+      'layout-tablet',
+      'layout-desktop',
+      'touch-digitizer'
+    );
+  });
+
+  it('applies touch-digitizer in forced tablet mode when a digitizer is present', async () => {
+    configure({
+      layoutMode: 'tablet',
+      width: 900,
+      height: 1200,
+      maxTouchPoints: 10
+    });
+    await waitForResizeDebounce();
+    expect(service.hasTouchInput).toBe(true);
+    expect(service.isPhone).toBe(false);
+    expect(document.body.classList.contains('touch-digitizer')).toBe(true);
+  });
+
+  it('applies touch-digitizer in forced desktop mode when a digitizer is present', async () => {
+    configure({
+      layoutMode: 'desktop',
+      width: 1400,
+      height: 900,
+      maxTouchPoints: 5
+    });
+    await waitForResizeDebounce();
+    expect(service.hasTouchInput).toBe(true);
+    expect(service.isPhone).toBe(false);
+    expect(document.body.classList.contains('touch-digitizer')).toBe(true);
+  });
+
+  it('never applies touch-digitizer under Phone Mode even with a digitizer', async () => {
+    configure({
+      layoutMode: 'phone',
+      width: 375,
+      height: 667,
+      maxTouchPoints: 10
+    });
+    await waitForResizeDebounce();
+    expect(service.hasTouchInput).toBe(true);
+    expect(service.isPhone).toBe(true);
+    expect(document.body.classList.contains('touch-digitizer')).toBe(false);
+    expect(document.body.classList.contains('layout-phone')).toBe(true);
+  });
+
+  it('removes touch-digitizer when auto-shape enters phone viewport', async () => {
+    configure({
+      layoutMode: 'auto-shape',
+      width: 1200,
+      height: 2000,
+      maxTouchPoints: 10
+    });
+    await waitForResizeDebounce();
+    expect(service.isTablet).toBe(true);
+    expect(document.body.classList.contains('touch-digitizer')).toBe(true);
+
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 700});
+    Object.defineProperty(window, 'innerHeight', {configurable: true, value: 1200});
+    window.dispatchEvent(new Event('resize'));
+    await waitForResizeDebounce();
+
+    expect(service.isPhone).toBe(true);
+    expect(document.body.classList.contains('touch-digitizer')).toBe(false);
+  });
+
+  it('does not apply touch-digitizer without a digitizer on tablet', async () => {
+    const hadOntouchstart = Object.prototype.hasOwnProperty.call(window, 'ontouchstart');
+    const previousOntouchstart = (window as Window & {ontouchstart?: unknown}).ontouchstart;
+    try {
+      Reflect.deleteProperty(window, 'ontouchstart');
+      configure({
+        layoutMode: 'tablet',
+        width: 900,
+        height: 1200,
+        maxTouchPoints: 0
+      });
+      await waitForResizeDebounce();
+      expect(service.hasTouchInput).toBe(false);
+      expect(document.body.classList.contains('touch-digitizer')).toBe(false);
+    } finally {
+      if (hadOntouchstart) {
+        (window as Window & {ontouchstart?: unknown}).ontouchstart = previousOntouchstart;
+      }
+    }
   });
 });

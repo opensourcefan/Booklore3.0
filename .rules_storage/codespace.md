@@ -35,7 +35,7 @@ The workspace root is `/home/michael/fable`. When working with file paths, remem
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
-| Latest documented tag | `v4.16.34` |
+| Latest documented tag | `v4.16.35` |
 | GitHub owner | `opensourcefan` |
 
 ### Branch naming conventions
@@ -218,8 +218,8 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend/frontend version: `4.16.34` (in `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest documented git tag: `v4.16.34`
+- Backend/frontend version: `4.16.35` (in `fable-api/build.gradle` and `fable-ui/package.json`)
+- Latest documented git tag: `v4.16.35`
 
 ### Documentation Parity
 
@@ -270,8 +270,14 @@ The app has a dedicated mobile UX system built around three services:
 - Breakpoints: mobile ≤ 767px, tablet 768-1024px, desktop ≥ 1025px (overridable via UiPreferences; `auto-shape` uses portrait→tablet / landscape→desktop above phone width)
 - Exposes `breakpoint$` observable for reactive component adjustments
 - Syncs `body.layout-phone` / `layout-tablet` / `layout-desktop` and optional `body.header-bottom`
+- Syncs `body.touch-digitizer` when `hasTouchInput && !isPhone` (tablet + desktop-touch only; never under Phone Mode)
 - Header bottom: phone uses `bl-header-position`; tablet uses independent `bl-tablet-header-position`; never on desktop
 - Has stub `registerBackNavigation()` for hardware back button support
+
+**Touch press feedback** (`styles.scss` + `body.touch-digitizer`)
+- Tablet / desktop-touch controls use a theme-primary inset wash + light ring on `:active` (replaces inconsistent darken-only / missing press styles)
+- Phone Mode keeps the older global scale + brightness press rule; drag/resize handles are excluded from the wash
+- Do not gate this on `(pointer: coarse)` — fine-pointer touch tablets (e.g. Duet) still get `touch-digitizer`
 
 **MobileBackNavigationService** (`shared/service/mobile-back-navigation.service.ts`)
 - Manages a popstate-based back stack for mobile overlay/panel navigation

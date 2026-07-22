@@ -684,7 +684,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.137 &mdash; July 21, 2026<br>
+    Version 1.1.145 &mdash; July 22, 2026<br>
     Audience: New users, invited users, and non-technical readers<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -2807,6 +2807,7 @@
   <li><strong>Optional, off by default</strong> &mdash; Enable <strong>Tablet / kiosk gestures</strong> for high-resolution tablets and desktop-touch browsers (for example a 1200&times;2000 Linux tablet)</li>
   <li><strong>Never applies in Phone Mode</strong> &mdash; Forced Phone Mode and real phone layouts stay unchanged</li>
   <li><strong>What it does</strong> &mdash; Suppresses the browser long-press menu (app long-press still works), adds edge-swipe history (left-edge swipe right = back, matching Chromium), and opens a three-finger action sheet for fullscreen / reload</li>
+  <li><strong>Touch press feedback</strong> &mdash; On tablet and desktop-touch sessions, controls light up with a theme-accent wash when pressed so taps are obvious. Phone Mode keeps its existing press behavior.</li>
 </ul>
 
 <h4>Header Position (Phone &amp; Tablet)</h4>
@@ -3374,6 +3375,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-22</td><td>1.1.145</td><td>Tablet and desktop-touch sessions now show consistent theme-accent press feedback on controls (<code>body.touch-digitizer</code>); Phone Mode press behavior is unchanged. App <code>v4.16.35</code>.</td></tr>
   <tr><td>2026-07-22</td><td>1.1.144</td><td>PDF reader Book Mode transition fix: switching to or from Book Mode no longer leaves the pages shrunken and pinned to the top-left corner. When PageFlip mounts/unmounts, the viewer now re-fits <code>page-fit</code>/<code>page-width</code>/<code>auto</code> for the new container geometry, broadcasts a resize so pdf.js recalculates container-dependent state, and re-anchors the current page into view. Non-book ↔ non-book scroll-mode changes are unchanged (pdf.js handles those cleanly on its own). App <code>v4.16.34</code>.</td></tr>
   <tr><td>2026-07-22</td><td>1.1.143</td><td>PDF reader Book Mode polish: the three page-spread buttons (No / Odd / Even) are now visibly dimmed and non-interactive while Book Mode is active — Book Mode always shows facing pages via PageFlip, so spread has no effect. Scroll-flow buttons remain fully clickable because they are the intended exit paths out of Book Mode. Hover tooltip explains the greyed state. App <code>v4.16.33</code>.</td></tr>
   <tr><td>2026-07-22</td><td>1.1.142</td><td>PDF reader Book Mode + navigation-mode toolbar now works: <code>[(pageViewMode)]</code> is wired on <code>ngx-extended-pdf-viewer</code> and every mode button (<code>pdf-book-mode</code>, <code>pdf-single-page-mode</code>, <code>pdf-vertical-scroll-mode</code>, <code>pdf-horizontal-scroll</code>, <code>pdf-wrapped-scroll-mode</code>, <code>pdf-infinite-scroll</code>) receives <code>[pageViewMode]</code>/<code>[scrollMode]</code> and forwards <code>(pageViewModeChange)</code>. Book Mode now actually flips to the PageFlip layout instead of no-oping, mode buttons visually reflect the active mode, and clicking another mode cleanly exits Book Mode. App <code>v4.16.32</code>.</td></tr>
