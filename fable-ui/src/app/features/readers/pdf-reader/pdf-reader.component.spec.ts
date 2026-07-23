@@ -152,6 +152,10 @@ describe('pdf-reader toolbar regroup', () => {
     expect(annotateIdx).toBeGreaterThan(-1);
     expect(moreIdx).toBeGreaterThan(annotateIdx);
     expect(secondaryIdx).toBeGreaterThan(moreIdx);
+    expect(template).toContain('pdf-toolbar-menu--more');
+    expect(template).toContain('pdf-close-separator');
+    expect(scss).toContain('.pdf-toolbar-menu--more');
+    expect(scss).toContain('.pdf-close-separator');
   });
 
   it('switches menus via document outside-click without a blocking backdrop', () => {

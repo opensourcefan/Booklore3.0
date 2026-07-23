@@ -360,6 +360,26 @@
   align-items: center;
 }
 
+/* Default toolbar-btn trailing margin is 2px; double the gap before layout nav. */
+::ng-deep .pdf-toolbar-menu--more {
+  margin-right: 8px;
+}
+
+::ng-deep .pdf-close-separator {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  margin: 0 6px 0 4px;
+  background: rgba(0, 0, 0, 0.22);
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+::ng-deep .pdf-dark .pdf-close-separator,
+::ng-deep #toolbarViewerRight.pdf-dark .pdf-close-separator {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 ::ng-deep .pdf-menu-dropdown {
   /* Fixed so height-locked toolbar ancestors cannot clip the panel. */
   position: fixed;
