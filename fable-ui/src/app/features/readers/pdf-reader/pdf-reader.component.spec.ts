@@ -107,11 +107,18 @@ describe('pdf-reader toolbar regroup', () => {
     'utf-8'
   );
 
-  it('widens both Contents and Thumbs nav buttons', () => {
+  it('widens both Contents and Thumbs nav buttons without flex-shrink', () => {
     expect(template).toMatch(/class="[^"]*toolbar-btn--wide[^"]*fable-panel-btn/);
     expect(template).toMatch(/class="[^"]*toolbar-btn--wide[^"]*pdfjs-thumbs-btn/);
     expect(scss).toContain('.toolbar-btn--wide');
-    expect(scss).toMatch(/width:\s*56px/);
+    expect(scss).toMatch(/width:\s*56px\s*!important/);
+    expect(scss).toMatch(/flex:\s*0\s+0\s+56px\s*!important/);
+  });
+
+  it('centers the zoom/rotate cluster on the full header', () => {
+    expect(scss).toMatch(/grid-template-columns:\s*1fr\s+auto\s+1fr/);
+    expect(scss).toMatch(/\.pdf-toolbar-middle[\s\S]*justify-self:\s*center/);
+    expect(scss).toMatch(/\.pdf-toolbar-middle[\s\S]*gap:\s*0\.55rem/);
   });
 
   it('places rotate beside the zoom toolbar in the middle cluster', () => {
@@ -122,7 +129,7 @@ describe('pdf-reader toolbar regroup', () => {
     expect(middle).toContain('<pdf-rotate-page');
   });
 
-  it('exposes Annotate and More overflow menus', () => {
+  it('exposes Annotate and More overflow menus that escape toolbar clip', () => {
     expect(template).toContain('toggleAnnotateMenu');
     expect(template).toContain('toggleMoreMenu');
     expect(template).toContain('readerPdf.toolbar.annotate');
@@ -131,6 +138,16 @@ describe('pdf-reader toolbar regroup', () => {
     expect(template).toContain('onMorePan');
     expect(template).toContain('onMoreSelectText');
     expect(template).toContain('onMorePrint');
+    expect(template).toContain('toolbarMenuTop');
+    expect(scss).toMatch(/#toolbarContainer[\s\S]*overflow:\s*visible\s*!important/);
+    expect(scss).toMatch(/\.pdf-menu-dropdown[\s\S]*position:\s*fixed/);
+    // More sits with Annotate (before layout-mode overflow), not after secondary toolbar.
+    const annotateIdx = template.indexOf('toggleAnnotateMenu');
+    const moreIdx = template.indexOf('toggleMoreMenu');
+    const secondaryIdx = template.indexOf('pdf-toggle-secondary-toolbar');
+    expect(annotateIdx).toBeGreaterThan(-1);
+    expect(moreIdx).toBeGreaterThan(annotateIdx);
+    expect(secondaryIdx).toBeGreaterThan(moreIdx);
   });
 
   it('removes free-floating hand/select/print/editors/links/theme from the primary row', () => {

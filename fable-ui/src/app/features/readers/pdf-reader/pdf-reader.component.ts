@@ -149,6 +149,9 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   // Primary-toolbar overflow menus (Annotate / More)
   annotateMenuOpen = false;
   moreMenuOpen = false;
+  /** Viewport-anchored placement for fixed dropdowns (avoids toolbar clip). */
+  toolbarMenuTop = '36px';
+  toolbarMenuRight = '8px';
   readonly annotationModes = PDF_ANNOTATION_EDITOR_MODE;
   readonly cursorTools = PDF_CURSOR_TOOL;
   annotationEditorMode: number = PDF_ANNOTATION_EDITOR_MODE.NONE;
@@ -812,6 +815,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.moreMenuOpen = false;
     this.annotateMenuOpen = opening;
     if (opening) {
+      this.anchorToolbarMenu(event);
       this.toolbarMenuDismissGuard.arm();
     }
   }
@@ -823,6 +827,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.annotateMenuOpen = false;
     this.moreMenuOpen = opening;
     if (opening) {
+      this.anchorToolbarMenu(event);
       this.toolbarMenuDismissGuard.arm();
     }
   }
@@ -830,6 +835,18 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   closeToolbarMenus(): void {
     this.annotateMenuOpen = false;
     this.moreMenuOpen = false;
+  }
+
+  private anchorToolbarMenu(event: Event): void {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLElement) || typeof window === 'undefined') {
+      this.toolbarMenuTop = '36px';
+      this.toolbarMenuRight = '8px';
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    this.toolbarMenuTop = `${Math.round(rect.bottom + 4)}px`;
+    this.toolbarMenuRight = `${Math.max(8, Math.round(window.innerWidth - rect.right))}px`;
   }
 
   onToolbarMenuBackdropDismiss(event: Event): void {
