@@ -35,7 +35,7 @@ import {
   releaseReaderBrowserZoomLock,
   shouldLockReaderBrowserZoom
 } from '../../../shared/util/visual-viewport.util';
-import {GhostClickGuard, shouldDismissOverlay} from '../../../shared/util/overlay-dismiss.util';
+import {GhostClickGuard} from '../../../shared/util/overlay-dismiss.util';
 import {PdfScrollMode, PdfTouchNavigationHandler} from './pdf-touch-navigation.handler';
 import {needsRelayoutForPageViewModeTransition, resolvePdfViewerTopPx, PDF_TOOLBAR_HEIGHT_FALLBACK_PX} from './pdf-mode-transition.util';
 
@@ -159,6 +159,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private readonly toolbarMenuDismissGuard = new GhostClickGuard();
   private annotationModeListener: ((evt: unknown) => void) | null = null;
   private cursorToolListener: ((evt: unknown) => void) | null = null;
+  private toolbarMenuOutsideListener: ((event: Event) => void) | null = null;
 
   get annotationEditorActive(): boolean {
     return this.annotationEditorMode !== PDF_ANNOTATION_EDITOR_MODE.NONE;
@@ -345,6 +346,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       app.eventBus.off('cursortoolchanged', this.cursorToolListener);
       this.cursorToolListener = null;
     }
+    this.teardownToolbarMenuOutsideListener();
 
     if (this.readingSessionService.isSessionActive()) {
       const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
@@ -817,6 +819,9 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     if (opening) {
       this.anchorToolbarMenu(event);
       this.toolbarMenuDismissGuard.arm();
+      this.ensureToolbarMenuOutsideListener();
+    } else {
+      this.teardownToolbarMenuOutsideListener();
     }
   }
 
@@ -829,12 +834,16 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     if (opening) {
       this.anchorToolbarMenu(event);
       this.toolbarMenuDismissGuard.arm();
+      this.ensureToolbarMenuOutsideListener();
+    } else {
+      this.teardownToolbarMenuOutsideListener();
     }
   }
 
   closeToolbarMenus(): void {
     this.annotateMenuOpen = false;
     this.moreMenuOpen = false;
+    this.teardownToolbarMenuOutsideListener();
   }
 
   private anchorToolbarMenu(event: Event): void {
@@ -849,11 +858,41 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.toolbarMenuRight = `${Math.max(8, Math.round(window.innerWidth - rect.right))}px`;
   }
 
-  onToolbarMenuBackdropDismiss(event: Event): void {
-    if (!shouldDismissOverlay(event, this.toolbarMenuDismissGuard)) {
+  /**
+   * Document outside-click dismiss (no full-screen backdrop).
+   * A backdrop would swallow clicks meant for the other menu trigger, forcing
+   * close-then-reopen. Skipping `.pdf-menu-trigger` lets toggles switch menus
+   * in one press; clicks elsewhere close the open menu.
+   */
+  private ensureToolbarMenuOutsideListener(): void {
+    if (this.toolbarMenuOutsideListener || typeof document === 'undefined') {
       return;
     }
-    this.closeToolbarMenus();
+    this.toolbarMenuOutsideListener = (event: Event) => {
+      if (this.toolbarMenuDismissGuard.shouldIgnore()) {
+        return;
+      }
+      if (!(this.annotateMenuOpen || this.moreMenuOpen)) {
+        return;
+      }
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      if (target.closest('.pdf-menu-dropdown') || target.closest('.pdf-menu-trigger')) {
+        return;
+      }
+      this.zone.run(() => this.closeToolbarMenus());
+    };
+    document.addEventListener('pointerdown', this.toolbarMenuOutsideListener, true);
+  }
+
+  private teardownToolbarMenuOutsideListener(): void {
+    if (!this.toolbarMenuOutsideListener || typeof document === 'undefined') {
+      return;
+    }
+    document.removeEventListener('pointerdown', this.toolbarMenuOutsideListener, true);
+    this.toolbarMenuOutsideListener = null;
   }
 
   onAnnotateHighlight(): void {

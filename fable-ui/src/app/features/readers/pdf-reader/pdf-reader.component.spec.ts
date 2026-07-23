@@ -139,6 +139,10 @@ describe('pdf-reader toolbar regroup', () => {
     expect(template).toContain('onMoreSelectText');
     expect(template).toContain('onMorePrint');
     expect(template).toContain('toolbarMenuTop');
+    expect(template).not.toContain('pdf-menu-backdrop');
+    expect(template).toContain('pdf-menu-item');
+    // More rows include leading icons (svg before label span).
+    expect(template).toMatch(/onMorePan\(\)"[\s\S]*?<svg[\s\S]*?<span>\{\{ 'readerPdf\.toolbar\.panDocument'/);
     expect(scss).toMatch(/#toolbarContainer[\s\S]*overflow:\s*visible\s*!important/);
     expect(scss).toMatch(/\.pdf-menu-dropdown[\s\S]*position:\s*fixed/);
     // More sits with Annotate (before layout-mode overflow), not after secondary toolbar.
@@ -148,6 +152,17 @@ describe('pdf-reader toolbar regroup', () => {
     expect(annotateIdx).toBeGreaterThan(-1);
     expect(moreIdx).toBeGreaterThan(annotateIdx);
     expect(secondaryIdx).toBeGreaterThan(moreIdx);
+  });
+
+  it('switches menus via document outside-click without a blocking backdrop', () => {
+    const source = readFileSync(
+      resolve(__dirname, 'pdf-reader.component.ts'),
+      'utf-8'
+    );
+    expect(source).toContain('ensureToolbarMenuOutsideListener');
+    expect(source).toContain('teardownToolbarMenuOutsideListener');
+    expect(source).toContain("target.closest('.pdf-menu-trigger')");
+    expect(source).not.toContain('onToolbarMenuBackdropDismiss');
   });
 
   it('removes free-floating hand/select/print/editors/links/theme from the primary row', () => {

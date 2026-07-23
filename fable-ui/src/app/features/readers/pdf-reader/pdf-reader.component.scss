@@ -360,12 +360,6 @@
   align-items: center;
 }
 
-::ng-deep .pdf-menu-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 12000;
-}
-
 ::ng-deep .pdf-menu-dropdown {
   /* Fixed so height-locked toolbar ancestors cannot clip the panel. */
   position: fixed;
@@ -402,6 +396,11 @@
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
+
+  > svg {
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
 
   &:hover {
     background: rgba(128, 128, 128, 0.18);
