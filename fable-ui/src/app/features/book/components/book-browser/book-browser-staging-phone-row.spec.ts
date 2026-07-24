@@ -35,14 +35,19 @@ describe('BookBrowserComponent Staging Phone Mode triage row', () => {
 
   it('styles the Phone Mode triage row to full width with a Review|Completed separator', () => {
     const scss = readFileSync(scssPath, 'utf8');
+    const responsivePath = join(process.cwd(), 'src/assets/layout/styles/layout/_responsive.scss');
+    const responsive = readFileSync(responsivePath, 'utf8');
 
-    expect(scss).toMatch(/:host-context\(body\.layout-phone\)\s*\{[\s\S]*\.staging-triage-tabs--phone-row/);
-    expect(scss).toMatch(/\.staging-triage-tabs--phone-row[\s\S]*width:\s*100%/);
-    expect(scss).toMatch(/\.staging-triage-tabs--phone-row[\s\S]*flex-wrap:\s*nowrap/);
-    expect(scss).toMatch(/\.staging-triage-tab\s*\{[\s\S]*flex:\s*1 1 0/);
-    expect(scss).toMatch(/\.staging-triage-separator[\s\S]*flex:\s*0 0 auto/);
-    expect(scss).toMatch(
-      /:host-context\(body\.layout-phone\.header-bottom\)\s*\{[\s\S]*\.staging-triage-tabs--phone-row[\s\S]*order:\s*-1/
+    // Phone-row rules must live on the class itself (template-gated), not only
+    // under :host-context(body.layout-phone), which can fail to match.
+    expect(scss).toMatch(/\.staging-triage-tabs--phone-row\s*\{[\s\S]*flex-wrap:\s*nowrap/);
+    expect(scss).toMatch(/\.staging-triage-tabs--phone-row\s*\{[\s\S]*width:\s*100%/);
+    expect(scss).toMatch(/\.staging-triage-tabs--phone-row[\s\S]*\.staging-triage-tab\s*\{[\s\S]*flex:\s*1 1 0/);
+    expect(scss).toMatch(/\.staging-triage-tabs--phone-row[\s\S]*\.staging-triage-separator[\s\S]*flex:\s*0 0 auto/);
+    expect(scss).toMatch(/\.book-browser-toolbar\s*\{[\s\S]*flex-wrap:\s*nowrap/);
+    expect(scss).toMatch(/\.entity-title-row[\s\S]*@media \(max-width:\s*768px\)[\s\S]*flex-wrap:\s*nowrap/);
+    expect(responsive).toMatch(
+      /body\.header-bottom[\s\S]*\.staging-triage-tabs--phone-row\s*\{[\s\S]*order:\s*-1/
     );
   });
 });

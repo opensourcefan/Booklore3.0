@@ -55,6 +55,7 @@
 
 .book-browser-toolbar {
   display: flex;
+  flex-wrap: nowrap;
   align-items: stretch;
   justify-content: space-between;
   width: 100%;
@@ -112,7 +113,13 @@
   align-items: center;
   gap: 0.65rem;
   min-width: 0;
+  // Desktop/tablet: allow triage chrome to wrap beside the title when squeezed.
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    // Phone: title row is title (+ kebab) only — never wrap into a second toolbar line.
+    flex-wrap: nowrap;
+  }
 }
 
 .staging-triage-tabs {
@@ -122,41 +129,40 @@
   flex-wrap: wrap;
 }
 
-// Phone Mode: dedicated full-width row under the normal toolbar (and above the
-// bottom layout topbar when header-bottom is active via flex order).
-:host-context(body.layout-phone) {
-  .staging-triage-tabs--phone-row {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    gap: 0.3rem;
-    padding: 0.3rem 0 0;
+// Phone Mode only (class is applied when isMobile/isPhone). Keep these rules on the
+// class itself — do NOT nest under :host-context(body.layout-phone), which can fail
+// to match and leave the base flex-wrap: wrap stacking triage buttons vertically.
+.staging-triage-tabs--phone-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  gap: 0.3rem;
+  padding: 0.3rem 0 0;
 
-    .staging-triage-tab {
-      flex: 1 1 0;
-      min-width: 0;
-      justify-content: center;
-      padding: 0.25rem 0.35rem;
-    }
+  .staging-triage-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding: 0.25rem 0.35rem;
+  }
 
-    .staging-triage-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  .staging-triage-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-    .staging-triage-separator {
-      flex: 0 0 auto;
-      align-self: center;
-      height: 1.25rem;
-      margin: 0 0.05rem;
-    }
+  .staging-triage-separator {
+    flex: 0 0 auto;
+    align-self: center;
+    height: 1.25rem;
+    margin: 0 0.05rem;
   }
 }
 
-:host-context(body.layout-phone.header-bottom) {
+:host-context(body.header-bottom) {
   .staging-triage-tabs--phone-row {
     // With column-reverse on the bottom browser header, order -1 places this row
     // visually below the toolbar and above the main layout topbar.

@@ -164,6 +164,13 @@ body.header-bottom {
       border-top: 1px solid var(--p-content-border-color);
       border-bottom: none;
       background-color: var(--card-background);
+
+      /* Phone Staging triage row: with column-reverse, order -1 sits below the
+         toolbar and above the layout topbar. Class is Phone-only in the template. */
+      .staging-triage-tabs--phone-row {
+        order: -1;
+        padding: 0 0 0.3rem;
+      }
     }
 
     .book-state-wrapper {
