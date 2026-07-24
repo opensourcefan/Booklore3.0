@@ -50,53 +50,8 @@
                     {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
                   }
                 </p>
-                @if (canShowStagingTriageChrome) {
-                  <div class="staging-triage-tabs" role="tablist" [attr.aria-label]="t('labels.stagingTriage')">
-                    <button
-                      type="button"
-                      role="tab"
-                      class="staging-triage-tab staging-triage-tab--staged"
-                      [class.staging-triage-tab--active]="stagingTriageMode === 'staging'"
-                      [attr.aria-selected]="stagingTriageMode === 'staging'"
-                      (click)="setStagingTriageMode('staging')">
-                      <span class="staging-triage-label">{{ t('labels.stagingTab') }}</span>
-                      <span class="staging-triage-badge">{{ stagingInboxCount }}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      class="staging-triage-tab staging-triage-tab--review"
-                      [class.staging-triage-tab--active]="stagingTriageMode === 'review'"
-                      [attr.aria-selected]="stagingTriageMode === 'review'"
-                      [disabled]="pendingReviewCount === 0"
-                      (click)="setStagingTriageMode('review')">
-                      <span class="staging-triage-label">{{ t('labels.reviewTab') }}</span>
-                      <span class="staging-triage-badge">{{ pendingReviewCount }}</span>
-                    </button>
-                    <span class="staging-triage-separator" aria-hidden="true"></span>
-                    <button
-                      type="button"
-                      role="tab"
-                      class="staging-triage-tab staging-triage-tab--completed"
-                      [class.staging-triage-tab--active]="stagingTriageMode === 'completed'"
-                      [attr.aria-selected]="stagingTriageMode === 'completed'"
-                      [disabled]="stagingCompletedCount === 0"
-                      (click)="setStagingTriageMode('completed')">
-                      <span class="staging-triage-label">{{ t('labels.completedTab') }}</span>
-                      <span class="staging-triage-badge">{{ stagingCompletedCount }}</span>
-                    </button>
-                    <button
-                      type="button"
-                      class="staging-triage-tab staging-triage-tab--release"
-                      [disabled]="selectedCount === 0"
-                      (click)="releaseFromStaging()"
-                      [attr.aria-label]="t('tooltip.releaseFromStaging')"
-                      [pTooltip]="t('tooltip.releaseFromStaging')"
-                      tooltipPosition="top">
-                      <i class="pi pi-check" aria-hidden="true"></i>
-                      <span class="staging-triage-label">{{ t('labels.release') }}</span>
-                    </button>
-                  </div>
+                @if (canShowStagingTriageChrome && !isMobile) {
+                  <ng-container *ngTemplateOutlet="stagingTriageTabs"></ng-container>
                 }
                 @if (entityType !== EntityType.STAGING && entityOptions && entityOptions.length > 0) {
                   <div class="entity-menu-wrapper">
@@ -618,6 +573,10 @@
         </div>
       </div>
 
+      @if (canShowStagingTriageChrome && isMobile) {
+        <ng-container *ngTemplateOutlet="stagingTriageTabs"></ng-container>
+      }
+
       @if (userService.userState$ | async; as userState) {
         <div class="selection-action-panel" [class.panel-hidden]="!isSelectionActionPanelOpen">
           <div class="selection-panel-content">
@@ -981,4 +940,57 @@
   }
 
 </div>
+
+<ng-template #stagingTriageTabs>
+  <div
+    class="staging-triage-tabs"
+    [class.staging-triage-tabs--phone-row]="isMobile"
+    role="tablist"
+    [attr.aria-label]="t('labels.stagingTriage')">
+    <button
+      type="button"
+      role="tab"
+      class="staging-triage-tab staging-triage-tab--staged"
+      [class.staging-triage-tab--active]="stagingTriageMode === 'staging'"
+      [attr.aria-selected]="stagingTriageMode === 'staging'"
+      (click)="setStagingTriageMode('staging')">
+      <span class="staging-triage-label">{{ t('labels.stagingTab') }}</span>
+      <span class="staging-triage-badge">{{ stagingInboxCount }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="staging-triage-tab staging-triage-tab--review"
+      [class.staging-triage-tab--active]="stagingTriageMode === 'review'"
+      [attr.aria-selected]="stagingTriageMode === 'review'"
+      [disabled]="pendingReviewCount === 0"
+      (click)="setStagingTriageMode('review')">
+      <span class="staging-triage-label">{{ t('labels.reviewTab') }}</span>
+      <span class="staging-triage-badge">{{ pendingReviewCount }}</span>
+    </button>
+    <span class="staging-triage-separator" aria-hidden="true"></span>
+    <button
+      type="button"
+      role="tab"
+      class="staging-triage-tab staging-triage-tab--completed"
+      [class.staging-triage-tab--active]="stagingTriageMode === 'completed'"
+      [attr.aria-selected]="stagingTriageMode === 'completed'"
+      [disabled]="stagingCompletedCount === 0"
+      (click)="setStagingTriageMode('completed')">
+      <span class="staging-triage-label">{{ t('labels.completedTab') }}</span>
+      <span class="staging-triage-badge">{{ stagingCompletedCount }}</span>
+    </button>
+    <button
+      type="button"
+      class="staging-triage-tab staging-triage-tab--release"
+      [disabled]="selectedCount === 0"
+      (click)="releaseFromStaging()"
+      [attr.aria-label]="t('tooltip.releaseFromStaging')"
+      [pTooltip]="t('tooltip.releaseFromStaging')"
+      tooltipPosition="top">
+      <i class="pi pi-check" aria-hidden="true"></i>
+      <span class="staging-triage-label">{{ t('labels.release') }}</span>
+    </button>
+  </div>
+</ng-template>
 </ng-container>

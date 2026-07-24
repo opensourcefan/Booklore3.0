@@ -31,7 +31,7 @@ import {LibraryShelfMenuService} from '../../service/library-shelf-menu.service'
 import {BookTableComponent, TableViewportMetrics} from './book-table/book-table.component';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
-import {AsyncPipe, NgClass} from '@angular/common';
+import {AsyncPipe, NgClass, NgTemplateOutlet} from '@angular/common';
 import {BookCardComponent} from './book-card/book-card.component';
 import {Menu} from 'primeng/menu';
 import {InputText} from 'primeng/inputtext';
@@ -128,7 +128,7 @@ export enum EntityType {
   styleUrls: ['./book-browser.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    Button, BookCardComponent, AsyncPipe, Menu, InputText, FormsModule,
+    Button, BookCardComponent, AsyncPipe, NgTemplateOutlet, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, MultiSortPopoverComponent, TranslocoDirective,
     ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent, ProgressBar, DirectoryMobilePanelComponent,
