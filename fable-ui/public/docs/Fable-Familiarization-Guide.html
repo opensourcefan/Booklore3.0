@@ -684,7 +684,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.153 &mdash; July 23, 2026<br>
+    Version 1.1.154 &mdash; July 24, 2026<br>
     Audience: New users, invited users, and non-technical readers<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -1243,19 +1243,19 @@
   <strong>Plan Ahead:</strong> Before uploading, confirm the destination library allows the format and that the selected directory is writable. Fable applies the library naming pattern at import. If the resolved destination name already exists, the collision must be resolved rather than silently overwriting the existing file.
 </div>
 
-<h3 id="staging-lifecycle">Staging Lifecycle: Staged, Review, Completed, Release</h3>
+<h3 id="staging-lifecycle">Staging Lifecycle: Staged, Review, Done, Release</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Staging</p>
 <p>New digital imports and newly created physical-book records begin with <code>staged=true</code>. Staging is a triage flag, not a separate storage location: the book already belongs to its selected library. Use the tabs to decide what still needs attention.</p>
 <table>
   <tr><th>Tab/action</th><th>Meaning and next step</th></tr>
   <tr><td><strong>Staged</strong></td><td>The staged inbox: books that do not currently have a pending metadata proposal and are not classified as completed. Inspect the book, edit metadata, or start a metadata fetch. On desktop and tablet, an amber barcode badge means ISBN Discovery completed without finding a valid ISBN; a red warning badge means the ISBN check could not be completed. Hover either badge for the recorded reason and check time. Books without either badge have no recorded ISBN problem.</td></tr>
   <tr><td><strong>Review</strong></td><td>Staged books with fetched metadata proposals awaiting a decision. Open the metadata review, compare proposed and current values, then apply or reject as appropriate. Pending review wins over the other triage buckets while the book remains staged. Releasing a book removes it from all Staging triage tabs and counts; Release does not itself accept or reject the proposal.</td></tr>
-  <tr><td><strong>Completed</strong></td><td>Staged books whose metadata fetch has completed or whose ISBN has been verified, with no pending review proposal. Check the result before release.</td></tr>
+  <tr><td><strong>Done</strong></td><td>Staged books whose metadata fetch has completed or whose ISBN has been verified, with no pending review proposal. Check the result before release.</td></tr>
   <tr><td><strong>Release</strong></td><td>Select one or more books and click <strong>Release</strong>. This changes only <code>staged</code> from <code>true</code> to <code>false</code>. It does <strong>not</strong> move files, alter metadata, change library or shelf membership, or delete anything.</td></tr>
 </table>
 
 <div class="callout tip">
-  <strong>Suggested loop:</strong> import &rarr; open <strong>Staged</strong> &rarr; correct or fetch metadata &rarr; resolve <strong>Review</strong> items &rarr; check <strong>Completed</strong> &rarr; select the books &rarr; <strong>Release</strong>.
+  <strong>Suggested loop:</strong> import &rarr; open <strong>Staged</strong> &rarr; correct or fetch metadata &rarr; resolve <strong>Review</strong> items &rarr; check <strong>Done</strong> &rarr; select the books &rarr; <strong>Release</strong>.
 </div>
 
 <div class="callout warning">
@@ -3375,6 +3375,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-24</td><td>1.1.154</td><td>Tablet/desktop Staging header: triage tabs stay on one nowrap title-row line and shrink to available width (no vertical stack / double-height toolbar); label <strong>Completed</strong> &rarr; <strong>Done</strong>; Review|Done separator retained; Release checkmark removed. Phone Mode phone-row layout unchanged. App <code>v4.16.44</code>.</td></tr>
   <tr><td>2026-07-23</td><td>1.1.153</td><td>Phone Mode book-browser header: Staging triage phone-row styles apply on the class itself (not only <code>:host-context</code>), and the toolbar/title row stay single-line so triage no longer re-stacks. App <code>v4.16.43</code>.</td></tr>
   <tr><td>2026-07-23</td><td>1.1.152</td><td>Phone Mode Staging: Staged / Review | Completed / Release triage controls move to their own full-width row under the browser toolbar (above the bottom layout header), so they no longer stack inside the title column. Desktop/tablet inline placement unchanged. App <code>v4.16.42</code>.</td></tr>
   <tr><td>2026-07-22</td><td>1.1.151</td><td>PDF toolbar: more space after More before layout nav; separator before Close. App <code>v4.16.41</code>.</td></tr>

@@ -113,8 +113,9 @@
   align-items: center;
   gap: 0.65rem;
   min-width: 0;
-  // Desktop/tablet: allow triage chrome to wrap beside the title when squeezed.
-  flex-wrap: wrap;
+  // Single-line header: wrapping triage beside the title doubled toolbar height
+  // (desktop/tablet Staging) and vertically stacked the triage pills.
+  flex-wrap: nowrap;
 
   @media (max-width: 768px) {
     // Phone: title row is title (+ kebab) only — never wrap into a second toolbar line.
@@ -126,7 +127,35 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+  max-width: 100%;
+
+  // Desktop/tablet inline chrome (phone uses --phone-row). Shrink tabs into the
+  // remaining title-row width instead of wrapping into a second header line.
+  &:not(.staging-triage-tabs--phone-row) {
+    .staging-triage-tab {
+      flex: 1 1 0;
+      min-width: 0;
+      justify-content: center;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .staging-triage-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .staging-triage-separator {
+      flex: 0 0 auto;
+      align-self: center;
+    }
+
+    .staging-triage-tab--release {
+      flex: 0 1 auto;
+    }
+  }
 }
 
 // Phone Mode only (class is applied when isMobile/isPhone). Keep these rules on the

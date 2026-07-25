@@ -24,7 +24,7 @@ describe('BookBrowserComponent Staging Phone Mode triage row', () => {
     // Desktop keeps the inline title-row placement; phone uses the dedicated row class.
     expect(html).toMatch(/\[class\.staging-triage-tabs--phone-row\]="isMobile"/);
 
-    // Separator between Review and Completed is preserved in the shared template.
+    // Separator between Review and Done is preserved in the shared template.
     const reviewTab = html.indexOf('staging-triage-tab--review');
     const separator = html.indexOf('staging-triage-separator');
     const completedTab = html.indexOf('staging-triage-tab--completed');
@@ -33,7 +33,7 @@ describe('BookBrowserComponent Staging Phone Mode triage row', () => {
     expect(completedTab).toBeGreaterThan(separator);
   });
 
-  it('styles the Phone Mode triage row to full width with a Review|Completed separator', () => {
+  it('styles the Phone Mode triage row to full width with a Review|Done separator', () => {
     const scss = readFileSync(scssPath, 'utf8');
     const responsivePath = join(process.cwd(), 'src/assets/layout/styles/layout/_responsive.scss');
     const responsive = readFileSync(responsivePath, 'utf8');
