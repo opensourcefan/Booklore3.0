@@ -182,3 +182,44 @@ describe('pdf-reader toolbar regroup', () => {
     expect(template).not.toMatch(/\(click\)="toggleExternalLinks\(\)"/);
   });
 });
+
+describe('pdf-reader phone toolbar (no mash)', () => {
+  const scss = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.scss'),
+    'utf-8'
+  );
+
+  /** Phone-only block: everything inside the first @media (max-width: 768px). */
+  function phoneToolbarScss(): string {
+    const match = scss.match(
+      /@media\s*\(\s*max-width:\s*768px\s*\)\s*\{([\s\S]*)/
+    );
+    expect(match, 'expected a @media (max-width: 768px) phone toolbar block').not.toBeNull();
+    return match![1];
+  }
+
+  it('scopes the de-mash layout to Phone Mode width only', () => {
+    expect(scss).toMatch(/@media\s*\(\s*max-width:\s*768px\s*\)/);
+    // Desktop/tablet grid + wide nav stay outside the phone media query.
+    const desktopSlice = scss.slice(0, scss.search(/@media\s*\(\s*max-width:\s*768px\s*\)/));
+    expect(desktopSlice).toMatch(/grid-template-columns:\s*1fr\s+auto\s+1fr/);
+    expect(desktopSlice).toMatch(/width:\s*56px\s*!important/);
+  });
+
+  it('replaces the overlapping 3-column grid with a flex row on phone', () => {
+    const phone = phoneToolbarScss();
+    expect(phone).toMatch(/#toolbarViewer[\s\S]*display:\s*flex\s*!important/);
+    expect(phone).toMatch(/#toolbarViewer[\s\S]*grid-template-columns:\s*none\s*!important/);
+    expect(phone).toMatch(/#toolbarViewer[\s\S]*justify-content:\s*space-between\s*!important/);
+  });
+
+  it('restores compact Contents/Thumbs hit targets on phone so clusters do not collide', () => {
+    const phone = phoneToolbarScss();
+    expect(phone).toMatch(
+      /toolbar-btn--wide[\s\S]*width:\s*28px\s*!important/
+    );
+    expect(phone).toMatch(
+      /toolbar-btn--wide[\s\S]*flex:\s*0\s+0\s+28px\s*!important/
+    );
+  });
+});

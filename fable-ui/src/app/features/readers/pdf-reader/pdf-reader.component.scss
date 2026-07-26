@@ -172,6 +172,48 @@
   }
 }
 
+/* Phone Mode only: the desktop/tablet 1fr|auto|1fr grid + 56px nav buttons
+   overlap on ≤768 CSS widths (left/middle/right paint on top of each other).
+   Keep the same controls and 32px chrome height; switch to a non-overlapping
+   flex row and restore standard 28px nav hit targets. Desktop/tablet unchanged. */
+@media (max-width: 768px) {
+  ::ng-deep {
+    #toolbarViewer {
+      display: flex !important;
+      grid-template-columns: none !important;
+      justify-content: space-between !important;
+      gap: 0.25rem;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    #toolbarViewerLeft,
+    #toolbarViewerRight,
+    .pdf-toolbar-middle {
+      flex: 0 0 auto !important;
+      justify-self: auto !important;
+      grid-column: auto !important;
+      min-width: 0;
+    }
+
+    #toolbarViewerLeft button.toolbar-btn.toolbar-btn--wide {
+      width: 28px !important;
+      min-width: 28px !important;
+      flex: 0 0 28px !important;
+    }
+
+    .pdf-toolbar-middle {
+      gap: 0.25rem;
+    }
+  }
+}
+
 // Bookmark dialog overlay
 .bookmark-dialog-overlay {
   position: fixed;
