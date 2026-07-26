@@ -223,3 +223,43 @@ describe('pdf-reader phone toolbar (no mash)', () => {
     );
   });
 });
+
+describe('pdf-reader phone touch navigation', () => {
+  const source = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.ts'),
+    'utf-8'
+  );
+  const handler = readFileSync(
+    resolve(__dirname, 'pdf-touch-navigation.handler.ts'),
+    'utf-8'
+  );
+
+  function methodBody(name: string): string {
+    const match = source.match(
+      new RegExp(
+        `(?:private\\s+|public\\s+)?${name}\\s*\\([^)]*\\)\\s*(?::\\s*[^{]+)?\\{([\\s\\S]*?)\\n  \\}`
+      )
+    );
+    expect(match, `expected method ${name}()`).not.toBeNull();
+    return match![1];
+  }
+
+  it('arms touch navigation on any touch device, including Phone Mode', () => {
+    const body = methodBody('initTouchNavigation');
+    // Historical phone gate from tablet-only rollout must stay removed.
+    expect(body).not.toMatch(/isPhone/);
+    expect(body).toMatch(/hasTouchInput/);
+  });
+
+  it('flashes left/right tap-zone hints on Phone Mode when entering page-based modes', () => {
+    const body = methodBody('flashTouchZones');
+    expect(body).not.toMatch(/isPhone/);
+    expect(body).toMatch(/hasTouchInput/);
+    expect(body).toMatch(/isPageBasedMode/);
+  });
+
+  it('documents that the handler covers Phone Mode page-based navigation', () => {
+    expect(handler).toMatch(/Phone Mode/);
+    expect(handler).not.toMatch(/non-phone touch devices/);
+  });
+});

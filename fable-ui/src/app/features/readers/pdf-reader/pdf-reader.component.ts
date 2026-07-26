@@ -674,7 +674,6 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
 
   private initTouchNavigation(): void {
     if (this.touchHandler) return;
-    if (this.mobileUx.isPhone) return;
     if (!this.mobileUx.hasTouchInput) return;
 
     const container = this.hostRef.nativeElement as HTMLElement;
@@ -1081,7 +1080,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
 
   /** Flash touch zone hints for 1.2s, then fade out. */
   flashTouchZones(): void {
-    if (!this.mobileUx.hasTouchInput || this.mobileUx.isPhone) return;
+    if (!this.mobileUx.hasTouchInput) return;
     if (!this.isPageBasedMode()) return;
 
     // Clear any existing timers

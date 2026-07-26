@@ -1,5 +1,5 @@
 /**
- * PDF touch navigation for non-phone touch devices.
+ * PDF touch navigation for Phone Mode and tablet/desktop-touch devices.
  *
  * Provides tap-zone and swipe-based page navigation for page-based PDF scroll
  * modes (single-page, book, horizontal). Disabled in continuous scroll modes
