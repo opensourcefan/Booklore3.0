@@ -187,6 +187,7 @@
       overflow-y: hidden !important;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      position: relative !important;
 
       &::-webkit-scrollbar {
         display: none;
@@ -194,12 +195,25 @@
     }
 
     #toolbarViewerLeft,
-    #toolbarViewerRight,
-    .pdf-toolbar-middle {
+    #toolbarViewerRight {
       flex: 0 0 auto !important;
       justify-self: auto !important;
       grid-column: auto !important;
       min-width: 0;
+      z-index: 1;
+    }
+
+    /* True visual center for − / ⋯ / + so space-between cannot shove the cluster. */
+    .pdf-toolbar-middle {
+      position: absolute !important;
+      left: 50% !important;
+      transform: translateX(-50%);
+      justify-self: auto !important;
+      grid-column: auto !important;
+      flex: 0 0 auto !important;
+      min-width: 0;
+      gap: 0.15rem;
+      z-index: 2;
     }
 
     #toolbarViewerLeft button.toolbar-btn.toolbar-btn--wide {
@@ -208,8 +222,9 @@
       flex: 0 0 28px !important;
     }
 
-    .pdf-toolbar-middle {
-      gap: 0.25rem;
+    /* Native ngx scale <select> is hiddenTinyView on phone; keep it gone if present. */
+    #scaleSelectContainer {
+      display: none !important;
     }
   }
 }
@@ -405,6 +420,17 @@
 /* Default toolbar-btn trailing margin is 2px; double the gap before layout nav. */
 ::ng-deep .pdf-toolbar-menu--more {
   margin-right: 8px;
+}
+
+/* Phone zoom-cluster ellipsis: compact separator between Zoom − and Zoom +. */
+::ng-deep .pdf-toolbar-menu--zoom {
+  margin-left: 0;
+  margin-right: 0;
+
+  .toolbar-btn.pdf-menu-trigger {
+    margin-left: 2px;
+    margin-right: 2px;
+  }
 }
 
 ::ng-deep .pdf-close-separator {

@@ -35,7 +35,7 @@ The workspace root is `/home/michael/fable`. When working with file paths, remem
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
-| Latest documented tag | `v4.16.46` |
+| Latest documented tag | `v4.16.47` |
 | GitHub owner | `opensourcefan` |
 
 ### Branch naming conventions
@@ -93,7 +93,7 @@ The workspace root is `/home/michael/fable`. When working with file paths, remem
 - @stomp/rx-stomp 2.3.0 — WebSocket client
 - @jsverse/transloco 8.3.0 — i18n
 - chart.js 4.5.1 — charts
-- ngx-extended-pdf-viewer 25.6.4 — PDF reader; primary toolbar uses wide Contents/Thumbs nav, rotate beside zoom, Annotate + More labeled menus (pan/select/print/links/theme); layout modes still use ngx secondary Tools overflow on tablet; Phone Mode (≤768) uses a non-overlapping flex toolbar with compact nav buttons so clusters do not mash; Phone Mode also gets tap-zone/swipe page navigation in single-page, Book, and horizontal modes
+- ngx-extended-pdf-viewer 25.6.4 — PDF reader; primary toolbar uses wide Contents/Thumbs nav, rotate beside zoom, Annotate + More labeled menus (pan/select/print/links/theme); layout modes still use ngx secondary Tools overflow on tablet; Phone Mode (≤768) uses a non-overlapping flex toolbar with compact nav buttons so clusters do not mash; Phone Mode also gets tap-zone/swipe page navigation in single-page, Book, and horizontal modes; Phone zoom cluster is − / ⋮ / + with a page-size fit menu (fit page/width/auto/actual) and true-centered middle chrome
 - ng-lazyload-image 9.1.3 — lazy loading
 - dompurify 3.4.2 — XSS sanitization
 - primeicons 7.0.0 — icon library
@@ -219,7 +219,7 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 ### Version Numbers
 
 - Backend/frontend version: `4.16.44` (in `fable-api/build.gradle` and `fable-ui/package.json`)
-- Latest documented git tag: `v4.16.46`
+- Latest documented git tag: `v4.16.47`
 
 ### Documentation Parity
 

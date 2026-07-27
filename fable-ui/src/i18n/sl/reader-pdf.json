@@ -10,7 +10,12 @@
     "annotate": "Annotate",
     "annotateText": "Add text",
     "more": "More tools",
-    "panDocument": "Pan document"
+    "panDocument": "Pan document",
+    "zoomFitMenu": "Page size",
+    "zoomPageFit": "Fit page",
+    "zoomPageWidth": "Fit width",
+    "zoomAutomatic": "Automatic",
+    "zoomActualSize": "Actual size"
   },
   "toast": {
     "failedToLoadBook": "Nalaganje knjige ni uspelo"

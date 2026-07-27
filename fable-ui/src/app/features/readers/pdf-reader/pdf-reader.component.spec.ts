@@ -122,9 +122,12 @@ describe('pdf-reader toolbar regroup', () => {
   });
 
   it('places rotate beside the zoom toolbar in the middle cluster', () => {
-    const middle = template.match(
-      /<div class="pdf-toolbar-middle"[\s\S]*?<\/div>/
-    )?.[0] ?? '';
+    // Non-greedy first </div> is too early once Phone Mode nests menus; use the host block.
+    const middleStart = template.indexOf('class="pdf-toolbar-middle"');
+    const rightStart = template.indexOf('id="toolbarViewerRight"');
+    expect(middleStart).toBeGreaterThan(-1);
+    expect(rightStart).toBeGreaterThan(middleStart);
+    const middle = template.slice(middleStart, rightStart);
     expect(middle).toContain('<pdf-zoom-toolbar');
     expect(middle).toContain('<pdf-rotate-page');
   });
@@ -221,6 +224,78 @@ describe('pdf-reader phone toolbar (no mash)', () => {
     expect(phone).toMatch(
       /toolbar-btn--wide[\s\S]*flex:\s*0\s+0\s+28px\s*!important/
     );
+  });
+
+  it('pins the zoom middle cluster to true viewport center on phone', () => {
+    const phone = phoneToolbarScss();
+    expect(phone).toMatch(
+      /\.pdf-toolbar-middle[\s\S]*position:\s*absolute\s*!important/
+    );
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*left:\s*50%\s*!important/);
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*transform:\s*translateX\(-50%\)/);
+  });
+});
+
+describe('pdf-reader phone zoom-fit menu', () => {
+  const template = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.html'),
+    'utf-8'
+  );
+  const source = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.ts'),
+    'utf-8'
+  );
+  const scss = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.scss'),
+    'utf-8'
+  );
+
+  it('renders − / ⋯ / + on Phone Mode and keeps pdf-zoom-toolbar for other layouts', () => {
+    expect(template).toMatch(/@if\s*\(\s*isPhone\s*\)/);
+    expect(template).toContain('<pdf-zoom-out');
+    expect(template).toContain('pdf-toolbar-menu--zoom');
+    expect(template).toContain('toggleZoomMenu');
+    expect(template).toContain('<pdf-zoom-in');
+    expect(template).toContain('<pdf-zoom-toolbar');
+  });
+
+  it('exposes page-fit / page-width / auto / page-actual actions', () => {
+    expect(template).toContain("setZoomMode('page-fit')");
+    expect(template).toContain("setZoomMode('page-width')");
+    expect(template).toContain("setZoomMode('auto')");
+    expect(template).toContain("setZoomMode('page-actual')");
+    expect(template).toContain('readerPdf.toolbar.zoomPageFit');
+    expect(template).toContain('readerPdf.toolbar.zoomPageWidth');
+    expect(template).toContain('readerPdf.toolbar.zoomAutomatic');
+    expect(template).toContain('readerPdf.toolbar.zoomActualSize');
+  });
+
+  it('dispatches scalechanged and closes sibling overflow menus', () => {
+    expect(source).toContain('setZoomMode(mode: ZoomType)');
+    expect(source).toMatch(/scalechanged[\s\S]*value:\s*mode/);
+    expect(source).toContain('zoomMenuOpen = false');
+    expect(source).toContain('toggleZoomMenu');
+    // Mutual exclusion with Annotate / More.
+    expect(source).toMatch(/toggleZoomMenu[\s\S]*annotateMenuOpen = false/);
+    expect(source).toMatch(/toggleZoomMenu[\s\S]*moreMenuOpen = false/);
+    expect(source).toMatch(/closeToolbarMenus[\s\S]*zoomMenuOpen = false/);
+  });
+
+  it('uses a vertical ellipsis between Zoom − and Zoom +', () => {
+    const zoomMenu = template.match(
+      /pdf-toolbar-menu--zoom[\s\S]*?<\/div>\s*<pdf-zoom-in/
+    )?.[0] ?? '';
+    expect(zoomMenu).toMatch(
+      /circle cx="12" cy="5"[\s\S]*circle cx="12" cy="12"[\s\S]*circle cx="12" cy="19"/
+    );
+    // More menu stays horizontal; do not confuse the two.
+    expect(template).toMatch(
+      /pdf-toolbar-menu--more[\s\S]*circle cx="5" cy="12"[\s\S]*circle cx="12" cy="12"[\s\S]*circle cx="19" cy="12"/
+    );
+  });
+
+  it('styles the zoom ellipsis as a compact cluster separator', () => {
+    expect(scss).toContain('.pdf-toolbar-menu--zoom');
   });
 });
 

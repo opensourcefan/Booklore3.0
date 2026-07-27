@@ -69,7 +69,51 @@
       </div>
 
       <div class="pdf-toolbar-middle" [class.pdf-dark]="isDarkTheme">
-        <pdf-zoom-toolbar></pdf-zoom-toolbar>
+        @if (isPhone) {
+          <pdf-zoom-out></pdf-zoom-out>
+          <div class="pdf-toolbar-menu pdf-toolbar-menu--zoom" [class.open]="zoomMenuOpen">
+            <button
+              type="button"
+              class="toolbar-btn pdf-menu-trigger"
+              [class.active]="zoomMenuOpen || isFitZoomMode"
+              [title]="'readerPdf.toolbar.zoomFitMenu' | transloco"
+              [attr.aria-expanded]="zoomMenuOpen"
+              aria-haspopup="true"
+              (click)="toggleZoomMenu($event)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+              </svg>
+            </button>
+            @if (zoomMenuOpen) {
+              <div
+                class="pdf-menu-dropdown"
+                [class.pdf-dark]="isDarkTheme"
+                [style.--pdf-menu-top]="toolbarMenuTop"
+                [style.--pdf-menu-right]="toolbarMenuRight"
+                role="menu"
+                tabindex="0"
+                (keydown)="$event.stopPropagation()"
+                (pointerdown)="$event.stopPropagation()"
+                (click)="$event.stopPropagation()">
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="zoom === 'page-fit'" (click)="setZoomMode('page-fit')">
+                  <span>{{ 'readerPdf.toolbar.zoomPageFit' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="zoom === 'page-width'" (click)="setZoomMode('page-width')">
+                  <span>{{ 'readerPdf.toolbar.zoomPageWidth' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="zoom === 'auto'" (click)="setZoomMode('auto')">
+                  <span>{{ 'readerPdf.toolbar.zoomAutomatic' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="zoom === 'page-actual'" (click)="setZoomMode('page-actual')">
+                  <span>{{ 'readerPdf.toolbar.zoomActualSize' | transloco }}</span>
+                </button>
+              </div>
+            }
+          </div>
+          <pdf-zoom-in></pdf-zoom-in>
+        } @else {
+          <pdf-zoom-toolbar></pdf-zoom-toolbar>
+        }
         <pdf-rotate-page></pdf-rotate-page>
       </div>
 

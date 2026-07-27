@@ -146,9 +146,10 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private modeTransitionRafHandles: number[] = [];
   private modeTransitionTimers: ReturnType<typeof setTimeout>[] = [];
 
-  // Primary-toolbar overflow menus (Annotate / More)
+  // Primary-toolbar overflow menus (Annotate / More / Phone zoom-fit)
   annotateMenuOpen = false;
   moreMenuOpen = false;
+  zoomMenuOpen = false;
   /** Viewport-anchored placement for fixed dropdowns (avoids toolbar clip). */
   toolbarMenuTop = '36px';
   toolbarMenuRight = '8px';
@@ -163,6 +164,19 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
 
   get annotationEditorActive(): boolean {
     return this.annotationEditorMode !== PDF_ANNOTATION_EDITOR_MODE.NONE;
+  }
+
+  /** Phone layout Mode — drives the − / ⋯ / + zoom cluster. */
+  get isPhone(): boolean {
+    return this.mobileUx.isPhone;
+  }
+
+  /** True when zoom is a named fit mode (highlights the phone zoom-fit trigger). */
+  get isFitZoomMode(): boolean {
+    return this.zoom === 'page-fit'
+      || this.zoom === 'page-width'
+      || this.zoom === 'auto'
+      || this.zoom === 'page-actual';
   }
 
   private bookService = inject(BookService);
@@ -814,6 +828,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     const opening = !this.annotateMenuOpen;
     this.moreMenuOpen = false;
+    this.zoomMenuOpen = false;
     this.annotateMenuOpen = opening;
     if (opening) {
       this.anchorToolbarMenu(event);
@@ -829,7 +844,24 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     const opening = !this.moreMenuOpen;
     this.annotateMenuOpen = false;
+    this.zoomMenuOpen = false;
     this.moreMenuOpen = opening;
+    if (opening) {
+      this.anchorToolbarMenu(event);
+      this.toolbarMenuDismissGuard.arm();
+      this.ensureToolbarMenuOutsideListener();
+    } else {
+      this.teardownToolbarMenuOutsideListener();
+    }
+  }
+
+  toggleZoomMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const opening = !this.zoomMenuOpen;
+    this.annotateMenuOpen = false;
+    this.moreMenuOpen = false;
+    this.zoomMenuOpen = opening;
     if (opening) {
       this.anchorToolbarMenu(event);
       this.toolbarMenuDismissGuard.arm();
@@ -842,6 +874,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   closeToolbarMenus(): void {
     this.annotateMenuOpen = false;
     this.moreMenuOpen = false;
+    this.zoomMenuOpen = false;
     this.teardownToolbarMenuOutsideListener();
   }
 
@@ -871,7 +904,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       if (this.toolbarMenuDismissGuard.shouldIgnore()) {
         return;
       }
-      if (!(this.annotateMenuOpen || this.moreMenuOpen)) {
+      if (!(this.annotateMenuOpen || this.moreMenuOpen || this.zoomMenuOpen)) {
         return;
       }
       const target = event.target;
@@ -892,6 +925,20 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     }
     document.removeEventListener('pointerdown', this.toolbarMenuOutsideListener, true);
     this.toolbarMenuOutsideListener = null;
+  }
+
+  /**
+   * Apply a named page-size / fit zoom from the Phone Mode zoom-cluster menu.
+   * Dispatches scalechanged so pdf.js refits immediately (same path as resize).
+   */
+  setZoomMode(mode: ZoomType): void {
+    if (this.zoom !== mode) {
+      this.zoom = mode;
+      this.updateViewerSetting();
+    }
+    const app = this.pdfNotification.onPDFJSInitSignal();
+    app?.eventBus?.dispatch('scalechanged', {value: mode});
+    this.closeToolbarMenus();
   }
 
   onAnnotateHighlight(): void {

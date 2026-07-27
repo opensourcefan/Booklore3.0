@@ -17,7 +17,12 @@
     "more": "More tools",
     "panDocument": "Pan document",
     "selectText": "Select text",
-    "print": "Print"
+    "print": "Print",
+    "zoomFitMenu": "Page size",
+    "zoomPageFit": "Fit page",
+    "zoomPageWidth": "Fit width",
+    "zoomAutomatic": "Automatic",
+    "zoomActualSize": "Actual size"
   },
   "sidebar": {
     "contentsTab": "Contents",
