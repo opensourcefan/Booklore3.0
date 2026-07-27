@@ -118,63 +118,66 @@
       </div>
 
       <div id="toolbarViewerRight" [class.pdf-dark]="isDarkTheme">
-        <button class="toolbar-btn bookmark-btn" [class.active]="isCurrentPageBookmarked" [title]="isCurrentPageBookmarked ? ('readerPdf.toolbar.removeBookmark' | transloco) : ('readerPdf.toolbar.addBookmark' | transloco)" (click)="onToggleBookmark()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" [attr.fill]="isCurrentPageBookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
-          </svg>
-        </button>
-
-        <div class="pdf-toolbar-menu" [class.open]="annotateMenuOpen">
-          <button
-            type="button"
-            class="toolbar-btn pdf-menu-trigger"
-            [class.active]="annotateMenuOpen || annotationEditorActive"
-            [title]="'readerPdf.toolbar.annotate' | transloco"
-            [attr.aria-expanded]="annotateMenuOpen"
-            aria-haspopup="true"
-            (click)="toggleAnnotateMenu($event)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+        @if (!isPhone) {
+          <button class="toolbar-btn bookmark-btn" [class.active]="isCurrentPageBookmarked" [title]="isCurrentPageBookmarked ? ('readerPdf.toolbar.removeBookmark' | transloco) : ('readerPdf.toolbar.addBookmark' | transloco)" (click)="onToggleBookmark()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" [attr.fill]="isCurrentPageBookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
             </svg>
           </button>
-          @if (annotateMenuOpen) {
-            <div
-              class="pdf-menu-dropdown"
-              [class.pdf-dark]="isDarkTheme"
-              [style.--pdf-menu-top]="toolbarMenuTop"
-              [style.--pdf-menu-right]="toolbarMenuRight"
-              role="menu"
-              tabindex="0"
-              (keydown)="$event.stopPropagation()"
-              (pointerdown)="$event.stopPropagation()"
-              (click)="$event.stopPropagation()">
-              <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.HIGHLIGHT" (click)="onAnnotateHighlight()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>
-                </svg>
-                <span>{{ 'readerPdf.toolbar.annotateHighlight' | transloco }}</span>
-              </button>
-              <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.FREETEXT" (click)="onAnnotateText()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>
-                </svg>
-                <span>{{ 'readerPdf.toolbar.annotateText' | transloco }}</span>
-              </button>
-              <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.INK" (click)="onAnnotateDraw()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-                </svg>
-                <span>{{ 'readerPdf.toolbar.annotateDraw' | transloco }}</span>
-              </button>
-            </div>
-          }
-        </div>
+
+          <div class="pdf-toolbar-menu" [class.open]="annotateMenuOpen">
+            <button
+              type="button"
+              class="toolbar-btn pdf-menu-trigger"
+              [class.active]="annotateMenuOpen || annotationEditorActive"
+              [title]="'readerPdf.toolbar.annotate' | transloco"
+              [attr.aria-expanded]="annotateMenuOpen"
+              aria-haspopup="true"
+              (click)="toggleAnnotateMenu($event)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+              </svg>
+            </button>
+            @if (annotateMenuOpen) {
+              <div
+                class="pdf-menu-dropdown"
+                [class.pdf-dark]="isDarkTheme"
+                [style.--pdf-menu-top]="toolbarMenuTop"
+                [style.--pdf-menu-right]="toolbarMenuRight"
+                role="menu"
+                tabindex="0"
+                (keydown)="$event.stopPropagation()"
+                (pointerdown)="$event.stopPropagation()"
+                (click)="$event.stopPropagation()">
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.HIGHLIGHT" (click)="onAnnotateHighlight()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>
+                  </svg>
+                  <span>{{ 'readerPdf.toolbar.annotateHighlight' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.FREETEXT" (click)="onAnnotateText()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>
+                  </svg>
+                  <span>{{ 'readerPdf.toolbar.annotateText' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.INK" (click)="onAnnotateDraw()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                  </svg>
+                  <span>{{ 'readerPdf.toolbar.annotateDraw' | transloco }}</span>
+                </button>
+              </div>
+            }
+          </div>
+        }
 
         <div class="pdf-toolbar-menu pdf-toolbar-menu--more" [class.open]="moreMenuOpen">
           <button
             type="button"
             class="toolbar-btn pdf-menu-trigger"
-            [class.active]="moreMenuOpen"
+            [class.active]="moreMenuOpen || (isPhone && annotationEditorActive)"
+            [class.bookmark-active]="isPhone && isCurrentPageBookmarked"
             [title]="'readerPdf.toolbar.more' | transloco"
             [attr.aria-expanded]="moreMenuOpen"
             aria-haspopup="true"
@@ -194,6 +197,32 @@
               (keydown)="$event.stopPropagation()"
               (pointerdown)="$event.stopPropagation()"
               (click)="$event.stopPropagation()">
+              @if (isPhone) {
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="isCurrentPageBookmarked" (click)="onMoreToggleBookmark()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" [attr.fill]="isCurrentPageBookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                  </svg>
+                  <span>{{ isCurrentPageBookmarked ? ('readerPdf.toolbar.removeBookmark' | transloco) : ('readerPdf.toolbar.addBookmark' | transloco) }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.HIGHLIGHT" (click)="onAnnotateHighlight()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>
+                  </svg>
+                  <span>{{ 'readerPdf.toolbar.annotateHighlight' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.FREETEXT" (click)="onAnnotateText()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>
+                  </svg>
+                  <span>{{ 'readerPdf.toolbar.annotateText' | transloco }}</span>
+                </button>
+                <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="annotationEditorMode === annotationModes.INK" (click)="onAnnotateDraw()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                  </svg>
+                  <span>{{ 'readerPdf.toolbar.annotateDraw' | transloco }}</span>
+                </button>
+              }
               <button type="button" class="pdf-menu-item" role="menuitem" [class.active]="cursorTool === cursorTools.HAND" (click)="onMorePan()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.81l-1.47-2.32A2.4 2.4 0 0 1 4 13.5a2.4 2.4 0 0 1 3.2-1.74 2.4 2.4 0 0 1 1.6.66"/>

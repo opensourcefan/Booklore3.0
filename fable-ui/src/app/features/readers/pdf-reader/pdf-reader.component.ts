@@ -961,6 +961,11 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.closeToolbarMenus();
   }
 
+  onMoreToggleBookmark(): void {
+    this.onToggleBookmark();
+    this.closeToolbarMenus();
+  }
+
   onMoreSelectText(): void {
     this.setCursorTool(PDF_CURSOR_TOOL.SELECT);
     this.closeToolbarMenus();

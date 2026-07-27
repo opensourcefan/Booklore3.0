@@ -148,7 +148,7 @@ describe('pdf-reader toolbar regroup', () => {
     expect(template).toMatch(/onMorePan\(\)"[\s\S]*?<svg[\s\S]*?<span>\{\{ 'readerPdf\.toolbar\.panDocument'/);
     expect(scss).toMatch(/#toolbarContainer[\s\S]*overflow:\s*visible\s*!important/);
     expect(scss).toMatch(/\.pdf-menu-dropdown[\s\S]*position:\s*fixed/);
-    // More sits with Annotate (before layout-mode overflow), not after secondary toolbar.
+    // Desktop Annotate sits before More; secondary Tools follows More.
     const annotateIdx = template.indexOf('toggleAnnotateMenu');
     const moreIdx = template.indexOf('toggleMoreMenu');
     const secondaryIdx = template.indexOf('pdf-toggle-secondary-toolbar');
@@ -296,6 +296,46 @@ describe('pdf-reader phone zoom-fit menu', () => {
 
   it('styles the zoom ellipsis as a compact cluster separator', () => {
     expect(scss).toContain('.pdf-toolbar-menu--zoom');
+  });
+});
+
+describe('pdf-reader phone More menu (bookmark + annotate)', () => {
+  const template = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.html'),
+    'utf-8'
+  );
+  const source = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.ts'),
+    'utf-8'
+  );
+  const scss = readFileSync(
+    resolve(__dirname, 'pdf-reader.component.scss'),
+    'utf-8'
+  );
+
+  it('hides standalone bookmark and annotate triggers on Phone Mode', () => {
+    expect(template).toMatch(/@if\s*\(\s*!isPhone\s*\)\s*\{[\s\S]*bookmark-btn[\s\S]*toggleAnnotateMenu/);
+    expect(template).toMatch(/pdf-toolbar-menu--more[\s\S]*bookmark-active/);
+  });
+
+  it('puts bookmark first in the Phone Mode More menu, then annotate actions', () => {
+    const moreOpen = template.indexOf('pdf-toolbar-menu--more');
+    const phoneBlock = template.indexOf('@if (isPhone)', moreOpen);
+    const bookmarkIdx = template.indexOf('onMoreToggleBookmark', phoneBlock);
+    const highlightIdx = template.indexOf("onAnnotateHighlight()", phoneBlock);
+    const panIdx = template.indexOf('onMorePan()', phoneBlock);
+    expect(phoneBlock).toBeGreaterThan(moreOpen);
+    expect(bookmarkIdx).toBeGreaterThan(phoneBlock);
+    expect(highlightIdx).toBeGreaterThan(bookmarkIdx);
+    expect(panIdx).toBeGreaterThan(highlightIdx);
+  });
+
+  it('tints the More ellipsis when the current page is bookmarked', () => {
+    expect(template).toContain('[class.bookmark-active]="isPhone && isCurrentPageBookmarked"');
+    expect(source).toContain('onMoreToggleBookmark');
+    expect(scss).toMatch(
+      /\.pdf-toolbar-menu--more[\s\S]*\.bookmark-active[\s\S]*color:\s*#e63946/
+    );
   });
 });
 

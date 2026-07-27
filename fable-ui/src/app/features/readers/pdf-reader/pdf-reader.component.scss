@@ -422,6 +422,16 @@
   margin-right: 8px;
 }
 
+/* Phone: More ellipsis turns bookmark-red when the current page is bookmarked. */
+::ng-deep .pdf-toolbar-menu--more .toolbar-btn.pdf-menu-trigger.bookmark-active {
+  color: #e63946;
+}
+
+::ng-deep .pdf-dark .pdf-toolbar-menu--more .toolbar-btn.pdf-menu-trigger.bookmark-active,
+::ng-deep #toolbarViewerRight.pdf-dark .pdf-toolbar-menu--more .toolbar-btn.pdf-menu-trigger.bookmark-active {
+  color: #ff6b6b;
+}
+
 /* Phone zoom-cluster ellipsis: compact separator between Zoom − and Zoom +. */
 ::ng-deep .pdf-toolbar-menu--zoom {
   margin-left: 0;
