@@ -231,8 +231,20 @@ describe('pdf-reader phone toolbar (no mash)', () => {
     expect(phone).toMatch(
       /\.pdf-toolbar-middle[\s\S]*position:\s*absolute\s*!important/
     );
-    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*left:\s*50%\s*!important/);
-    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*transform:\s*translateX\(-50%\)/);
+    // Margin-auto centering — must NOT use transform (traps position:fixed zoom menu).
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*left:\s*0\s*!important/);
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*right:\s*0\s*!important/);
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*width:\s*max-content/);
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*margin-left:\s*auto\s*!important/);
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*margin-right:\s*auto\s*!important/);
+    expect(phone).toMatch(/\.pdf-toolbar-middle[\s\S]*transform:\s*none\s*!important/);
+    expect(phone).not.toMatch(/transform:\s*translateX\(-50%\)/);
+  });
+
+  it('styles Phone toolbar menus like the hamburger Contents sidebar panel', () => {
+    const phone = phoneToolbarScss();
+    expect(phone).toMatch(/\.pdf-menu-dropdown[\s\S]*background:\s*#1a1a1a/);
+    expect(phone).toMatch(/\.pdf-menu-item[\s\S]*\.active[\s\S]*color:\s*#818cf8/);
   });
 });
 
@@ -296,6 +308,16 @@ describe('pdf-reader phone zoom-fit menu', () => {
 
   it('styles the zoom ellipsis as a compact cluster separator', () => {
     expect(scss).toContain('.pdf-toolbar-menu--zoom');
+  });
+
+  it('gives zoom-fit rows leading icons like More menu items', () => {
+    const zoomMenu = template.match(
+      /pdf-toolbar-menu--zoom[\s\S]*?<\/div>\s*<pdf-zoom-in/
+    )?.[0] ?? '';
+    expect(zoomMenu).toMatch(/setZoomMode\('page-fit'\)"[\s\S]*?<svg[\s\S]*?<span>/);
+    expect(zoomMenu).toMatch(/setZoomMode\('page-width'\)"[\s\S]*?<svg[\s\S]*?<span>/);
+    expect(zoomMenu).toMatch(/setZoomMode\('auto'\)"[\s\S]*?<svg[\s\S]*?<span>/);
+    expect(zoomMenu).toMatch(/setZoomMode\('page-actual'\)"[\s\S]*?<svg[\s\S]*?<span>/);
   });
 });
 

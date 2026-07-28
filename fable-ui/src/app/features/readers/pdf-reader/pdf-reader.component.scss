@@ -203,17 +203,24 @@
       z-index: 1;
     }
 
-    /* True visual center for − / ⋯ / + so space-between cannot shove the cluster. */
+    /* True visual center for − / ⋯ / + so space-between cannot shove the cluster.
+       Do NOT use transform here: it creates a containing block for position:fixed,
+       which traps the zoom-fit dropdown inside the height-locked, overflow-y:hidden
+       toolbar (More works because it lives outside this middle cluster). */
     .pdf-toolbar-middle {
       position: absolute !important;
-      left: 50% !important;
-      transform: translateX(-50%);
+      left: 0 !important;
+      right: 0 !important;
+      width: max-content;
+      margin-left: auto !important;
+      margin-right: auto !important;
       justify-self: auto !important;
       grid-column: auto !important;
       flex: 0 0 auto !important;
       min-width: 0;
       gap: 0.15rem;
       z-index: 2;
+      transform: none !important;
     }
 
     #toolbarViewerLeft button.toolbar-btn.toolbar-btn--wide {
@@ -225,6 +232,32 @@
     /* Native ngx scale <select> is hiddenTinyView on phone; keep it gone if present. */
     #scaleSelectContainer {
       display: none !important;
+    }
+
+    /* Phone: toolbar overflow menus match the hamburger (Contents) sidebar panel. */
+    .pdf-menu-dropdown {
+      background: #1a1a1a;
+      color: rgba(255, 255, 255, 0.95);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+      &.pdf-dark {
+        background: #1a1a1a;
+        color: rgba(255, 255, 255, 0.95);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .pdf-menu-item {
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      &.active {
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+        font-weight: 500;
+      }
     }
   }
 }
