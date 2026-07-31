@@ -128,23 +128,25 @@
   align-items: center;
   gap: 0.35rem;
   flex-wrap: nowrap;
-  min-width: 0;
-  flex: 1 1 auto;
   max-width: 100%;
 
-  // Desktop/tablet inline chrome (phone uses --phone-row). Shrink tabs into the
-  // remaining title-row width instead of wrapping into a second header line.
+  // Desktop/tablet inline chrome (phone uses --phone-row).
+  // Size tabs to their labels — flex: 1 1 0 + min-width: 0 collapsed intrinsic
+  // width to ~0 so Staged/Review/Done/Release ellipsized to "..." while the
+  // surrounding entity-info-wrapper still had free space.
   &:not(.staging-triage-tabs--phone-row) {
+    flex: 0 0 auto;
+    min-width: auto;
+
     .staging-triage-tab {
-      flex: 1 1 0;
-      min-width: 0;
+      flex: 0 0 auto;
+      min-width: auto;
       justify-content: center;
-      padding: 0.2rem 0.4rem;
     }
 
     .staging-triage-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     .staging-triage-separator {
@@ -153,7 +155,23 @@
     }
 
     .staging-triage-tab--release {
-      flex: 0 1 auto;
+      flex: 0 0 auto;
+    }
+  }
+}
+
+// Desktop: when the header is squeezed, ellipsize the title first — never the
+// short triage labels. Phone/tablet layout classes are untouched here.
+:host-context(body.layout-desktop) {
+  .entity-title-row {
+    .entity-title {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .staging-triage-tabs:not(.staging-triage-tabs--phone-row) {
+      flex: 0 0 auto;
+      flex-shrink: 0;
     }
   }
 }
