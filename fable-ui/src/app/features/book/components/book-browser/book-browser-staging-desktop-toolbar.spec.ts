@@ -26,7 +26,7 @@ describe('BookBrowserComponent Staging desktop/tablet triage toolbar', () => {
     // flex: 1 1 0 + min-width: 0 collapsed intrinsic width and ellipsized labels
     // to "..." despite free space in the header wrapper.
     const inlineChrome = scss.match(
-      /\.staging-triage-tabs\s*\{[\s\S]*?&:not\(\.staging-triage-tabs--phone-row\)\s*\{([\s\S]*?)\n  \}/
+      /\.staging-triage-tabs\s*\{[\s\S]*?&:not\(\.staging-triage-tabs--phone-row\)\s*\{([\s\S]*?)\n {2}\}/
     );
     expect(inlineChrome?.[1]).toBeTruthy();
     const chrome = inlineChrome![1];
